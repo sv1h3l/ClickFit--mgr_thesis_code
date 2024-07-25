@@ -1,0 +1,16 @@
+.header {
+    width: 100%;
+    padding: 10px;
+
+    background-color: #0086F0;
+
+    color: #D2EBFF;
+    text-align: center;
+}
+
+.header_stroke {
+    text-shadow: -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
