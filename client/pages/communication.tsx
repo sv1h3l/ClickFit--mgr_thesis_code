@@ -11,7 +11,7 @@ function communication() {
   return (
     <>
       <Head>
-        <title>Tréninkové plány - KlikFit</title>
+        <title>Komunikace - KlikFit</title>
       </Head>
 
       <Layout>

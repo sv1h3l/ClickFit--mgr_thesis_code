@@ -2,12 +2,12 @@ import React from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout';
 
-function TrainingPlans() {
+function TrainingsCreation() {
 
     return (
         <>
             <Head>
-                <title>Tréninkové plány - KlikFit</title>
+                <title>Tvorba tréninků - KlikFit</title>
             </Head>
 
             <Layout>
@@ -18,4 +18,4 @@ function TrainingPlans() {
     );
 }
 
-export default TrainingPlans;
+export default TrainingsCreation;
