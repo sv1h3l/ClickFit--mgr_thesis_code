@@ -11,9 +11,18 @@ function TitleComp({
   return (
     <Box className={horizontalLine ? "pt-2" : ""}>
       {horizontalLine && (
-        <Box component="div" className="border-t border-gray-300 w-full absolute left-0" />
+        <Box
+          component="div"
+          className="border-t border-gray-300 w-full absolute left-0"
+        />
       )}
-      <Typography className={`${horizontalLine ? "pt-2" : ""} font-bold text-lg text-nowrap`}>{title}</Typography>
+      <Typography
+        className={`${
+          horizontalLine ? "pt-2" : ""
+        } font-bold text-lg text-nowrap`}
+      >
+        {title}
+      </Typography>
     </Box>
   );
 }

@@ -19,13 +19,13 @@ function GeneralCard({ title, children }: GeneralCardProps) {
 
   return (
     /*<div className="flex justify-center items-center h-screen">*/
-      <Card style={{ minWidth: 300, maxWidth: 1000}} className="mx-4 relative">
-        <Typography className="p-3 font-bold text-xl">{title}</Typography>
+    <Card style={{ minWidth: 300, maxWidth: 1000 }} className="mx-4 relative">
+      <Typography className="p-3 font-bold text-xl">{title}</Typography>
 
-        <div className="border-t border-gray-300 w-full"></div>
+      <div className="border-t border-gray-300 w-full"></div>
 
-        {children}
-      </Card>
+      {children}
+    </Card>
     /*</div>*/
   );
 }

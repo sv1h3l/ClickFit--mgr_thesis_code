@@ -49,10 +49,7 @@ function SportData() {
                 />
 
                 <Title horizontalLine={true} title="Japonský šerm" />
-                <KeyValueLine
-                  title="100 suburi"
-                  value="náročné"
-                />
+                <KeyValueLine title="100 suburi" value="náročné" />
               </Box>
             </Box>
           </CardContent>

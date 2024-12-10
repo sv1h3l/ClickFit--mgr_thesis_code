@@ -68,10 +68,7 @@ function ExerciseInformation() {
             >
               Způsob provedení
             </Typography>
-            <Typography
-              component="p"
-              className="pl-3"
-            >
+            <Typography component="p" className="pl-3">
               Mírný předklon, mírné pokrčení kolen, pevný střed těla. Pohyb se
               provádí přítahováním osy ke spodní části hrudníku. Lokty by měly
               být v konečné fázi mírně nad tělem a tlačeny směrem k tělu. Pro
