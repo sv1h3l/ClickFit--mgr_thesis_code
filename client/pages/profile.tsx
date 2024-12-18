@@ -6,7 +6,7 @@ import PersonalAndHealthData from "@/components/PersonalAndHealthData";
 import { Box } from "@mui/material";
 import SportData from "@/components/SportData";
 
-function communication() {
+function Profile() {
   return (
     <>
       <Head>
@@ -44,4 +44,4 @@ function communication() {
   );
 }
 
-export default communication;
+export default Profile;

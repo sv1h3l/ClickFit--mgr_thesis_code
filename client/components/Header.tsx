@@ -28,31 +28,23 @@ function Header() {
     <>
       <AppBar
         position="absolute"
-        sx={{
-          backgroundColor: "transparent",
-          boxShadow: "none",
-          textAlign: "center",
-        }}
+        className="bg-transparent shadow-none text-center"
       >
-        <Box
-          sx={{ display: "flex", alignItems: "center" }}
-          className="px-6 bg-d-blue"
-        >
+        <Box className="px-6 bg-d-blue flex justify-center items-center">
           {user && (
-            <Box sx={{ flex: 1, textAlign: "left" }}>
+            <Box className="flex-1 text-left  w-1/3">
               <Typography variant="h4"> {currentTime} </Typography>
             </Box>
           )}
 
-          <Box sx={{ flex: 2, textAlign: "center" }}>
+          <Box className="flex-2 text-center w-1/3">
             <Typography variant="h3" component="h1">
-              {" "}
-              KlikFit{" "}
+              KlikFit
             </Typography>
           </Box>
 
           {user && (
-            <Box sx={{ flex: 1, textAlign: "right" }}>
+            <Box className="flex-1 text-right  w-1/3">
               <Box>
                 <Button
                   onClick={handleLogout}

@@ -5,7 +5,7 @@ import Card from '../components/Card';
 import { Button, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 
-function index() {
+function Index() {
     const router = useRouter();
 
     const handleLogin = () => {
@@ -55,4 +55,4 @@ function index() {
     );
 };
 
-export default index;
+export default Index;

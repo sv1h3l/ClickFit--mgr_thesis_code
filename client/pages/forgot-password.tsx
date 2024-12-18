@@ -5,7 +5,7 @@ import Card from '../components/Card';
 import { Button, TextField, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 
-function forgotPassword() {
+function ForgotPassword() {
     const router = useRouter();
     const [username, setUsername] = useState('');
 
@@ -52,4 +52,4 @@ function forgotPassword() {
     );
 }
 
-export default forgotPassword;
+export default ForgotPassword;

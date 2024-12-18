@@ -7,7 +7,7 @@ import QrCode2RoundedIcon from "@mui/icons-material/QrCode2Rounded";
 import Connections from "@/components/Connections";
 import QR from "@/components/QR";
 
-function communication() {
+function Communication() {
   return (
     <>
       <Head>
@@ -33,4 +33,4 @@ function communication() {
   );
 }
 
-export default communication;
+export default Communication;

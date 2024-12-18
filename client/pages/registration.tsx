@@ -1,113 +1,222 @@
-import React, { useState } from 'react';
-import Head from 'next/head';
-import Layout from '../components/Layout';
-import Card from '../components/Card';
-import { Typography, TextField, Button } from '@mui/material';
-import { useRouter } from 'next/router';
-import { useUser } from '../context/UserContext';
+import React, { useRef, useState } from "react";
+import Head from "next/head";
+import Layout from "../components/Layout";
+import Card from "../components/Card";
+import { Typography, TextField, Button } from "@mui/material";
+import { useRouter } from "next/router";
+import { useUser } from "../context/UserContext";
+import { registerUser } from "./api/registerUser";
 
-function registration() {
-    const router = useRouter();
-    const { setUser } = useUser();
-    const [name, setName] = useState('');
-    const [surname, setSurname] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+function Registration() {
+	const router = useRouter();
+	const { setUser } = useUser();
 
-    const handleRegistration = () => {
-        setUser({ email });
-        router.push('/training-plans');
-    };
+	/**  Refs pro uchování hodnot formulářových polí */
+	const nameRef = useRef<HTMLInputElement>(null);
+	const surnameRef = useRef<HTMLInputElement>(null);
+	const emailRef = useRef<HTMLInputElement>(null);
+	const passwordRef = useRef<HTMLInputElement>(null);
+	const confirmPasswordRef = useRef<HTMLInputElement>(null);
 
+	/** States pro zobrazování chyb ve formulářových polích */
+	const [errorName, setErrorName] = useState<string>("");
+	const [errorSurname, setErrorSurname] = useState<string>("");
+	const [errorEmail, setErrorEmail] = useState<string>("");
+	const [errorPassword, setErrorPassword] = useState<string>("");
+	const [errorConfirmPassword, setErrorConfirmPassword] = useState<string>("");
 
-    return (
-        <>
-            <Head>
-                <title>Registrace - KlikFit</title>
-            </Head>
+	/** Consts obsahující texty pro chybová hlášení formulářových polí */
+	const errorNameText = "Jméno nesmí být prázdné";
+	const errorSurnameText = "Příjmení nesmí být prázdné";
+	const errorEmailText1 = "Neplatná emailová adresa";
+	const errorEmailText2 = "";
+	const errorPasswordText = "Heslo musí obsahovat alespoň 8 znaků";
+	const errorConfirmPasswordText = "Hesla se neshodují";
 
-            <Layout>
-                <Card>
-                    <Typography variant="h5" component="div" gutterBottom style={{ textAlign: 'center' }} className="mb-0">
-                        Registrace
-                    </Typography>
+	const handleRegistration = async () => {
+		const name = nameRef.current?.value || "";
+		const surname = surnameRef.current?.value || "";
+		const email = emailRef.current?.value || "";
+		const password = passwordRef.current?.value || "";
+		const confirmPassword = confirmPasswordRef.current?.value || "";
 
-                    <div className='flex flex-no-wrap gap-10'>
-                        <TextField
-                            error
-                            helperText="Jméno nesmí být prázdné"
-                            label="Jméno"
-                            type=""
-                            margin="normal"
-                            variant="standard"
-                            value={name}
-                            size="small"
-                            onChange={(e) => setName(e.target.value)}
-                        />
+		let dontFetch = false;
 
-                        <TextField
-                            error
-                            helperText="Příjmení nesmí být prázdné"
-                            label="Přijmení"
-                            type=""
-                            margin="normal"
-                            variant="standard"
-                            value={surname}
-                            size="small"
-                            onChange={(e) => setSurname(e.target.value)}
-                        />
-                    </div>
+		/*!name && (setErrorName(errorNameText), (dontFetch = true));
+		!surname && (setErrorSurname(errorSurnameText), (dontFetch = true));
+		!email && (setErrorEmail(errorEmailText1), (dontFetch = true));
+		password.length < 8 && (setErrorPassword(errorPasswordText), (dontFetch = true));
+		password !== confirmPassword && (setErrorConfirmPassword(errorConfirmPasswordText), (dontFetch = true));*/
 
-                    <div>
-                        <TextField
-                            error
-                            helperText="Neplatný email" /* Účet s tímto emailem již existuje */
-                            label="Email"
-                            type="email"
-                            fullWidth
-                            margin="normal"
-                            variant="standard"
-                            value={email}
-                            size="small"
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
+		if (dontFetch) return;
+		else {
+			try {
+				await registerUser({
+					name,
+					surname,
+					email,
+					password,
+					confirmPassword,
+				});
 
-                        <TextField
-                            error
-                            helperText="Heslo musí osbahovat alespoň 8 znaků"
-                            label="Heslo"
-                            type="password"
-                            fullWidth
-                            margin="normal"
-                            variant="standard"
-                            value={password}
-                            size="small"
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+				setUser({ email });
+				router.push("/training-plans");
+			} catch (error: any) {
+				console.error("Error:", error.message, "\nStatus code:", error.statusCode);
 
-                    <TextField
-                        error
-                        helperText="Hesla se neshodují"
-                        label="Potvrzení hesla"
-                        type="password"
-                        fullWidth
-                        margin="normal"
-                        variant="standard"
-                        value={confirmPassword}
-                        size="small"
-                        className="mb-8"
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
+				if (error.statusCode === 400) {
+					const { errors } = error;
 
-                    <Button variant="contained" color="primary" onClick={handleRegistration}>
-                        Registrovat se
-                    </Button>
-                </Card>
-            </Layout>
-        </>
-    );
+					setErrorName(errors.name || "");
+					setErrorSurname(errors.surname || "");
+					setErrorEmail(errors.email || "");
+					setErrorPassword(errors.password || "");
+					setErrorConfirmPassword(errors.confirmPassword || "");
+
+				} else if (error.statusCode === 500) {
+					alert("Došlo k serverové chybě. Zkuste to znovu.");
+				}
+			}
+		}
+	};
+
+	return (
+		<>
+			<Head>
+				<title>Registrace - KlikFit</title>
+			</Head>
+
+			<Layout>
+				<Card>
+					<Typography
+						variant="h5"
+						component="div"
+						gutterBottom
+						style={{ textAlign: "center" }}
+						className="mb-0">
+						Registrace
+					</Typography>
+
+					<div className="max-w-sm">
+						<div className="flex flex-no-wrap gap-10 ">
+							<TextField
+								error={!!errorName}
+								helperText={errorName}
+								label="Jméno"
+								type=""
+								margin="normal"
+								variant="standard"
+								size="small"
+								fullWidth
+								inputRef={nameRef}
+								className="h-14"
+								inputProps={{ maxLength: 20 }}
+								onKeyDown={(e) => {
+									if (e.key === " ") {
+										e.preventDefault(); // Zabránění vložení mezery
+									}
+								}}
+								onBlur={() => {
+									const name = nameRef.current?.value || "";
+									setErrorName(!name ? errorNameText : "");
+								}}
+							/>
+
+							<TextField
+								error={!!errorSurname}
+								helperText={errorSurname}
+								label="Přijmení"
+								type=""
+								margin="normal"
+								variant="standard"
+								size="small"
+								fullWidth
+								inputRef={surnameRef}
+								className="h-14"
+								inputProps={{ maxLength: 20 }}
+								onKeyDown={(e) => {
+									if (e.key === " ") {
+										e.preventDefault();
+									}
+								}}
+								onBlur={() => {
+									const surname = surnameRef.current?.value || "";
+									setErrorSurname(!surname ? errorSurnameText : "");
+								}}
+							/>
+						</div>
+
+						<TextField
+							error={!!errorEmail}
+							helperText={errorEmail}
+							label="Email"
+							type="email"
+							fullWidth
+							margin="normal"
+							variant="standard"
+							size="small"
+							inputRef={emailRef}
+							className="h-14"
+							inputProps={{ maxLength: 40 }}
+							onKeyDown={(e) => {
+								if (e.key === " ") {
+									e.preventDefault();
+								}
+							}}
+							onBlur={() => {
+								const email = emailRef.current?.value || "";
+								setErrorEmail(!email ? errorEmailText1 : "");
+							}}
+						/>
+
+						<TextField
+							error={!!errorPassword}
+							helperText={errorPassword}
+							label="Heslo"
+							type="password"
+							fullWidth
+							margin="normal"
+							variant="standard"
+							size="small"
+							inputRef={passwordRef}
+							className="h-14"
+							inputProps={{ maxLength: 40 }}
+							onBlur={() => {
+								const password = passwordRef.current?.value || "";
+								setErrorPassword(password.length < 8 ? errorPasswordText : "");
+							}}
+						/>
+
+						<TextField
+							error={!!errorConfirmPassword}
+							helperText={errorConfirmPassword}
+							label="Potvrzení hesla"
+							type="password"
+							fullWidth
+							margin="normal"
+							variant="standard"
+							size="small"
+							className="h-14 mb-8"
+							inputRef={confirmPasswordRef}
+							inputProps={{ maxLength: 40 }}
+							onBlur={() => {
+								const password = passwordRef.current?.value || "";
+								const confirmPassword = confirmPasswordRef.current?.value || "";
+								setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
+							}}
+						/>
+
+						<Button
+							variant="contained"
+							color="primary"
+							onClick={handleRegistration}>
+							Registrovat se
+						</Button>
+					</div>
+				</Card>
+			</Layout>
+		</>
+	);
 }
 
-export default registration;
+export default Registration;
