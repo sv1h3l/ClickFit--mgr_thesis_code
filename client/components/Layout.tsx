@@ -1,17 +1,18 @@
-import React, { ReactNode } from 'react';
-import Header from './Header';
-import Navigation from './Navigation';
+import { ReactNode } from "react";
+import Header from "./Header";
 
-function Layout({ children }: { children: ReactNode }) {
-    return (
-        <>
-            <Header />
+function Layout({ children, isWide }: { children: ReactNode, isWide?: boolean }) {
+	return (
+		<>
+			<Header isWide={isWide}/>
 
-            <main className='mx-2'>
-                {children}
-            </main>
-        </>
-    );
-};
+			<div className="flex justify-center w-full ">
+				<div className=" max-w-content w-full  "> {/*outline outline-1 outline-cyan-500 */}
+					<main>{children}</main>
+				</div>
+			</div>
+		</>
+	);
+}
 
 export default Layout;

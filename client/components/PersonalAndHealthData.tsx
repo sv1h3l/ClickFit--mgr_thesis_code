@@ -1,61 +1,87 @@
-import React, { ReactNode } from "react";
+import { Box, Typography } from "@mui/material";
 import GeneralCard from "./GeneralCard";
-import { Box, CardContent, Typography } from "@mui/material";
 
 type PersonalAndHealthDataProps = {
-  children: ReactNode;
+	email: string;
+	firstName: string;
+	lastName: string;
+	height: string;
+	weight: string;
+	age: string;
+	sex: string;
 };
 
-function PersonalAndHealthData({ children }: PersonalAndHealthDataProps) {
-  return (
-    <Box component="div" className="flex flex-col items-center space-y-0">
-      <Box component="div" className="my-6 w-full">
-        <GeneralCard title="Osobní údaje">
-          <CardContent className="pt-0 px-3">
-            <Box component="div" className="flex pt-2">
-              <Box component="div" className="flex flex-col gap-1 w-1/4 ">
-                <Typography className=" font-medium">Email</Typography>
-                <Typography className=" font-medium">Jméno</Typography>
-                <Typography className=" font-medium">Příjmení</Typography>
-                <Typography className=" font-medium">Věk</Typography>
-                <Typography className=" font-medium">Výška</Typography>
-                <Typography className=" font-medium">Váha</Typography>
-                <Typography className=" font-medium">Pohlaví</Typography>
-              </Box>
+function PersonalAndHealthData({ email, firstName, lastName, height, weight, age, sex }: PersonalAndHealthDataProps) {
+	return (
+		<>
+			<GeneralCard
+				title="Osobní údaje"
+				height="h-1/2"
+				border>
+				<Box className="flex flex-col gap-8 w-full pt-4 pl-3">
+					<Box className="flex w-1/2">
+						<Typography className=" font-light">Email</Typography>
+						<Typography className=" font-medium">{email}</Typography>
+					</Box>
 
-              <Box component="div" className="flex flex-col gap-1">
-                {children}
-              </Box>
-            </Box>
-          </CardContent>
-        </GeneralCard>
-      </Box>
+					<Box className="flex">
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Jméno</Typography>
+							<Typography className=" font-medium">{firstName}</Typography>
+						</Box>
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Příjmení</Typography>
+							<Typography className=" font-medium">{lastName}</Typography>
+						</Box>
+					</Box>
 
-      <GeneralCard title="Zdravotní údaje">
-        <CardContent className="py-0 px-3">
-          <Box component="div" className="h-36">
-            <Typography className="font-bold pt-2 pl-0 text-lg">
-              Zdravotní problémy a omezení
-            </Typography>
-            <Typography className="px-3 pb-3">
-              Výrazná bolest kolen při cvičení, mírná bolest levého kotníku
-            </Typography>
-          </Box>
+					<Box className="flex">
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Výška</Typography>
+							<Typography className=" font-medium">{height}</Typography>
+						</Box>
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Váha</Typography>
+							<Typography className=" font-medium">{weight}</Typography>
+						</Box>
+					</Box>
 
-          <div className="border-t border-gray-300 w-full absolute left-0" />
+					<Box className="flex">
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Věk</Typography>
+							<Typography className=" font-medium">{age}</Typography>
+						</Box>
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Pohlaví</Typography>
+							<Typography className=" font-medium">{sex}</Typography>
+						</Box>
+					</Box>
 
-          <Box component="div" className="h-36">
-            <Typography className="font-bold pt-2 text-lg">
-              Uskutečněné operace
-            </Typography>
-            <Typography className="px-3">
-              Operace rotátorové manžety, plastika křížových vazů
-            </Typography>
-          </Box>
-        </CardContent>
-      </GeneralCard>
-    </Box>
-  );
+					<Box className="hidden">
+						{/*TODO dodělat heslo */}
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Heslo</Typography>
+							<Typography className=" font-medium">{firstName}</Typography>
+						</Box>
+						<Box className="flex w-1/2">
+							<Typography className=" font-light">Potvrzení hesla</Typography>
+							<Typography className=" font-medium">{lastName}</Typography>
+						</Box>
+					</Box>
+				</Box>
+			</GeneralCard>
+
+			<GeneralCard
+				title="Zdravotní údaje"
+				second
+				border
+				height=" h-1/2">
+				<Typography className="font-light pt-4 pl-3">
+					Výrazná bolest kolen při cvičení, mírná bolest levého kotníku. Operace rotátorové manžety, plastika křížových vazů.
+				</Typography>
+			</GeneralCard>
+		</>
+	);
 }
 
 export default PersonalAndHealthData;

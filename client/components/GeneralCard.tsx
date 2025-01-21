@@ -1,33 +1,32 @@
-import React, { isValidElement, ReactElement, ReactNode } from "react";
-import {
-  Button,
-  Card,
-  CardContent,
-  IconButton,
-  Typography,
-} from "@mui/material";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
-import Person2RoundedIcon from "@mui/icons-material/Person2Rounded";
+import { Box, Typography } from "@mui/material";
+import React, { ReactNode } from "react";
 
 interface GeneralCardProps {
-  title: string;
-  children: ReactNode;
+	title: string;
+	second?: boolean;
+	border?: boolean;
+	height?: string;
+	children: ReactNode;
 }
 
-function GeneralCard({ title, children }: GeneralCardProps) {
-  const childrenArray = React.Children.toArray(children);
+function GeneralCard({ title, height, second, border, children }: GeneralCardProps) {
+	const childrenArray = React.Children.toArray(children);
 
-  return (
-    /*<div className="flex justify-center items-center h-screen">*/
-    <Card style={{ minWidth: 300, maxWidth: 1000 }} className="mx-4 relative">
-      <Typography className="p-3 font-bold text-xl">{title}</Typography>
+	return (
+		<>
+			{second && <Box className="h-1/5 absolute top-[40%] -right-0 border-r-2 border-gray-200  "></Box>}
 
-      <div className="border-t border-gray-300 w-full"></div>
+			<Box className={`px-8 ${border && "border-r-2 border-b-2 rounded-br-3xl border-gray-200"} overflow-y-auto ${height}`}>
+				<Typography
+					variant="h2"
+					className={` text-3xl pb-3   ${second ? "pt-11" : "pt-6"}`}>
+					{title}
+				</Typography>
 
-      {children}
-    </Card>
-    /*</div>*/
-  );
+				{children}
+			</Box>
+		</>
+	);
 }
 
 export default GeneralCard;

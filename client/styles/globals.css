@@ -1,10 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@tailwind base; /* Základní styly Tailwindu */
+@tailwind components; /* Komponentové styly */
+@tailwind utilities; /* Utility třídy */
+
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap");
 
 * {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
+	font-family: "Roboto", sans-serif;
+	margin: 0;
+}
+
+@layer base {
+	html {
+		font-size: 12px;
+	}
+
+	@media (min-width: 640px) {
+		html {
+			font-size: 14px;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		html {
+			font-size: 16px;
+		}
+	}
+
+	@media (min-width: 1536px) {
+		html {
+			font-size: 17.5px;
+		}
+	}
 }
 
 body {
-    background-color: #FAFBFB;
+	background-color: rgb(249 250 251) /* #f9fafb */;
+}
+
+.h-content {
+	height: calc(100vh - 6rem); /* Výška stránky mínus výška headeru */
+}
+
+.max-w-content {
+	max-width: 100rem; /* 1750px */
 }

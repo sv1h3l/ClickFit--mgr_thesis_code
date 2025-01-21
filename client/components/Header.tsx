@@ -1,69 +1,78 @@
-import React, { useEffect, useState } from "react";
 import { AppBar, Box, Button, Typography } from "@mui/material";
-import Navigation from "./Navigation";
-import { useUser } from "../context/UserContext";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import Navigation from "./Navigation";
 
-function Header() {
-  const router = useRouter();
-  const { user, setUser } = useUser();
-  const [currentTime, setCurrentTime] = useState(
-    new Date().toLocaleTimeString("cs-CZ")
-  );
+function Header({ isWide }: { isWide?: boolean }) {
+	const router = useRouter();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date().toLocaleTimeString("cs-CZ"));
-    }, 1000);
+	const [user, setUser] = useState<any>(null);
 
-    return () => clearInterval(interval);
-  }, []);
+	const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString("cs-CZ"));
 
-  const handleLogout = () => {
-    setUser(null);
-    router.push("/");
-  };
+	useEffect(() => {
+		const storedUser = localStorage.getItem("user");
+		if (storedUser) {
+			setUser(JSON.parse(storedUser));
+		}
+	}, []);
 
-  return (
-    <>
-      <AppBar
-        position="absolute"
-        className="bg-transparent shadow-none text-center"
-      >
-        <Box className="px-6 bg-d-blue flex justify-center items-center">
-          {user && (
-            <Box className="flex-1 text-left  w-1/3">
-              <Typography variant="h4"> {currentTime} </Typography>
-            </Box>
-          )}
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setCurrentTime(new Date().toLocaleTimeString("cs-CZ"));
+		}, 1000);
 
-          <Box className="flex-2 text-center w-1/3">
-            <Typography variant="h3" component="h1">
-              KlikFit
-            </Typography>
-          </Box>
+		return () => clearInterval(interval);
+	}, []);
 
-          {user && (
-            <Box className="flex-1 text-right  w-1/3">
-              <Box>
-                <Button
-                  onClick={handleLogout}
-                  className="text-white"
-                  size="small"
-                >
-                  Odhlásit se
-                </Button>
-              </Box>
-              <Button className="text-white" size="small">
-                Nastavení
-              </Button>
-            </Box>
-          )}
-        </Box>
-        {user && <Navigation />}
-      </AppBar>
-    </>
-  );
+	const handleLogout = () => {
+		localStorage.removeItem("user");
+		router.push("/");
+	};
+
+	return (
+		<>
+			<AppBar className="bg-transparent shadow-none text-center relative h-24">
+				<Box className=" bg-d-blue flex justify-center">
+					<Box className="flex items-center w-full max-w-content">
+						{user && (
+							<Box className="flex-1 text-left  w-1/3">
+								<Typography variant="h4"> {currentTime} </Typography>
+							</Box>
+						)}
+
+						<Box className="flex-2 text-center w-1/3">
+							<Typography
+								variant="h3"
+								component="h1">
+								KlikFit
+							</Typography>
+						</Box>
+
+						{user && (
+							<Box className="flex-1 text-right w-1/3 ">
+								<Box>
+									<Button
+										onClick={handleLogout}
+										className="text-white"
+										size="small">
+										Odhlásit se
+									</Button>
+								</Box>
+								<Button
+									className="text-white"
+									size="small">
+									Nastavení
+								</Button>
+							</Box>
+						)}
+					</Box>
+				</Box>
+
+				{user && <Navigation isWide={isWide}/>}
+			</AppBar>
+		</>
+	);
 }
 
 export default Header;

@@ -1,15 +1,14 @@
-import React, { useRef, useState } from "react";
+import { Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
-import Layout from "../components/Layout";
-import Card from "../components/Card";
-import { Typography, TextField, Button } from "@mui/material";
 import { useRouter } from "next/router";
-import { useUser } from "../context/UserContext";
-import { registerUser } from "./api/registerUser";
+import { useRef, useState } from "react";
+import Card from "../components/Card";
+import Layout from "../components/Layout";
+import { registerRequest } from "./api/registerRequest";
+import checkLoggedUser from "@/components/CheckLoggedUser";
 
 function Registration() {
 	const router = useRouter();
-	const { setUser } = useUser();
 
 	/**  Refs pro uchování hodnot formulářových polí */
 	const nameRef = useRef<HTMLInputElement>(null);
@@ -28,8 +27,8 @@ function Registration() {
 	/** Consts obsahující texty pro chybová hlášení formulářových polí */
 	const errorNameText = "Jméno nesmí být prázdné";
 	const errorSurnameText = "Příjmení nesmí být prázdné";
-	const errorEmailText1 = "Neplatná emailová adresa";
-	const errorEmailText2 = "";
+	const errorEmailText1 = "Emailová adresa nesmí být prázdná";
+	const errorEmailText2 = "Neplatná emailová adresa";
 	const errorPasswordText = "Heslo musí obsahovat alespoň 8 znaků";
 	const errorConfirmPasswordText = "Hesla se neshodují";
 
@@ -42,16 +41,27 @@ function Registration() {
 
 		let dontFetch = false;
 
-		/*!name && (setErrorName(errorNameText), (dontFetch = true));
+		if (!email) {
+			setErrorEmail(errorEmailText1), (dontFetch = true);
+		} else {
+			const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+			if (!emailRegex.test(email)) {
+				setErrorEmail(errorEmailText2);
+				dontFetch = true;
+			} else {
+				setErrorEmail("");
+			}
+		}
+
+		!name && (setErrorName(errorNameText), (dontFetch = true));
 		!surname && (setErrorSurname(errorSurnameText), (dontFetch = true));
-		!email && (setErrorEmail(errorEmailText1), (dontFetch = true));
 		password.length < 8 && (setErrorPassword(errorPasswordText), (dontFetch = true));
-		password !== confirmPassword && (setErrorConfirmPassword(errorConfirmPasswordText), (dontFetch = true));*/
+		password !== confirmPassword && (setErrorConfirmPassword(errorConfirmPasswordText), (dontFetch = true));
 
 		if (dontFetch) return;
 		else {
 			try {
-				await registerUser({
+				await registerRequest({
 					name,
 					surname,
 					email,
@@ -59,8 +69,7 @@ function Registration() {
 					confirmPassword,
 				});
 
-				setUser({ email });
-				router.push("/training-plans");
+				router.push("/");
 			} catch (error: any) {
 				console.error("Error:", error.message, "\nStatus code:", error.statusCode);
 
@@ -72,7 +81,6 @@ function Registration() {
 					setErrorEmail(errors.email || "");
 					setErrorPassword(errors.password || "");
 					setErrorConfirmPassword(errors.confirmPassword || "");
-
 				} else if (error.statusCode === 500) {
 					alert("Došlo k serverové chybě. Zkuste to znovu.");
 				}
@@ -165,7 +173,17 @@ function Registration() {
 							}}
 							onBlur={() => {
 								const email = emailRef.current?.value || "";
-								setErrorEmail(!email ? errorEmailText1 : "");
+
+								if (!email) {
+									setErrorEmail(errorEmailText1);
+								} else {
+									const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+									if (!emailRegex.test(email)) {
+										setErrorEmail(errorEmailText2);
+									} else {
+										setErrorEmail("");
+									}
+								}
 							}}
 						/>
 
@@ -184,6 +202,9 @@ function Registration() {
 							onBlur={() => {
 								const password = passwordRef.current?.value || "";
 								setErrorPassword(password.length < 8 ? errorPasswordText : "");
+
+								const confirmPassword = confirmPasswordRef.current?.value || "";
+								setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
 							}}
 						/>
 
@@ -219,4 +240,4 @@ function Registration() {
 	);
 }
 
-export default Registration;
+export default checkLoggedUser(Registration);

@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
-import { createUser } from "../models/createUser";
 import { checkEmailDuplicity } from "../models/checkEmailDuplicity";
+import { registrateUser } from "../models/registrateUser";
+import { sendVerificationEmail } from "../services/verificationService";
 
-export const registerUser = async (req: Request, res: Response): Promise<void> => {
+export const registerController = async (req: Request, res: Response): Promise<void> => {
 	const { name, surname, email, password, confirmPassword } = req.body;
 
 	// Objekt do kterého se shromažďují chyby
@@ -30,11 +30,9 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 	}
 
 	try {
-		// Hashování hesla
-		const hashedPassword = await bcrypt.hash(password, 10);
-
 		// Uložení uživatele do databáze
-		await createUser(email, hashedPassword, name, surname);
+		const token = await registrateUser(email, password, name, surname);
+		sendVerificationEmail(email, token); // Odeslání emailu s potvrzovacím tokenem
 
 		// Úspěšná odpověď
 		res.status(201).json({ message: "Registrace byla úspěšná." });
