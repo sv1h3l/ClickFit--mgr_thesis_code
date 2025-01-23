@@ -18,7 +18,7 @@ function PersonalAndHealthData({ email, firstName, lastName, height, weight, age
 				title="Osobní údaje"
 				height="h-1/2"
 				border>
-				<Box className="flex flex-col gap-8 w-full pt-4 pl-3">
+				<Box className="flex flex-col gap-8 w-full ">
 					<Box className="flex w-1/2">
 						<Typography className=" font-light">Email</Typography>
 						<Typography className=" font-medium">{email}</Typography>
@@ -76,7 +76,7 @@ function PersonalAndHealthData({ email, firstName, lastName, height, weight, age
 				second
 				border
 				height=" h-1/2">
-				<Typography className="font-light pt-4 pl-3">
+				<Typography className="font-light  pl-3">
 					Výrazná bolest kolen při cvičení, mírná bolest levého kotníku. Operace rotátorové manžety, plastika křížových vazů.
 				</Typography>
 			</GeneralCard>

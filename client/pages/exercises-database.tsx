@@ -1,36 +1,49 @@
-import React from "react";
+import ExerciseInformation from "@/components/ExerciseInformation";
+import Exercises from "@/components/Exercises";
+import Sports from "@/components/Sports";
+import TwoColumnsPage from "@/components/TwoColumnsPage";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import PersonalAndHealthData from "@/components/PersonalAndHealthData";
-import SportData from "@/components/SportData";
-import { Box, Typography } from "@mui/material";
-import Sports from "@/components/Sports";
-import Exercises from "@/components/Exercises";
-import ExerciseInformation from "@/components/ExerciseInformation";
 
 function ExercisesDatabase() {
-  return (
-    <>
-      <Head>
-        <title>Databáze cviků - KlikFit</title>
-      </Head>
+	return (
+		<>
+			<Head>
+				<title>Databáze cviků - KlikFit</title>
+			</Head>
 
-      <Layout>
-        <Box component="div" className="flex justify-center">
-          <Box
-            component="div"
-            className="flex justify-center items-center h-screen"
-          >
-            <Sports />
+			<Layout>
+				{
+					<TwoColumnsPage
+						firstColumnWidth="w-1/3"
+						secondColumnWidth="w-2/3"
+						firstColumnChildren={
+							<>
+								<Sports />
 
-            <Exercises />
+								<Exercises />
+							</>
+						}
+						secondColumnChildren={<ExerciseInformation />}
+					/>
 
-            <ExerciseInformation />
-          </Box>
-        </Box>
-      </Layout>
-    </>
-  );
+					/*<Box
+						component="div"
+						className="flex justify-center">
+						<Box
+							component="div"
+							className="flex justify-center items-center h-screen">
+							<Sports />
+
+							<Exercises />
+
+							<ExerciseInformation />
+						</Box>
+					</Box>*/
+				}
+			</Layout>
+		</>
+	);
 }
 
 export default ExercisesDatabase;

@@ -1,8 +1,8 @@
 import PersonalAndHealthData from "@/components/PersonalAndHealthData";
-import WideTwoColumnsPage from "@/components/WideTwoColumnsPage";
+import SportData from "@/components/SportData";
+import TwoColumnsPage from "@/components/TwoColumnsPage";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import SportData from "@/components/SportData";
 
 function Profile() {
 	return (
@@ -12,8 +12,7 @@ function Profile() {
 			</Head>
 
 			<Layout>
-				<WideTwoColumnsPage
-					setColumnsSameWidth={true}
+				<TwoColumnsPage
 					firstColumnChildren={<PersonalAndHealthData></PersonalAndHealthData>}
 					secondColumnChildren={<SportData />}
 				/>

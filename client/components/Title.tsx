@@ -1,19 +1,19 @@
 import { Box, Typography } from "@mui/material";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
-function TitleComp({ title, horizontalLine }: { title: ReactNode; horizontalLine: boolean }) {
+function TitleComp({ title }: { title: ReactNode }) {
 	const typographyRef = useRef<HTMLDivElement>(null);
 	const [width, setWidth] = useState<number | null>(null);
 
 	useEffect(() => {
 		if (typographyRef.current) {
 			const typographyWidth = typographyRef.current.getBoundingClientRect().width;
-			setWidth(typographyWidth+11);
+			setWidth(typographyWidth + 14);
 		}
 	}, []);
 
 	return (
-		<Box className="pt-3 relative">
+		<Box className=" relative">
 			<Box
 				style={{ width: `${width}px` }}
 				className="border-t-2 border-l-2 border-gray-200 h-6 rounded-tl-xl absolute -left-3"

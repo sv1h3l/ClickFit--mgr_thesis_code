@@ -1,60 +1,76 @@
-import React, { ReactNode } from "react";
+import { Box, Typography } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import GeneralCard from "./GeneralCard";
-import { Box, CardContent, Typography } from "@mui/material";
-import KeyValueLine from "./KeyValueLine";
 import Title from "./Title";
-import TwoColumnCard from "./TwoColumnCard";
 
-function Sports() {
-  return (
-    <Box component="div" className="flex flex-col items-center space-y-0">
-      <Box component="div" className="my-6 w-full">
-        <TwoColumnCard
-          firstColumnTitle="Název sportu"
-          secondColumnTitle="Autor"
-        >
-          <CardContent className="pt-0">
-            <Box component="div" className="grid grid-cols-2">
-              <Typography component="p" className="py-2 underline">
-                Bodybuilding
-              </Typography>
-              <Typography component="p" className="pl-3 py-2">
-                Jakub Švihel
-              </Typography>
+const Sports = () => {
+	const firstTypographyRef = useRef<HTMLDivElement>(null); // TODO později předělat na useState (až bude tlačítko)
+	const secondTypographyRef = useRef<HTMLDivElement>(null);
+	const [width, setWidth] = useState<number | null>(null);
 
-              <Typography component="p" className=" py-2">
-                Powerlifting
-              </Typography>
-              <Typography component="p" className="pl-3 py-2">
-                KlikFit
-              </Typography>
+	useEffect(() => {
+		if (firstTypographyRef.current && secondTypographyRef.current) {
+			const typographyWidth = firstTypographyRef.current.getBoundingClientRect().width + secondTypographyRef.current.getBoundingClientRect().width;
+			setWidth(typographyWidth + 16);
+		}
+	}, []);
 
-              <Typography component="p" className=" py-2">
-                Jóga
-              </Typography>
-              <Typography component="p" className="pl-3 py-2">
-                Alfons Mucha
-              </Typography>
+	return (
+		<GeneralCard
+			title="Sporty"
+			height="h-1/3"
+			border>
+			<Box className=" flex flex-col gap-3">
+				<Box className="flex ">
+					<Box className="w-1/2">
+						<Title title="Název"></Title>
+					</Box>
+					<Box>
+						<Title title="Autor"></Title>
+					</Box>
+				</Box>
 
-              <Typography component="p" className=" py-2">
-                Fotbal
-              </Typography>
-              <Typography component="p" className="pl-3 py-2">
-                KlikFit
-              </Typography>
+				<Box className="flex relative pl-3">
+					{/*<Box
+						style={{ width: `${width}px` }}
+						className="border-b-2 border-x-2 border-gray-200 h-2 rounded-br-xl rounded-bl-xl  absolute top-4 -left-2"
+					/>*/}
+					<Typography className="absolute -left-4   text-gray-200">⬤</Typography>
 
-              <Typography component="p" className=" py-2">
-                Japonský šerm
-              </Typography>
-              <Typography component="p" className="pl-3 py-2">
-                Jakub Švihel
-              </Typography>
-            </Box>
-          </CardContent>
-        </TwoColumnCard>
-      </Box>
-    </Box>
-  );
-}
+					<Typography
+						ref={firstTypographyRef}
+						className="w-1/2">
+						Bodybuilding
+					</Typography>
+					<Typography
+						ref={secondTypographyRef}
+						className="">
+						Jakub Švihel
+					</Typography>
+				</Box>
+
+				<Box className="flex">
+					<Typography className="w-1/2 font-light">Powerlifting</Typography>
+					<Typography className="font-light">KlikFit</Typography>
+				</Box>
+
+				<Box className="flex">
+					<Typography className="w-1/2 font-light">Jóga</Typography>
+					<Typography className="font-light">Alfons Mucha</Typography>
+				</Box>
+
+				<Box className="flex">
+					<Typography className="w-1/2 font-light">Fotbal</Typography>
+					<Typography className="font-light">KlikFit</Typography>
+				</Box>
+
+				<Box className="flex">
+					<Typography className="w-1/2 font-light">Japonský šerm</Typography>
+					<Typography className="font-light">Jakub Švihel</Typography>
+				</Box>
+			</Box>
+		</GeneralCard>
+	);
+};
 
 export default Sports;

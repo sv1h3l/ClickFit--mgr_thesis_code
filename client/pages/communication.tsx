@@ -1,4 +1,5 @@
-import TightTwoColumnsPage from "@/components/TightTwoColumnsPage";
+import GeneralCard from "@/components/GeneralCard";
+import TwoColumnsPage from "@/components/TwoColumnsPage";
 import Head from "next/head";
 import Layout from "../components/Layout";
 
@@ -10,9 +11,26 @@ function Communication() {
 			</Head>
 
 			<Layout isWide>
-				<TightTwoColumnsPage
-					firstColumnChildren={<span>první</span>}
-					secondColumnChildren={<span> druhý sloupec</span>}
+				<TwoColumnsPage
+					firstColumnWidth="w-1/3"
+					secondColumnWidth="w-1/3"
+					secondColumnHeight="h-1/2"
+					firstColumnChildren={
+						<GeneralCard
+							title="Navázaná spojení"
+							height="h-full"
+							border>
+							<></>
+						</GeneralCard>
+					}
+					secondColumnChildren={
+						<GeneralCard
+							title="Nová spojení"
+							height="h-full"
+							>
+							<></>
+						</GeneralCard>
+					}
 				/>
 				{/*<div className="flex justify-center items-center h-screen">
 					<Connections>
