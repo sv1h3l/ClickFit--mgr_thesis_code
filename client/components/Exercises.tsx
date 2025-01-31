@@ -1,32 +1,32 @@
 import { Box, Typography } from "@mui/material";
 import GeneralCard from "./GeneralCard";
 import Title from "./Title";
+import LabelAndValue from "./LabelAndValue";
 
 function Exercises() {
-	return (
-		<GeneralCard
-			title="Cviky"
-			height="h-2/3"
-			border
-			second
-			percentage={25}>
-			<Title title="Záda" />
-			<Box className="pl-3 relative">
-				<Typography className="absolute -left-4   text-gray-200">⬤</Typography>
+    return (
+        <GeneralCard
+            title="Cviky"
+            height="h-2/3"
+            border
+            second
+            percentage={25}
+        >
+            <Title
+                title="Záda"
+                smallPaddingTop
+            />
 
-				<Typography className="">Přitahovaní olympijské osy v předklonu</Typography>
-				<Typography className="font-light">Stahování horní kladky nadhmatem ve stoje</Typography>
-				<Typography className="font-light">Mrtvý tah</Typography>
-			</Box>
+            <LabelAndValue isSelected label="Přitahovaní olympijské osy v předklonu" />
+            <LabelAndValue label="Stahování horní kladky nadhmatem ve stoje" />
+            <LabelAndValue label="Mrtvý tah" />
 
-			<Title title="Biceps" />
-			<Box className="pl-3 ">
-				<Typography className="font-light">21</Typography>
-				<Typography className="font-light">Bicepsové zdvihy s EZ osou</Typography>
-				<Typography className="font-light">Kladivové zdvihy jednoručky ve stoje</Typography>
-			</Box>
-		</GeneralCard>
-	);
+            <Title title="Biceps" />
+            <LabelAndValue label="21" />
+            <LabelAndValue label="Bicepsové zdvihy s EZ osou" />
+            <LabelAndValue label="Kladivové zdvihy jednoručky ve stoje" />
+        </GeneralCard>
+    );
 }
 
 export default Exercises;

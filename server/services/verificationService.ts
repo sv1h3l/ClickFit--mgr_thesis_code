@@ -1,32 +1,36 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+import fs from "fs/promises";
+
+dotenv.config();
+const nodemailerUser = process.env.NM_USER;
+const nodemailerPass = process.env.NM_PASS;
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-	let transporter = nodemailer.createTransport({
-		service: "gmail",
-		auth: {
-			user: "sv1h3l.it@gmail.com",
-			pass: "ndgc dppv sijm ajzg",
-		},
-	});
+    let transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: nodemailerUser,
+            pass: nodemailerPass,
+        },
+    });
 
-	const verificationUrl = `http://localhost:3000/verification?token=${token}`;
+    const verificationUrl = `http://localhost:3000/verification?token=${token}`;
 
-	try {
-		let info = await transporter.sendMail({
-			from: '"KlikFit" <sv1h3l.it@gmail.com>',
-			to: email,
-			subject: "Potvrzení registrace",
-			text: `Děkujeme za registraci! Klikněte na následující odkaz pro potvrzení registrace: ${verificationUrl}`,
-			html: ` <div>
-                        <h1 style:"color: red;" >Potvrzení registrace</h1>
-                        <p>
-                        Děkujeme za registraci! Klikněte na následující odkaz pro potvrzení registrace: <a href="${verificationUrl}">${verificationUrl}</a>
-                        </p>
-                    </div>`,
-		});
+    try {
+        let htmlContent = await fs.readFile("../services/verification.html", "utf-8");
 
-		console.log("Verification email sent: " + info.response);
-	} catch (error) {
-		console.error("Error sending Verification email:", error);
-	}
+        htmlContent = htmlContent.replace("{VERIFICATION_URL}", verificationUrl);
+
+        let info = await transporter.sendMail({
+            from: `"KlikFit" <${nodemailerUser}>`,
+            to: email,
+            subject: "Potvrzení registrace",
+            html: htmlContent, // Načtený HTML obsah
+        });
+
+        console.log("Verification email sent: " + info.response);
+    } catch (error) {
+        console.error("Error sending Verification email:", error);
+    }
 };
