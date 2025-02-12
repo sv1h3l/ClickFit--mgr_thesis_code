@@ -9,7 +9,7 @@ function Navigation({ isWide }: { isWide?: boolean }) {
 
 	const pages = new Map<string, string>([
 		["training-plans", "Tréninkové plány"],
-		["training-creation", "Tvorba tréninku"],
+		["training-plan-predisposition", "Tvorba tréninku"],
 		["exercises-database", "Databáze cviků"],
 		["communication", "Komunikace"],
 		["profile", "Profil"],
