@@ -4,7 +4,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import Card from "../components/Card";
-import Layout from "../components/Layout";
 import { forgottenPasswordRequest } from "./api/forgottenPasswordRequest";
 
 function ForgotPassword() {
@@ -50,54 +49,52 @@ function ForgotPassword() {
 				/>
 			</Head>
 
-			<Layout>
-				<Card>
-					<Typography
-						variant="h5"
-						component="h2"
-						gutterBottom
-						style={{ textAlign: "center" }}
-						className="mb-0">
-						Zapomenuté heslo
-					</Typography>
+			<Card>
+				<Typography
+					variant="h5"
+					component="h2"
+					gutterBottom
+					style={{ textAlign: "center" }}
+					className="mb-0">
+					Zapomenuté heslo
+				</Typography>
 
-					<Typography
-						variant="body2"
-						component="p"
-						gutterBottom
-						style={{ textAlign: "center" }}
-						color="text.secondary"
-						className="mb-0">
-						Na email bude zaslán odkaz pro vytvoření nového hesla.
-					</Typography>
+				<Typography
+					variant="body2"
+					component="p"
+					gutterBottom
+					style={{ textAlign: "center" }}
+					color="text.secondary"
+					className="mb-0">
+					Na email bude zaslán odkaz pro vytvoření nového hesla.
+				</Typography>
 
-					<TextField
-						error={!!errorEmail}
-						helperText={errorEmail}
-						label="Email"
-						type="email"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						value={email}
-						className="mb-6 h-16"
-						onChange={(e) => setEmail(e.target.value)}
-						onBlur={() => {
-							const tempEmail = email;
-							const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+				<TextField
+					error={!!errorEmail}
+					helperText={errorEmail}
+					label="Email"
+					type="email"
+					fullWidth
+					margin="normal"
+					variant="standard"
+					value={email}
+					className="mb-6 h-16"
+					onChange={(e) => setEmail(e.target.value)}
+					onBlur={() => {
+						const tempEmail = email;
+						const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-							setErrorEmail(emailRegex.test(tempEmail) ? "" : errorMessage);
-						}}
-					/>
+						setErrorEmail(emailRegex.test(tempEmail) ? "" : errorMessage);
+					}}
+				/>
 
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={sendEmailWithNewPassword}>
-						Odeslat
-					</Button>
-				</Card>
-			</Layout>
+				<Button
+					variant="contained"
+					color="primary"
+					onClick={sendEmailWithNewPassword}>
+					Odeslat
+				</Button>
+			</Card>
 		</>
 	);
 }

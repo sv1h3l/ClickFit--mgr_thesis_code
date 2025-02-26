@@ -1,9 +1,8 @@
+import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Card from "../components/Card";
-import Layout from "../components/Layout";
-import checkLoggedUser from "@/components/CheckLoggedUser";
 
 function Index() {
 	const router = useRouter();
@@ -26,50 +25,48 @@ function Index() {
 				/>
 			</Head>
 
-			<Layout>
-				<Card>
+			<Card>
+				<Typography
+					variant="h5"
+					component="div"
+					gutterBottom>
+					Chcete si vytvořit komplexní tréninkový plán během pár kliknutí? <br />
+					Jste zde správně!
+				</Typography>
+
+				<div className="mt-8">
 					<Typography
-						variant="h5"
-						component="div"
+						variant="body1"
+						color="text.secondary"
 						gutterBottom>
-						Chcete si vytvořit komplexní tréninkový plán během pár kliknutí? <br />
-						Jste zde správně!
+						KlikFit je webová aplikace pro vytváření, zobrazování a správu tréninkových plánů.
 					</Typography>
 
-					<div className="mt-8">
-						<Typography
-							variant="body1"
-							color="text.secondary"
-							gutterBottom>
-							KlikFit je webová aplikace pro vytváření, zobrazování a správu tréninkových plánů.
-						</Typography>
+					<Typography
+						variant="body1"
+						color="text.secondary"
+						gutterBottom>
+						Aplikace je vhodná pro trenéry i samostatné sportovce.
+					</Typography>
+				</div>
 
-						<Typography
-							variant="body1"
-							color="text.secondary"
-							gutterBottom>
-							Aplikace je vhodná pro trenéry i samostatné sportovce.
-						</Typography>
-					</div>
+				<div className="mt-8">
+					<Button
+						variant="contained"
+						color="primary"
+						className="mr-14"
+						onClick={handleLogin}>
+						Přihlášení
+					</Button>
 
-					<div className="mt-8">
-						<Button
-							variant="contained"
-							color="primary"
-							className="mr-14"
-							onClick={handleLogin}>
-							Přihlášení
-						</Button>
-
-						<Button
-							variant="outlined"
-							color="primary"
-							onClick={handleSignIn}>
-							Registrace
-						</Button>
-					</div>
-				</Card>
-			</Layout>
+					<Button
+						variant="outlined"
+						color="primary"
+						onClick={handleSignIn}>
+						Registrace
+					</Button>
+				</div>
+			</Card>
 		</>
 	);
 }

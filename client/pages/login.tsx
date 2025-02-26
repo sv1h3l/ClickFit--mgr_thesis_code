@@ -4,10 +4,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import Card from "../components/Card";
-import Layout from "../components/Layout";
-import { loginRequest } from "./api/loginRequest";
 import { emailVerificationRequest } from "./api/emailVerificationRequest";
-import checkLoggedUser from "@/components/CheckLoggedUser";
+import { loginRequest } from "./api/loginRequest";
 
 function Login() {
 	const router = useRouter();
@@ -37,7 +35,6 @@ function Login() {
 				password,
 			});
 
-			localStorage.setItem("user", JSON.stringify({ email }));
 			router.push("/training-plans");
 		} catch (error: any) {
 			console.error("Error:", error.message, "\nStatus code:", error.status);
@@ -83,66 +80,64 @@ function Login() {
 				<title>Přihlášení - KlikFit</title>
 			</Head>
 
-			<Layout>
-				<Card>
-					<Typography
-						variant="h5"
-						component="h2"
-						gutterBottom
-						className="mb-0">
-						Přihlášení
-					</Typography>
+			<Card>
+				<Typography
+					variant="h5"
+					component="h2"
+					gutterBottom
+					className="mb-0">
+					Přihlášení
+				</Typography>
 
-					<TextField
-						label="Email"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						value={email}
-						size="small"
-						onChange={(e) => setEmail(e.target.value)}
-					/>
+				<TextField
+					label="Email"
+					fullWidth
+					margin="normal"
+					variant="standard"
+					value={email}
+					size="small"
+					onChange={(e) => setEmail(e.target.value)}
+				/>
 
-					<TextField
-						label="Heslo"
-						type="password"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						value={password}
-						size="small"
-						disabled={isAccountConfirmed}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
+				<TextField
+					label="Heslo"
+					type="password"
+					fullWidth
+					margin="normal"
+					variant="standard"
+					value={password}
+					size="small"
+					disabled={isAccountConfirmed}
+					onChange={(e) => setPassword(e.target.value)}
+				/>
 
-					<div className="flex justify-end mt-1">
-						<Button
-							variant="text"
-							color="secondary"
-							onClick={handleForgotPassword}
-							className="relative bottom-3 ml-auto py-0 px-1 mb-1"
-							disabled={isAccountConfirmed}>
-							Zapomenuté heslo
-						</Button>
-					</div>
-
-					<Typography
-						variant="body2"
-						component="p"
-						className="h-6 text-red-600">
-						{errorEmailAndPassword}
-					</Typography>
-
+				<div className="flex justify-end mt-1">
 					<Button
-						variant="contained"
-						color="primary"
-						onClick={isAccountConfirmed ? sendConfirmationEmail : handleLogin}>
-						{isAccountConfirmed ? "Zaslat potvrzovací email" : "Přihlásit"}
+						variant="text"
+						color="secondary"
+						onClick={handleForgotPassword}
+						className="relative bottom-3 ml-auto py-0 px-1 mb-1"
+						disabled={isAccountConfirmed}>
+						Zapomenuté heslo
 					</Button>
-				</Card>
-			</Layout>
+				</div>
+
+				<Typography
+					variant="body2"
+					component="p"
+					className="h-6 text-red-600">
+					{errorEmailAndPassword}
+				</Typography>
+
+				<Button
+					variant="contained"
+					color="primary"
+					onClick={isAccountConfirmed ? sendConfirmationEmail : handleLogin}>
+					{isAccountConfirmed ? "Zaslat potvrzovací email" : "Přihlásit"}
+				</Button>
+			</Card>
 		</>
 	);
 }
 
-export default checkLoggedUser(Login);
+export default Login;

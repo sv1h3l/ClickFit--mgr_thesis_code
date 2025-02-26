@@ -4,10 +4,11 @@ import { ArrowBack, ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import { Autocomplete, Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
+import { getCategoriesAndExercisesRequest } from "./api/getCategoriesAndExercisesRequest";
 
 const options = ["Záda", "Ramena", "Biceps", "Triceps", "Prsa"];
 const exerciseOptions = ["Deadlift", "Bench Press", "Squat", "Pull-up", "Push-up", "Stahování horní kladky nadhmatem ve stoje"];
@@ -43,7 +44,7 @@ interface Exercise {
 	isVisible?: boolean;
 }
 
-const ManualCreation = () => {
+const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 	const [days, setDays] = useState<Day[]>([]);
 	const [showDeleteButtons, setShowDeleteButtons] = useState<boolean>(false); // TODO → doimplementovat ?
 	const [showMoveButtons, setShowMoveButtons] = useState<boolean>(false);
@@ -761,14 +762,14 @@ const ManualCreation = () => {
 				<title>Tvorba tréninku - KlikFit</title>
 			</Head>
 
-			<Layout>
-				<SingleColumnPage>
-					<Box className="flex h-full p-0 m-0">
-						<GeneralCard
-							width="w-full"
-							height="h-full relative"
-							title="Tvorba tréninku"
-							border>
+			<SingleColumnPage>
+				<Box className="flex h-full p-0 m-0">
+					<GeneralCard
+						width="w-full"
+						height="h-full relative"
+						firstTitle="Tvorba tréninku"
+						border
+						firstChildren={
 							<Box className="space-y-7">
 								{days.map((day, index) => (
 									<Box
@@ -800,14 +801,14 @@ const ManualCreation = () => {
 															<Box className="flex items-center gap-10  relative ">
 																<Box className="flex mr-[3.15rem]">
 																	<Image
-																		src="/icons/cycle-mgr.svg"
+																		src="/icons/cycle.svg"
 																		width={28}
 																		height={28}
 																		alt=""
 																	/>
 																	<Typography className="w-6 mt-0.5 mx-3 text-center font-light">x</Typography>
 																	<Image
-																		src="/icons/sequence2.svg"
+																		src="/icons/sequence.svg"
 																		width={28}
 																		height={28}
 																		alt=""
@@ -823,7 +824,7 @@ const ManualCreation = () => {
 																	/>
 																	<Typography className="font-thin text-2xl mx-1.5 w-6">|</Typography>
 																	<Image
-																		src="/icons/stopwatch.svg"
+																		src="/icons/time.svg"
 																		width={28}
 																		height={28}
 																		alt=""
@@ -994,14 +995,14 @@ const ManualCreation = () => {
 														<Box className="flex items-center justify-end gap-8  h-[3.06rem] border-b-4 border-double w-full border-gray-100">
 															<Box className="flex mr-[1.15rem] ">
 																<Image
-																	src="/icons/cycle-mgr.svg"
+																	src="/icons/cycle.svg"
 																	width={28}
 																	height={28}
 																	alt=""
 																/>
 																<Typography className="w-6 mt-0.5 mx-1 text-center font-light">x</Typography>
 																<Image
-																	src="/icons/sequence2.svg"
+																	src="/icons/sequence.svg"
 																	width={28}
 																	height={28}
 																	alt=""
@@ -1017,7 +1018,7 @@ const ManualCreation = () => {
 																/>
 																<Typography className="font-thin text-2xl mx-1.5">|</Typography>
 																<Image
-																	src="/icons/stopwatch.svg"
+																	src="/icons/time.svg"
 																	width={28}
 																	height={28}
 																	alt=""
@@ -1146,12 +1147,43 @@ const ManualCreation = () => {
 									</Box>
 								</Box>
 							</Box>
-						</GeneralCard>
-					</Box>
-				</SingleColumnPage>
-			</Layout>
+						}
+					/>
+				</Box>
+			</SingleColumnPage>
 		</>
 	);
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+	try {
+		const response = await getCategoriesAndExercisesRequest({ props: { sportId: 8 } });
+
+		// Check if the request was successful
+		if (response.status === 200) {
+			console.log(response.data);
+
+			return {
+				props: {
+					sportsData: response.data || [], // Pass the sports data to the component
+				},
+			};
+		} else {
+			console.error("Error fetching sports data:", response.message);
+			return {
+				props: {
+					sportsData: [], // Empty array if there was an error
+				},
+			};
+		}
+	} catch (error) {
+		console.error("Error fetching sports data:", error);
+		return {
+			props: {
+				sportsData: [], // Provide an empty array in case of any error
+			},
+		};
+	}
 };
 
 export default ManualCreation;

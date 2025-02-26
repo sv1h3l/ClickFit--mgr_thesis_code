@@ -1,41 +1,44 @@
 import { Box, Typography } from "@mui/material";
 
 interface LabelAndValueProps {
-    label?: string;
-    value?: string;
+	label?: string;
+	value?: string;
 
-    spaceBetween?: boolean;
-    noPaddingTop?: boolean;
+	spaceBetween?: boolean;
+	noPaddingTop?: boolean;
+	noPaddingLeft?: boolean;
 
-    notFilledIn?: boolean;
-    isSelected?: boolean;
+	notFilledIn?: boolean;
+	isSelected?: boolean;
+
+	style?: string;
+
+	onClick?: () => void;
 }
 
-function LabelAndValue({ label, value, spaceBetween, noPaddingTop, notFilledIn, isSelected }: LabelAndValueProps) {
-    return (
-        <Box
-            className={`flex  w-full pl-3 relative
-                        ${!spaceBetween && "gap-3"} ${!noPaddingTop && "pt-4"} `}
-        >
-            {isSelected && <Typography className="absolute -left-4 text-gray-200">⬤</Typography>}
+function LabelAndValue({ label, value, spaceBetween, noPaddingTop, noPaddingLeft, notFilledIn, isSelected, onClick, style }: LabelAndValueProps) {
+	return (
+		<Box
+			onClick={onClick}
+			className={`flex w-full relative  
+						${style} ${!noPaddingLeft && "pl-2"}  ${!spaceBetween && "gap-3"} ${!noPaddingTop && "mt-4"} ${onClick && "hover:text-blue-600 cursor-pointer select-none"}`}>
+			{isSelected && <Typography className="absolute -left-4 text-blue-400">⬤</Typography>}
 
-            <Typography
-                className={`text-nowrap 
-                ${spaceBetween && "w-1/2"} ${!isSelected && "font-light"}`}
-            >
-                {label}
-            </Typography>
+			<Typography
+				className={` 
+                			${spaceBetween && "w-1/2"} ${!isSelected && "font-light "} ${!spaceBetween && "text-nowrap"}`}>
+				{label}
+			</Typography>
 
-            {!spaceBetween && (value || notFilledIn) && <Typography className="text-gray-400 font-light text-nowrap">»</Typography>}
+			{!spaceBetween && (value || notFilledIn) && <Typography className="text-gray-400 font-light text-nowrap">»</Typography>}
 
-            <Typography
-                className={`text-nowrap 
-                                    ${!value && "text-gray-400 font-light"} ${spaceBetween && !isSelected && "font-light"}`}
-            >
-                {value || (notFilledIn && "Není vyplněno")}
-            </Typography>
-        </Box>
-    );
+			<Typography
+				className={`
+                        	${!value && "text-gray-400 font-light"} ${spaceBetween && !isSelected && "font-light"}`}>
+				{value || (notFilledIn && "Není vyplněno")}
+			</Typography>
+		</Box>
+	);
 }
 
 export default LabelAndValue;

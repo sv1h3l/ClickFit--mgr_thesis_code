@@ -1,13 +1,13 @@
 import { ReactNode } from "react";
 import Header from "./Header";
 
-function Layout({ children, isWide }: { children: ReactNode, isWide?: boolean }) {
+function Layout({ children }: { children: ReactNode }) {
 	return (
 		<>
-			<Header isWide={isWide}/>
+			<Header />
 
 			<div className="flex justify-center w-full ">
-				<div className=" max-w-content w-full  "> {/*outline outline-1 outline-cyan-500 */}
+				<div className=" max-w-content w-full  ">
 					<main>{children}</main>
 				</div>
 			</div>

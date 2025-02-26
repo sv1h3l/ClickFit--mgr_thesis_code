@@ -12,7 +12,7 @@ function Connections({ children }: GeneralCardProps) {
   const childrenArray = React.Children.toArray(children);
 
   return (
-    <GeneralCard title="Navázaná spojení">
+    <GeneralCard firstTitle="Navázaná spojení">
       <CardContent>
         {React.Children.map(children, (child) => (
           <div className="py-2 flex justify-between items-center">

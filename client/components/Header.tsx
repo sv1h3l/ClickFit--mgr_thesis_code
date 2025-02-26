@@ -3,30 +3,53 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Navigation from "./Navigation";
 
-function Header({ isWide }: { isWide?: boolean }) {
+const cookie = require("cookie");
+
+function Header() {
 	const router = useRouter();
+
+	const [isTight, setIsTight] = useState(false);
 
 	const [user, setUser] = useState<any>(null);
 
 	const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString("cs-CZ"));
 
 	useEffect(() => {
-		const storedUser = localStorage.getItem("user");
-		if (storedUser) {
-			setUser(JSON.parse(storedUser));
-		}
+		// Tato funkce se zavolá při každé změně cookies
+		const checkUserCookie = () => {
+			const cookies = cookie.parse(document.cookie);
+			const userEmail = cookies.userEmail || null; // Retrieve the userEmail cookie if available
+
+			if (userEmail) {
+				setUser(userEmail);
+			}
+		};
+
+		checkUserCookie(); // Zavoláme ihned po mountu
+
+		// Sledování změn cookies každých 10ms
+		const interval = setInterval(checkUserCookie, 10);
+		return () => clearInterval(interval); // Po odpojení komponenty zastavíme interval
 	}, []);
 
 	useEffect(() => {
+		const tightPages = ["/communication"];
+		setIsTight(!tightPages.includes(router.pathname));
+	}, [router.pathname]);
+
+	useEffect(() => {
+
+
 		const interval = setInterval(() => {
 			setCurrentTime(new Date().toLocaleTimeString("cs-CZ"));
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, []);
+	});
 
 	const handleLogout = () => {
-		localStorage.removeItem("user");
+		document.cookie = "userEmail=; max-age=0; path=/"; // Vymazání cookie
+		setUser(null);
 		router.push("/");
 	};
 
@@ -69,7 +92,7 @@ function Header({ isWide }: { isWide?: boolean }) {
 					</Box>
 				</Box>
 
-				{user && <Navigation isWide={isWide}/>}
+				{user && <Navigation isTight={isTight} />}
 			</AppBar>
 		</>
 	);

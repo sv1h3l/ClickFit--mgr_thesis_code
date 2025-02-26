@@ -10,6 +10,7 @@ export const loginRequest = async (data: { email: string; password: string }) =>
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify(data),
+		credentials: "include",
 	});
 
 	if (!response.ok) {

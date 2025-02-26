@@ -7,7 +7,7 @@ import { Height } from "@mui/icons-material";
 function QR() {
   return (
     <div className="flex flex-col items-center space-y-0">
-      <GeneralCard title="QR kód pro navázání spojení">
+      <GeneralCard firstTitle="QR kód pro navázání spojení">
         <CardContent>
           <svg
             xmlns="http://www.w3.org/2000/svg"

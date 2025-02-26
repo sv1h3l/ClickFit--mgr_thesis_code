@@ -1,43 +1,88 @@
+import { StateAndSet } from "@/utilities/generalInterfaces";
 import { Box, CardContent, Typography } from "@mui/material";
-import React, { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 interface GeneralCardProps {
-	title?: string;
-	second?: boolean;
-	percentage?: number;
+	firstTitle?: string;
+
 	border?: boolean;
 	height?: string;
 	width?: string;
-	sideContent?: ReactNode[]; // Změna na pole ReactNode
-	children: ReactNode;
+
+	secondTitle?: string;
+
+	firstSideContent?: ReactNode[];
+	secondSideContent?: ReactNode[];
+
+	removeJustifyBetween?: boolean;
+
+	secondGeneralCard?: boolean;
+
+	firstChildren: ReactNode;
+	secondChildren?: ReactNode;
+
+	showFirstSection?: StateAndSet<boolean>;
 }
 
-function GeneralCard({ title, height, width, second, percentage, border, children, sideContent }: GeneralCardProps) {
-	const childrenArray = React.Children.toArray(children);
+function GeneralCard({ firstTitle, secondTitle, height, width, secondGeneralCard, border, firstChildren, secondChildren, firstSideContent, secondSideContent, removeJustifyBetween, showFirstSection }: GeneralCardProps) {
+	const [localShowFirstSection, setLocalShowFirstSection] = useState<boolean>(true);
+
+	const isFirstSectionVisible = showFirstSection ? showFirstSection.state : localShowFirstSection;
+	const setSectionVisibility = showFirstSection ? showFirstSection.setState : setLocalShowFirstSection;
 
 	return (
-		<>
-			{second && <Box className={`h-1/5 absolute top-[${percentage ? percentage : "40"}%] -right-0 border-r-2 border-gray-200  `}></Box>}
+		<Box className={`flex flex-col ${height} ${width} px-8 ${border && "border-r-2 border-b-2 rounded-br-3xl border-gray-200"} overflow-auto`}>
+			{/* Header */}
+			<Box
+				className={`flex items-center pb-3 
+			${!removeJustifyBetween && "justify-between"} ${secondGeneralCard ? "pt-11" : "pt-6"}`}>
+				{/* První title */}
+				<Typography
+					className={`text-3xl ${secondTitle && "cursor-pointer"} select-none transition-all ${!isFirstSectionVisible && "text-gray-300"}`}
+					onClick={() => setSectionVisibility(true)}>
+					{firstTitle}
+				</Typography>
 
-			<Box className={`px-8 ${border && "border-r-2 border-b-2 rounded-br-3xl border-gray-200"} overflow-y-auto ${height} ${width}`}>
-				<Box className={`flex items-center pb-3 justify-between  ${second ? "pt-11" : "pt-6"}`}>
-					<Typography className="text-3xl">{title}</Typography>
+				{/* Druhý title */}
+				{secondTitle && (
+					<Box className="flex">
+						{secondSideContent && (
+							<Box className="flex">
+								{secondSideContent.map((content, index) => (
+									<Box
+										key={index}
+										className="ml-2">
+										{content}
+									</Box>
+								))}
+							</Box>
+						)}
 
-					<Box className="flex ">
-						{sideContent &&
-							sideContent.map((content, index) => (
-								<Box
-									key={index}
-									className="ml-2">
-									{content}
-								</Box>
-							))}
+						<Typography
+							className={`text-3xl cursor-pointer transition-all select-none ${isFirstSectionVisible && "text-gray-300"}`}
+							onClick={() => setSectionVisibility(false)}>
+							{secondTitle}
+						</Typography>
 					</Box>
-				</Box>
+				)}
 
-				<CardContent className="pt-0 pl-3 pr-0">{children}</CardContent>
+				{/* Doplňkový obsah */}
+				{firstSideContent && (
+					<Box className="flex">
+						{firstSideContent.map((content, index) => (
+							<Box
+								key={index}
+								className="ml-2">
+								{content}
+							</Box>
+						))}
+					</Box>
+				)}
 			</Box>
-		</>
+
+			{/* Content */}
+			<CardContent className={`flex-grow pt-0 pl-3 pr-0 `}>{isFirstSectionVisible ? firstChildren : secondChildren}</CardContent>
+		</Box>
 	);
 }
 

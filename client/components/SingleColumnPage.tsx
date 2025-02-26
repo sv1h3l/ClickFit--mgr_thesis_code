@@ -12,7 +12,7 @@ const SingleColumnPage = ({ width, height, children }: SingleColumnPageProps) =>
         <Box className="flex justify-center h-content">
             <Box
                 className={`${width || "w-full"} ${height || "h-full"}
-						bg-white border-x-2 border-gray-200 rounded-br-3xl `}
+						bg-white border-x-2 border-b-2 border-gray-200 rounded-br-3xl `}
             >
                 {children}
             </Box>

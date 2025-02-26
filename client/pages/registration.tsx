@@ -1,11 +1,10 @@
+import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import Card from "../components/Card";
-import Layout from "../components/Layout";
 import { registerRequest } from "./api/registerRequest";
-import checkLoggedUser from "@/components/CheckLoggedUser";
 
 function Registration() {
 	const router = useRouter();
@@ -94,148 +93,146 @@ function Registration() {
 				<title>Registrace - KlikFit</title>
 			</Head>
 
-			<Layout>
-				<Card>
-					<Typography
-						variant="h5"
-						component="div"
-						gutterBottom
-						style={{ textAlign: "center" }}
-						className="mb-0">
-						Registrace
-					</Typography>
+			<Card>
+				<Typography
+					variant="h5"
+					component="div"
+					gutterBottom
+					style={{ textAlign: "center" }}
+					className="mb-0">
+					Registrace
+				</Typography>
 
-					<div className="max-w-sm">
-						<div className="flex flex-no-wrap gap-10 ">
-							<TextField
-								error={!!errorName}
-								helperText={errorName}
-								label="Jméno"
-								type=""
-								margin="normal"
-								variant="standard"
-								size="small"
-								fullWidth
-								inputRef={nameRef}
-								className="h-14"
-								inputProps={{ maxLength: 20 }}
-								onKeyDown={(e) => {
-									if (e.key === " ") {
-										e.preventDefault(); // Zabránění vložení mezery
-									}
-								}}
-								onBlur={() => {
-									const name = nameRef.current?.value || "";
-									setErrorName(!name ? errorNameText : "");
-								}}
-							/>
-
-							<TextField
-								error={!!errorSurname}
-								helperText={errorSurname}
-								label="Přijmení"
-								type=""
-								margin="normal"
-								variant="standard"
-								size="small"
-								fullWidth
-								inputRef={surnameRef}
-								className="h-14"
-								inputProps={{ maxLength: 20 }}
-								onKeyDown={(e) => {
-									if (e.key === " ") {
-										e.preventDefault();
-									}
-								}}
-								onBlur={() => {
-									const surname = surnameRef.current?.value || "";
-									setErrorSurname(!surname ? errorSurnameText : "");
-								}}
-							/>
-						</div>
-
+				<div className="max-w-sm">
+					<div className="flex flex-no-wrap gap-10 ">
 						<TextField
-							error={!!errorEmail}
-							helperText={errorEmail}
-							label="Email"
-							type="email"
-							fullWidth
+							error={!!errorName}
+							helperText={errorName}
+							label="Jméno"
+							type=""
 							margin="normal"
 							variant="standard"
 							size="small"
-							inputRef={emailRef}
+							fullWidth
+							inputRef={nameRef}
 							className="h-14"
-							inputProps={{ maxLength: 40 }}
+							inputProps={{ maxLength: 20 }}
+							onKeyDown={(e) => {
+								if (e.key === " ") {
+									e.preventDefault(); // Zabránění vložení mezery
+								}
+							}}
+							onBlur={() => {
+								const name = nameRef.current?.value || "";
+								setErrorName(!name ? errorNameText : "");
+							}}
+						/>
+
+						<TextField
+							error={!!errorSurname}
+							helperText={errorSurname}
+							label="Přijmení"
+							type=""
+							margin="normal"
+							variant="standard"
+							size="small"
+							fullWidth
+							inputRef={surnameRef}
+							className="h-14"
+							inputProps={{ maxLength: 20 }}
 							onKeyDown={(e) => {
 								if (e.key === " ") {
 									e.preventDefault();
 								}
 							}}
 							onBlur={() => {
-								const email = emailRef.current?.value || "";
-
-								if (!email) {
-									setErrorEmail(errorEmailText1);
-								} else {
-									const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-									if (!emailRegex.test(email)) {
-										setErrorEmail(errorEmailText2);
-									} else {
-										setErrorEmail("");
-									}
-								}
+								const surname = surnameRef.current?.value || "";
+								setErrorSurname(!surname ? errorSurnameText : "");
 							}}
 						/>
-
-						<TextField
-							error={!!errorPassword}
-							helperText={errorPassword}
-							label="Heslo"
-							type="password"
-							fullWidth
-							margin="normal"
-							variant="standard"
-							size="small"
-							inputRef={passwordRef}
-							className="h-14"
-							inputProps={{ maxLength: 40 }}
-							onBlur={() => {
-								const password = passwordRef.current?.value || "";
-								setErrorPassword(password.length < 8 ? errorPasswordText : "");
-
-								const confirmPassword = confirmPasswordRef.current?.value || "";
-								setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
-							}}
-						/>
-
-						<TextField
-							error={!!errorConfirmPassword}
-							helperText={errorConfirmPassword}
-							label="Potvrzení hesla"
-							type="password"
-							fullWidth
-							margin="normal"
-							variant="standard"
-							size="small"
-							className="h-14 mb-8"
-							inputRef={confirmPasswordRef}
-							inputProps={{ maxLength: 40 }}
-							onBlur={() => {
-								const password = passwordRef.current?.value || "";
-								const confirmPassword = confirmPasswordRef.current?.value || "";
-								setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
-							}}
-						/>
-
-						<Button
-							variant="contained"
-							color="primary"
-							onClick={handleRegistration}>
-							Registrovat se
-						</Button>
 					</div>
-				</Card>
-			</Layout>
+
+					<TextField
+						error={!!errorEmail}
+						helperText={errorEmail}
+						label="Email"
+						type="email"
+						fullWidth
+						margin="normal"
+						variant="standard"
+						size="small"
+						inputRef={emailRef}
+						className="h-14"
+						inputProps={{ maxLength: 40 }}
+						onKeyDown={(e) => {
+							if (e.key === " ") {
+								e.preventDefault();
+							}
+						}}
+						onBlur={() => {
+							const email = emailRef.current?.value || "";
+
+							if (!email) {
+								setErrorEmail(errorEmailText1);
+							} else {
+								const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+								if (!emailRegex.test(email)) {
+									setErrorEmail(errorEmailText2);
+								} else {
+									setErrorEmail("");
+								}
+							}
+						}}
+					/>
+
+					<TextField
+						error={!!errorPassword}
+						helperText={errorPassword}
+						label="Heslo"
+						type="password"
+						fullWidth
+						margin="normal"
+						variant="standard"
+						size="small"
+						inputRef={passwordRef}
+						className="h-14"
+						inputProps={{ maxLength: 40 }}
+						onBlur={() => {
+							const password = passwordRef.current?.value || "";
+							setErrorPassword(password.length < 8 ? errorPasswordText : "");
+
+							const confirmPassword = confirmPasswordRef.current?.value || "";
+							setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
+						}}
+					/>
+
+					<TextField
+						error={!!errorConfirmPassword}
+						helperText={errorConfirmPassword}
+						label="Potvrzení hesla"
+						type="password"
+						fullWidth
+						margin="normal"
+						variant="standard"
+						size="small"
+						className="h-14 mb-8"
+						inputRef={confirmPasswordRef}
+						inputProps={{ maxLength: 40 }}
+						onBlur={() => {
+							const password = passwordRef.current?.value || "";
+							const confirmPassword = confirmPasswordRef.current?.value || "";
+							setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
+						}}
+					/>
+
+					<Button
+						variant="contained"
+						color="primary"
+						onClick={handleRegistration}>
+						Registrovat se
+					</Button>
+				</div>
+			</Card>
 		</>
 	);
 }

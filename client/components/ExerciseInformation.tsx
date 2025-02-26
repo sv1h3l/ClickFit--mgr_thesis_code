@@ -2,95 +2,114 @@ import { Box, Typography } from "@mui/material";
 import GeneralCard from "./GeneralCard";
 import LabelAndValue from "./LabelAndValue";
 
-function ExerciseInformation() {
-    return (
-        <>
-            <GeneralCard
-                title="Informace o cviku"
-                border
-                height="h-2/3"
-            >
-                <Box className="flex flex-col  ">
-                    <LabelAndValue
-                        noPaddingTop
-                        label="Název cviku"
-                        value="Přitahovaní olympijské osy v předklonu"
-                    />
-                    <LabelAndValue
-                        label="Náročnost"
-                        value="střední"
-                    />
+interface ExerciseInformationProps {
+	exerciseDescription: string;
+	exerciseYoutubeLink: string;
+}
 
-                    <LabelAndValue
-                        label="Typ cviku"
-                        value="komplexní"
-                    />
+function ExerciseInformation({ props }: { props: ExerciseInformationProps }) {
+	return (
+		<>
+			<GeneralCard
+				firstTitle="Podrobnosti"
+				secondTitle="Provedení"
+				height="h-full"
+				firstChildren={
+					<Box className="flex flex-col  ">
+						<LabelAndValue
+							noPaddingTop
+							label="Název cviku"
+							value="Přitahovaní olympijské osy v předklonu"
+						/>
+						<LabelAndValue
+							label="Náročnost"
+							value="střední"
+						/>
 
-                    <LabelAndValue
-                        label="Primární zaměření"
-                        value="široký sval zádový"
-                    />
+						<LabelAndValue
+							label="Typ cviku"
+							value="komplexní"
+						/>
 
-                    <LabelAndValue
-                        label="Sekundární zaměření"
-                        value="břicho, nohy, dvojhlavý sval pažní, předloktí "
-                    />
+						<LabelAndValue
+							label="Primární zaměření"
+							value="široký sval zádový"
+						/>
 
-                    <LabelAndValue
-                        label="Doporučená váha"
-                        value="20 - 40 kg"
-                    />
+						<LabelAndValue
+							label="Sekundární zaměření"
+							value="břicho, nohy, dvojhlavý sval pažní, předloktí "
+						/>
 
-                    <LabelAndValue
-                        label="Doporučený počet opakování"
-                        value="8 - 10"
-                    />
+						<LabelAndValue
+							label="Doporučená váha"
+							value="20 - 40 kg"
+						/>
 
-                    <LabelAndValue
-                        label="Doporučený počet sérií"
-                        value="3"
-                    />
+						<LabelAndValue
+							label="Doporučený počet opakování"
+							value="8 - 10"
+						/>
 
-                    <LabelAndValue
-                        label="Nutné vybavení"
-                        value="olympijská osa, závaží"
-                    />
+						<LabelAndValue
+							label="Doporučený počet sérií"
+							value="3"
+						/>
 
-                    <LabelAndValue
-                        label="Doporučené vybavení"
-                        value="brzdy na olympijskou osu"
-                    />
+						<LabelAndValue
+							label="Nutné vybavení"
+							value="olympijská osa, závaží"
+						/>
 
-                    <LabelAndValue
-                        label="Nutná asistence"
-                        value="ne"
-                    />
+						<LabelAndValue
+							label="Doporučené vybavení"
+							value="brzdy na olympijskou osu"
+						/>
 
-                    <LabelAndValue
-                        label="Cvik je cílený na"
-                        value="sílu, hypertrofii"
-                    />
-                </Box>
-            </GeneralCard>
+						<LabelAndValue
+							label="Nutná asistence"
+							value="ne"
+						/>
 
-            <GeneralCard
-                title="Způsob provedení cviku"
-                second
-                border
-                height="h-1/3"
-            >
-                <Typography className="pl-3 font-light ">
-                    Mírný předklon, mírné pokrčení kolen, pevný střed těla. Pohyb se provádí přítahováním osy ke spodní části hrudníku. Lokty by měly být v konečné fázi mírně nad tělem a tlačeny směrem k tělu. Pro lehčí variantu se může osa mezi
-                    opakováními pokládat na zem.
-                </Typography>
-                {/*<Typography className="pl-3 font-light">
-					Začněte s osou na zemi, nohy na šířku ramen, chodidla mírně vytočená ven. Předkloníte se s rovnými zády a uchopíte osu nadhmatem nebo smíšeným úchopem (jedna ruka nadhmat, druhá podhmat). Střed těla zpevněný, lopatky
-					zatažené. Pohyb začíná zvedáním osy směrem vzhůru pomocí tahu nohou a následně narovnáním trupu. Při návratu osu kontrolovaně spusťte zpět na zem. Záda udržujte rovná po celou dobu provedení cviku. Pro lehčí variantu lze
-					použít trap bar.
-				</Typography>*/}
-            </GeneralCard>
-        </>
-    );
+						<LabelAndValue
+							label="Cvik je cílený na"
+							value="sílu, hypertrofii"
+						/>
+
+						{/*{props.exercisesDatabase && (
+						<Box className="mt-2">
+							<TextFieldWithPlus
+								placeHolder="Název nového sportu"
+								onClick={handleCreateSport}
+							/>
+						</Box>
+					)}*/}
+					</Box>
+				}
+				secondChildren={
+					<Box className="h-full">
+						<Box className="pt-6 pb-12 ">
+							<Typography className=" font-light ">
+								{props.exerciseDescription}
+							</Typography>
+						</Box>
+
+						<Box className=" ">
+							<Box className="   w-full flex justify-center ">
+								<iframe
+									className=" h-auto w-full aspect-video rounded-3xl"
+									width="854"
+									height="480"
+									src={props.exerciseYoutubeLink+"?&mute=1&rel=0"}
+									//src="https://www.youtube.com/embed/9Gf-Ourup_k?&mute=1&rel=0"
+									title="YouTube video player"
+									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+							</Box>
+						</Box>
+					</Box>
+				}></GeneralCard>
+		</>
+	);
 }
 
 export default ExerciseInformation;

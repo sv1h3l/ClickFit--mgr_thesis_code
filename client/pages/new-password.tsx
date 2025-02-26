@@ -4,7 +4,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import Card from "../components/Card";
-import Layout from "../components/Layout";
 import GenericApiResponse from "./api/GenericApiResponse";
 import { newPasswordRequest } from "./api/newPasswordRequest";
 
@@ -34,7 +33,7 @@ const NewPassword = () => {
 		if (dontFetch) return;
 		else {
 			try {
-				const response: GenericApiResponse = await newPasswordRequest({ token, password, confirmPassword });
+				const response: GenericApiResponse<null> = await newPasswordRequest({ token, password, confirmPassword });
 
 				if (response.status === 200) {
 					alert("Heslo bylo úspěšně změněno.");
@@ -71,67 +70,65 @@ const NewPassword = () => {
 				<title>Nové heslo - KlikFit</title>
 			</Head>
 
-			<Layout>
-				<Card>
-					<Typography
-						variant="h5"
-						component="div"
-						gutterBottom
-						style={{ textAlign: "center" }}
-						className="mb-4">
-						Změna hesla
-					</Typography>
+			<Card>
+				<Typography
+					variant="h5"
+					component="div"
+					gutterBottom
+					style={{ textAlign: "center" }}
+					className="mb-4">
+					Změna hesla
+				</Typography>
 
-					<div className="max-w-sm">
-						<TextField
-							error={!!errorPassword}
-							helperText={errorPassword}
-							label="Nové heslo"
-							type="password"
-							fullWidth
-							margin="normal"
-							variant="standard"
-							size="small"
-							inputRef={passwordRef}
-							className="h-14"
-							inputProps={{ maxLength: 40 }}
-							onBlur={() => {
-								const password = passwordRef.current?.value || "";
-								setErrorPassword(password.length < 8 ? errorPasswordText : "");
+				<div className="max-w-sm">
+					<TextField
+						error={!!errorPassword}
+						helperText={errorPassword}
+						label="Nové heslo"
+						type="password"
+						fullWidth
+						margin="normal"
+						variant="standard"
+						size="small"
+						inputRef={passwordRef}
+						className="h-14"
+						inputProps={{ maxLength: 40 }}
+						onBlur={() => {
+							const password = passwordRef.current?.value || "";
+							setErrorPassword(password.length < 8 ? errorPasswordText : "");
 
-								const confirmPassword = confirmPasswordRef.current?.value || "";
-								setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
-							}}
-						/>
+							const confirmPassword = confirmPasswordRef.current?.value || "";
+							setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
+						}}
+					/>
 
-						<TextField
-							error={!!errorConfirmPassword}
-							helperText={errorConfirmPassword}
-							label="Potvrzení nového hesla"
-							type="password"
-							fullWidth
-							margin="normal"
-							variant="standard"
-							size="small"
-							className="h-14 mb-8"
-							inputRef={confirmPasswordRef}
-							inputProps={{ maxLength: 40 }}
-							onBlur={() => {
-								const password = passwordRef.current?.value || "";
-								const confirmPassword = confirmPasswordRef.current?.value || "";
-								setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
-							}}
-						/>
+					<TextField
+						error={!!errorConfirmPassword}
+						helperText={errorConfirmPassword}
+						label="Potvrzení nového hesla"
+						type="password"
+						fullWidth
+						margin="normal"
+						variant="standard"
+						size="small"
+						className="h-14 mb-8"
+						inputRef={confirmPasswordRef}
+						inputProps={{ maxLength: 40 }}
+						onBlur={() => {
+							const password = passwordRef.current?.value || "";
+							const confirmPassword = confirmPasswordRef.current?.value || "";
+							setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
+						}}
+					/>
 
-						<Button
-							variant="contained"
-							color="primary"
-							onClick={newPassword}>
-							Změnit heslo
-						</Button>
-					</div>
-				</Card>
-			</Layout>
+					<Button
+						variant="contained"
+						color="primary"
+						onClick={newPassword}>
+						Změnit heslo
+					</Button>
+				</div>
+			</Card>
 		</>
 	);
 };

@@ -1,12 +1,11 @@
+import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Card from "../components/Card";
-import Layout from "../components/Layout";
 import GenericApiResponse from "./api/GenericApiResponse";
 import { verifyEmailRequest } from "./api/verifyEmailRequest";
-import checkLoggedUser from "@/components/CheckLoggedUser";
 
 const Verification = () => {
 	const router = useRouter();
@@ -16,7 +15,7 @@ const Verification = () => {
 	// Funkce pro ověření tokenu
 	const verifyEmail = async (token: string) => {
 		try {
-			const data: GenericApiResponse = await verifyEmailRequest(token);
+			const data: GenericApiResponse<null> = await verifyEmailRequest(token);
 
 			setStatusMessage(data.message);
 		} catch (error) {
@@ -51,36 +50,34 @@ const Verification = () => {
 				<title>Verifikace - KlikFit</title>
 			</Head>
 
-			<Layout>
-				<Card>
+			<Card>
+				<Typography
+					variant="h5"
+					component="div"
+					gutterBottom
+					style={{ textAlign: "center" }}
+					className="mb-4">
+					Verifikace
+				</Typography>
+
+				<div className="max-w-sm">
 					<Typography
-						variant="h5"
+						variant="body1"
 						component="div"
-						gutterBottom
 						style={{ textAlign: "center" }}
 						className="mb-4">
-						Verifikace
+						{isLoading ? "Načítání..." : statusMessage}
 					</Typography>
 
-					<div className="max-w-sm">
-						<Typography
-							variant="body1"
-							component="div"
-							style={{ textAlign: "center" }}
-							className="mb-4">
-							{isLoading ? "Načítání..." : statusMessage}
-						</Typography>
-
-						<Button
-							variant="contained"
-							color="primary"
-							onClick={routeToLogin}
-							disabled={isLoading}>
-							Přihlásit se
-						</Button>
-					</div>
-				</Card>
-			</Layout>
+					<Button
+						variant="contained"
+						color="primary"
+						onClick={routeToLogin}
+						disabled={isLoading}>
+						Přihlásit se
+					</Button>
+				</div>
+			</Card>
 		</>
 	);
 };
