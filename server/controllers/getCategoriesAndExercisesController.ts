@@ -23,8 +23,6 @@ export const getCategoriesAndExercisesController = async (req: Request, res: Res
 
 		const exercises = await getExercises(sportIdNumber); // Získáme sporty
 
-		console.log(exercises)
-
 		if (categories.length > 0) {
 			const formattedCategories = categories.map((category) => {
 				// Filtrujeme všechny cviky, které mají stejné categoryId
@@ -47,8 +45,6 @@ export const getCategoriesAndExercisesController = async (req: Request, res: Res
 					})),
 				};
 			});
-
-			console.log(formattedCategories)
 
 			res.status(200).json({ message: "Kategorie a cviky úspěšně předány.", data: formattedCategories });
 		} else {

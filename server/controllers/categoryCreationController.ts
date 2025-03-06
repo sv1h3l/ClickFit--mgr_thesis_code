@@ -22,7 +22,7 @@ export const categoryCreationController = async (req: Request, res: Response): P
 				res.status(201).json({
 					message: "Kategorie byla úspěšně vytvořena",
 					data: {
-						categoryId: dbRes.categoryId,
+						categoryId: dbRes.exerciseId,
 					},
 				});
 

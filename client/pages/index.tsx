@@ -1,4 +1,3 @@
-import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -71,4 +70,4 @@ function Index() {
 	);
 }
 
-export default checkLoggedUser(Index);
+export default Index;

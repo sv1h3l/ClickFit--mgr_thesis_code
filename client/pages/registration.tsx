@@ -1,4 +1,3 @@
-import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -237,4 +236,4 @@ function Registration() {
 	);
 }
 
-export default checkLoggedUser(Registration);
+export default Registration;

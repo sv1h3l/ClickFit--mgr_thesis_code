@@ -1,4 +1,3 @@
-import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -133,4 +132,4 @@ const NewPassword = () => {
 	);
 };
 
-export default checkLoggedUser(NewPassword);
+export default NewPassword;

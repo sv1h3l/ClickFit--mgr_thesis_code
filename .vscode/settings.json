@@ -3,9 +3,10 @@
         "**/.git": true,
         "**/.svn": true,
         "**/.hg": true,
-        "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
+        "**/CVS": true,
+        "server/.env": true,
         "client/node_modules": true,
         "README.md": true,
         "server/tsconfig.json": true,
@@ -17,16 +18,15 @@
         "client/next-env.d.ts": true,
         "client/next.config.mjs": true,
         "client/package-lock.json": true,
-        "client/package.json": true,
         "client/postcss.config.js": true,
         "client/tailwind.config.js": true,
         "client/tsconfig.json": true,
         "client/styles/Home.module.css": true,
         "client/styles/Header.module.css": true,
-        "server/.env": true,
         "client/.next": true,
-        ".vscode": true,
-        "server/package.json": true
+        "client/package.json": true,
+        "server/package.json": true,
+        ".vscode": true
     },
     "hide-files.files": [
         "client/node_modules",
@@ -40,15 +40,14 @@
         "client/next-env.d.ts",
         "client/next.config.mjs",
         "client/package-lock.json",
-        "client/package.json",
         "client/postcss.config.js",
         "client/tailwind.config.js",
         "client/tsconfig.json",
         "client/styles/Home.module.css",
         "client/styles/Header.module.css",
-        "server/.env",
         "client/.next",
-        ".vscode",
-        "server/package.json"
+        "client/package.json",
+        "server/package.json",
+        ".vscode"
     ]
 }

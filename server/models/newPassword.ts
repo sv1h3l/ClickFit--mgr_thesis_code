@@ -5,7 +5,8 @@ export const newPassword = async (token: string, password: string): Promise<bool
 	const query = `
 		UPDATE users
 		SET hashed_password = ?
-		WHERE token = ?`;
+		WHERE token = ?
+		`;
 
 	try {
 		const results = await new Promise<any>(async (resolve, reject) => {

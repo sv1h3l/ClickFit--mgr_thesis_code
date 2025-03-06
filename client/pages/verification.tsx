@@ -1,4 +1,3 @@
-import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -82,4 +81,4 @@ const Verification = () => {
 	);
 };
 
-export default checkLoggedUser(Verification);
+export default Verification;

@@ -7,7 +7,7 @@ export enum CategoryCreationStatus {
 	FAILURE = 2,
 }
 
-export const createCategory = async (sportId: number, categoryName: string, orderNumber: number): Promise<{ status: CategoryCreationStatus; categoryId?: number }> => {
+export const createCategory = async (sportId: number, categoryName: string, orderNumber: number): Promise<{ status: CategoryCreationStatus; exerciseId?: number }> => {
 	const checkQuery = `SELECT * FROM categories WHERE sport_id = ? AND category_name = ? LIMIT 1`;
 
 	try {
@@ -27,7 +27,7 @@ export const createCategory = async (sportId: number, categoryName: string, orde
 
 		const categoryId = (result as { insertId: number }).insertId; // FIXME je insertId správné ?
 
-		return { status: CategoryCreationStatus.SUCCESS, categoryId: categoryId };
+		return { status: CategoryCreationStatus.SUCCESS, exerciseId: categoryId };
 	} catch (error) {
 		console.error("Database error: ", error);
 		return { status: CategoryCreationStatus.FAILURE };
