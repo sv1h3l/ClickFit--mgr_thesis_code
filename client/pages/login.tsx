@@ -4,8 +4,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import Card from "../components/Card";
-import { emailVerificationRequest } from "./api/emailVerificationRequest";
-import { loginRequest } from "./api/loginRequest";
+import { emailVerificationRequest } from "../api/emailVerificationRequest";
+import { loginRequest } from "../api/loginRequest";
 
 function Login() {
 	const router = useRouter();

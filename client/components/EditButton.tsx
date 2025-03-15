@@ -6,26 +6,29 @@ import { Box, Button } from "@mui/material";
 interface EditButtonProps {
 	disabled?: boolean;
 
+	style?: string;
+
 	editing: StateAndSet<boolean>;
 }
 
-const EditButton = ({ props }: { props: EditButtonProps }) => {
+const EditButton = ({ disabled, editing, style }: EditButtonProps) => {
 	return (
-		<Box className="-ml-2 mt-1">
+		<Box className={`-ml-2 mt-1
+						${style}`}>
 			<Button
-				disabled={props.disabled}
+				disabled={disabled}
 				className={`w-auto h-auto p-1 min-w-8 ml-2`}
 				onClick={() => {
-					props.editing.setState(!props.editing.state);
+					editing.setState(!editing.state);
 				}}>
-				{props.editing.state ? (
+				{editing.state ? (
 					<SaveIcon
-						className={`${props.disabled ? "text-gray-300" : "text-blue-500"} `}
+						className={`${disabled ? "text-gray-300" : "text-blue-500"} `}
 						fontSize="small"
 					/>
 				) : (
 					<EditIcon
-						className={`${props.disabled ? "text-gray-300" : "text-blue-500"} `}
+						className={`${disabled ? "text-gray-300" : "text-blue-500"} `}
 						fontSize="small"
 					/>
 				)}

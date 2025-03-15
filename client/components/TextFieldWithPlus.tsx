@@ -1,11 +1,14 @@
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, TextField } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface TextFieldWithPlusProps {
+	previousValue?: string;
 	placeHolder: string;
 
 	onClick: (value: string) => void;
+	icon?: React.ReactNode;
+	dontDeleteValue?: boolean;
 
 	border?: boolean;
 
@@ -15,35 +18,44 @@ interface TextFieldWithPlusProps {
 	onToggleChange?: (isChecked: boolean) => void;
 
 	style?: string;
+	noPaddingY?: boolean;
 }
 
-const TextFieldWithPlus = ({ props }: { props: TextFieldWithPlusProps }) => {
-	const [value, setValue] = useState<string>("");
+const TextFieldWithIcon = ({ previousValue, placeHolder, onClick, icon, dontDeleteValue, border, titleBorderWidth, isChecked, onToggleChange, style, noPaddingY }: TextFieldWithPlusProps) => {
+	const [value, setValue] = useState<string>(previousValue || "");
+
+	useEffect(() => {
+		if (previousValue !== value) {
+			setValue(previousValue || "");
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [previousValue]);
 
 	const handleAction = () => {
 		if (value.trim() === "") return;
 
-		if (props.onClick) {
-			props.onClick(value);
+		if (onClick) {
+			onClick(value);
 		}
-		setValue("");
+
+		!dontDeleteValue && setValue("");
 	};
 
 	return (
 		<Box
-			className={`flex py-2 flex-shrink-0 relative
-                        ${props.border && "border-t-2 border-gray-300 "} ${props.onToggleChange && !props.isChecked && "opacity-50"} ${props.style}`}>
-			{props.titleBorderWidth && (
+			className={`flex flex-shrink-0 relative
+                        ${!noPaddingY && "py-2"} ${border && "border-t-2 border-blue-300 "} ${onToggleChange && !isChecked && "opacity-50"} ${style}`}>
+			{titleBorderWidth && (
 				<Box
-					style={{ width: props.titleBorderWidth }}
-					className="border-t-2 border-l-2 border-gray-200 h-6 rounded-tl-xl absolute -left-3 -mt-1"
+					style={{ width: titleBorderWidth }}
+					className="border-t-2 border-l-2 border-blue-300 h-6 rounded-tl-lg absolute -left-2.5 -mt-1"
 				/>
 			)}
 
 			<TextField
-				disabled={props.onToggleChange && !props.isChecked}
-				className="w-full"
-				placeholder={props.placeHolder}
+				disabled={onToggleChange && !isChecked}
+				className="w-full "
+				placeholder={placeHolder}
 				variant="standard"
 				value={value}
 				onChange={(e) => setValue(e.target.value)}
@@ -55,17 +67,21 @@ const TextFieldWithPlus = ({ props }: { props: TextFieldWithPlusProps }) => {
 				}}
 			/>
 			<Button
-				disabled={props.onToggleChange && !props.isChecked}
+				disabled={onToggleChange && !isChecked}
 				onClick={handleAction}
 				size="small"
 				className="w-auto h-auto p-1 min-w-8 ml-2">
-				<AddIcon
-					className="text-green-500"
-					fontSize="small"
-				/>
+				{icon ? (
+					icon
+				) : (
+					<AddIcon
+						className="text-green-500"
+						fontSize="small"
+					/>
+				)}
 			</Button>
 		</Box>
 	);
 };
 
-export default TextFieldWithPlus;
+export default TextFieldWithIcon;

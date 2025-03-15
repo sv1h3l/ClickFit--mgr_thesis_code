@@ -3,8 +3,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Card from "../components/Card";
-import GenericApiResponse from "./api/GenericApiResponse";
-import { verifyEmailRequest } from "./api/verifyEmailRequest";
+import GenericApiResponse from "../api/GenericApiResponse";
+import { verifyEmailRequest } from "../api/verifyEmailRequest";
 
 const Verification = () => {
 	const router = useRouter();

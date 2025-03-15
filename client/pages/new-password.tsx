@@ -3,8 +3,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import Card from "../components/Card";
-import GenericApiResponse from "./api/GenericApiResponse";
-import { newPasswordRequest } from "./api/newPasswordRequest";
+import GenericApiResponse from "../api/GenericApiResponse";
+import { newPasswordRequest } from "../api/newPasswordRequest";
 
 const NewPassword = () => {
 	const router = useRouter();

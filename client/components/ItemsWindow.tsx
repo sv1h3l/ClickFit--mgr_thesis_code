@@ -1,4 +1,4 @@
-import { Value } from "@/pages/api/sportCreationRequestSecond";
+import { Value } from "@/api/sportCreationRequestSecond";
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";

@@ -9,8 +9,8 @@ import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import router from "next/router";
 import { useState } from "react";
-import { Exercise } from "./api/getExercisesRequest";
-import { getSportsRequest, Sport } from "./api/getSportsRequest";
+import { Exercise } from "../api/getExercisesRequest";
+import { getSportsRequest, Sport } from "../api/getSportsRequest";
 
 const cookie = require("cookie");
 

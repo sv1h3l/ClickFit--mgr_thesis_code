@@ -1,4 +1,4 @@
-import { Value } from "../controllers/createSportController";
+import { Value } from "../controllers/create/createSportController-dup";
 import { db } from "../server";
 
 export enum AddSportDetailsStatus {

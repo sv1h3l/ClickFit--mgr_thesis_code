@@ -1,7 +1,19 @@
 import { Box, Typography } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-function Title({ title, secondTitle, smallPaddingTop }: { title: string; secondTitle?: string; smallPaddingTop?: boolean }) {
+interface TitleProps {
+	title: string;
+	sideContent?: React.ReactNode;
+
+	border?: boolean;
+
+	secondTitle?: string;
+
+	style?: string;
+	smallPaddingTop?: boolean;
+}
+
+function Title(props: TitleProps) {
 	const titleRef = useRef<HTMLDivElement>(null);
 	const secondTitleRef = useRef<HTMLDivElement>(null);
 
@@ -11,43 +23,49 @@ function Title({ title, secondTitle, smallPaddingTop }: { title: string; secondT
 	useEffect(() => {
 		if (titleRef.current) {
 			const typographyWidth = titleRef.current.getBoundingClientRect().width;
-			setWidthOfTitle(typographyWidth + 14);
+			setWidthOfTitle(typographyWidth + 12);
 		}
 
 		if (secondTitleRef.current) {
 			const typographyWidth = secondTitleRef.current.getBoundingClientRect().width;
-			setWidthOfSecondTitle(typographyWidth + 14);
+			setWidthOfSecondTitle(typographyWidth + 12);
 		}
 	}, []);
 
 	return (
-		<Box className={`${secondTitle && "flex"}`}>
+		<Box className={`${props.secondTitle && "flex"}`}>
 			<Box
-				className={`relative 
-                            ${smallPaddingTop ? "pt-2" : "pt-8"} ${secondTitle && "w-1/2"}`}>
-				<Box
-					style={{ width: `${widthOfTitle}px` }}
-					className="border-t-2 border-l-2 border-gray-200 h-6 rounded-tl-xl absolute -left-3"
-				/>
+				className={`relative flex  items-center
+                           ${props.style} ${props.smallPaddingTop ? "pt-2" : "pt-8"}  ${props.secondTitle && "w-1/2"}`}>
+				{props.sideContent}
+
+				{props.border && (
+					<Box
+						style={{ width: `${widthOfTitle}px` }}
+						className="border-t-2 border-l-2 border-blue-300 h-6 rounded-tl-lg absolute -left-2.5 -mt-2"
+					/>
+				)}
 
 				<Typography
 					ref={titleRef}
 					className={`pt-1  text-lg text-nowrap w-fit`}>
-					{title}
+					{props.title}
 				</Typography>
 			</Box>
 
-			{secondTitle && (
-				<Box className={`relative ${smallPaddingTop ? "pt-2" : "pt-8"}`}>
-					<Box
-						style={{ width: `${widthOfSecondTitle}px` }}
-						className="border-t-2 border-l-2 border-gray-200 h-6 rounded-tl-xl absolute -left-3"
-					/>
+			{props.secondTitle && (
+				<Box className={`relative ${props.smallPaddingTop ? "pt-2" : "pt-8"}`}>
+					{props.border && (
+						<Box
+							style={{ width: `${widthOfSecondTitle}px` }}
+							className="border-t-2 border-l-2 border-blue-300 h-6 rounded-tl-lg absolute -left-2.5"
+						/>
+					)}
 
 					<Typography
 						ref={secondTitleRef}
 						className={`pt-1  text-lg text-nowrap w-fit`}>
-						{secondTitle}
+						{props.secondTitle}
 					</Typography>
 				</Box>
 			)}

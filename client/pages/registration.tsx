@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import Card from "../components/Card";
-import { registerRequest } from "./api/registerRequest";
+import { registerRequest } from "../api/registerRequest";
 
 function Registration() {
 	const router = useRouter();

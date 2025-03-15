@@ -8,7 +8,7 @@ import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { getCategoriesAndExercisesRequest } from "./api/getCategoriesAndExercisesRequest";
+import { getCategoriesAndExercisesRequest } from "../api/getCategoriesAndExercisesRequest";
 
 const options = ["Záda", "Ramena", "Biceps", "Triceps", "Prsa"];
 const exerciseOptions = ["Deadlift", "Bench Press", "Squat", "Pull-up", "Push-up", "Stahování horní kladky nadhmatem ve stoje"];

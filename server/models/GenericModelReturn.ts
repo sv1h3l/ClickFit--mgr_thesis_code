@@ -1,8 +1,8 @@
 export enum GenericModelReturnEnum {
-	ALREADY_EXIST = -2,
-	FAILURE = -1,
+	ALREADY_EXIST = 409,
+	FAILURE = 500,
 
-	SUCCESS = 0,
+	SUCCESS = 200,
 }
 
 export interface GenericModelReturn<T> {

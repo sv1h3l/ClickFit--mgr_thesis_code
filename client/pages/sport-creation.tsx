@@ -5,8 +5,8 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import router from "next/router";
 import { useState } from "react";
-import { consoleLogPrint } from "./api/GenericApiResponse";
-import { createSportRequest, Value } from "./api/sportCreationRequestSecond";
+import { consoleLogPrint } from "../api/GenericApiResponse";
+import { createSportRequest, Value } from "../api/sportCreationRequestSecond";
 
 function TrainingPlans(creation?: boolean) {
 	const [hasASportCategories, setHasASportCategories] = useState<boolean>(false); // "Spadají cviky do různých kategorií?"

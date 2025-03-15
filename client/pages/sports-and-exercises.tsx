@@ -1,12 +1,13 @@
-import ExerciseInformation from "@/components/ExerciseInformation";
+import ExerciseInformation, { ExerciseInformationLabel, ExerciseInformationValue } from "@/components/ExerciseInformations";
 import SportDescription from "@/components/SportDescription";
 import SportsAndExercises, { isExercise, isSport } from "@/components/SportsAndExercises";
 import TwoColumnsPage from "@/components/TwoColumnsPage";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useState } from "react";
-import { Exercise } from "./api/getExercisesRequest";
-import { Sport, getSportsRequest } from "./api/getSportsRequest";
+import { Category } from "../api/getCategoriesAndExercisesRequest";
+import { Exercise } from "../api/getExercisesRequest";
+import { Sport, getSportsRequest } from "../api/getSportsRequest";
 
 const cookie = require("cookie");
 
@@ -15,6 +16,14 @@ const cookie = require("cookie");
 function SportsAndExercisesPage({ sportsData }: { sportsData: Sport[] }) {
 	const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
 	const [selectedSportOrExercise, setSelectedSportOrExercise] = useState<Sport | Exercise | null>(null);
+
+	const [exercisesData, setExercisesData] = useState<Exercise[]>([]);
+	const [categoriesData, setCategoriesData] = useState<Category[]>([]);
+
+	const [exerciseInformationLabelsData, setExerciseInformationLabelsData] = useState<ExerciseInformationLabel[]>([]);
+	const [exerciseInformationValuesData, setExerciseInformationValuesData] = useState<ExerciseInformationValue[]>([]);
+
+	const [editing, setEditing] = useState<boolean>(false);
 
 	return (
 		<>
@@ -30,6 +39,7 @@ function SportsAndExercisesPage({ sportsData }: { sportsData: Sport[] }) {
 						props={{
 							exercisesDatabase: true,
 							initialSportsData: sportsData,
+
 							selectedSport: {
 								state: selectedSport,
 								setState: setSelectedSport,
@@ -37,6 +47,29 @@ function SportsAndExercisesPage({ sportsData }: { sportsData: Sport[] }) {
 							selectedSportOrExercise: {
 								state: selectedSportOrExercise,
 								setState: setSelectedSportOrExercise,
+							},
+
+							exercisesData: {
+								state: exercisesData,
+								setState: setExercisesData,
+							},
+							categoriesData: {
+								state: categoriesData,
+								setState: setCategoriesData,
+							},
+
+							exerciseInformationLabelsData: {
+								state: exerciseInformationLabelsData,
+								setState: setExerciseInformationLabelsData,
+							},
+							exerciseInformationValuesData: {
+								state: exerciseInformationValuesData,
+								setState: setExerciseInformationValuesData,
+							},
+
+							editing: {
+								state: editing,
+								setState: setEditing,
 							},
 							dontShow: true,
 						}}
@@ -46,7 +79,43 @@ function SportsAndExercisesPage({ sportsData }: { sportsData: Sport[] }) {
 					<>
 						{isSport(selectedSportOrExercise) && <SportDescription props={{ selectedSport: selectedSport }} />}
 
-						{isExercise(selectedSportOrExercise) && <ExerciseInformation props={{ exerciseDescription: selectedSportOrExercise?.description, exerciseYoutubeLink: selectedSportOrExercise.youtubeLink }} />}
+						{isExercise(selectedSportOrExercise) && (
+							<ExerciseInformation
+								props={{
+									exerciseCategory: selectedSport?.hasCategories ? categoriesData.find((category) => category.categoryId === selectedSportOrExercise.categoryId)?.categoryName || "" : "",
+									exerciseName: selectedSportOrExercise.exerciseName,
+									exerciseDescription: selectedSportOrExercise.description,
+									exerciseYoutubeLink: selectedSportOrExercise.youtubeLink,
+
+									sportId: selectedSport?.sportId || -1,
+									categoryId: selectedSport?.hasCategories ? selectedSportOrExercise.categoryId : -1,
+									exerciseId: selectedSportOrExercise.exerciseId,
+
+									exercisesData: {
+										state: exercisesData,
+										setState: setExercisesData,
+									},
+									categoriesData: {
+										state: categoriesData,
+										setState: setCategoriesData,
+									},
+
+									exerciseInformationLabelsData: {
+										state: exerciseInformationLabelsData,
+										setState: setExerciseInformationLabelsData,
+									},
+									exerciseInformationValuesData: {
+										state: exerciseInformationValuesData,
+										setState: setExerciseInformationValuesData,
+									},
+
+									editing: {
+										state: editing,
+										setState: setEditing,
+									},
+								}}
+							/>
+						)}
 					</>
 				}
 			/>

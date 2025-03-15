@@ -4,7 +4,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import Card from "../components/Card";
-import { forgottenPasswordRequest } from "./api/forgottenPasswordRequest";
+import { forgottenPasswordRequest } from "../api/forgottenPasswordRequest";
 
 function ForgotPassword() {
 	const router = useRouter();
