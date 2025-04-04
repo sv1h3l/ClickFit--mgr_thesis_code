@@ -2,9 +2,9 @@ import { Button, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Card from "../components/Card";
+import Card from "../components/small/Card";
 import GenericApiResponse from "../api/GenericApiResponse";
-import { verifyEmailRequest } from "../api/verifyEmailRequest";
+import { verifyEmailRequest } from "../api/residue/verifyEmailRequest";
 
 const Verification = () => {
 	const router = useRouter();

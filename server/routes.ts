@@ -1,61 +1,129 @@
 // #region Imports
 import { Router } from "express";
-import { changeExerciseDescriptionController } from "./controllers/change/changeExerciseDescriptionController";
-import { createExerciseInformationValueController } from "./controllers/create/createExerciseInformationValueController";
-import { changeYoutubeLinkController } from "./controllers/change/changeYoutubeLinkController";
-import { createCategoryController } from "./controllers/create/createCategoryController";
-import { createExerciseController } from "./controllers/create/createExerciseController";
-import { createExerciseInformationLabelController } from "./controllers/create/createExerciseInformationLabelController";
-import { createSportController } from "./controllers/create/createSportController";
-import { deleteCategoryController } from "./controllers/delete/deleteCategoryController";
-import { deleteExerciseController } from "./controllers/delete/deleteExerciseController";
-import { getCategoriesAndExercisesController } from "./controllers/get/getCategoriesAndExercisesController";
-import { getExerciseInformationLabelsController } from "./controllers/get/getExerciseInformationLabelsController";
-import { getExerciseInformationValuesController } from "./controllers/get/getExerciseInformationValuesController";
-import { getExercisesController } from "./controllers/get/getExercisesController";
-import { getSportsController } from "./controllers/get/getSportsController";
-import { moveCategoryController } from "./controllers/move/moveCategoryController";
-import { moveExerciseController } from "./controllers/move/moveExerciseController";
-import { emailVerificationController } from "./controllers/residue/emailVerificationController";
-import { forgottenPasswordController } from "./controllers/residue/forgottenPasswordController";
-import { loginController } from "./controllers/residue/loginController";
-import { newPasswordController } from "./controllers/residue/newPasswordController";
-import { registerController } from "./controllers/residue/registerController";
-import { verifyEmailController } from "./controllers/residue/verifyEmailController";
+import { changeCategoryCont } from "./controllers/change/changeCategoryCont";
+import { changeExerciseDescCont } from "./controllers/change/changeExerciseDescCont";
+import { changeExerciseDifficultyRecommendedValsCont } from "./controllers/change/changeExerciseDifficultyRecommendedValsCont";
+import { changeExerciseRecommendedValsCont } from "./controllers/change/changeExerciseRecommendedValsCont";
+import { changeExerciseUnitCodeCont } from "./controllers/change/changeExerciseUnitCodeCont";
+import { changeSportDescCont } from "./controllers/change/changeSportDescCont";
+import { changeSportDetailValCont } from "./controllers/change/changeSportDetailValCont";
+import { changeSportDifficultyCont } from "./controllers/change/changeSportDifficultyCont";
+import { changeSportHasCategoriesCont } from "./controllers/change/changeSportHasCategoriesCont";
+import { changeSportHasDifficultiesCont } from "./controllers/change/changeSportHasDifficultiesCont";
+import { changeSportHasRecommendedDifficultyValsCont } from "./controllers/change/changeSportHasRecommendedDifficultyValsCont";
+import { changeSportHasRecommendedValsCont } from "./controllers/change/changeSportHasRecommendedValsCont";
+import { changeUnitCodeCont } from "./controllers/change/changeUnitCodeCont";
+import { changeUserHealthCont } from "./controllers/change/changeUserHealthCont";
+import { changeYoutubeLinkCont } from "./controllers/change/changeYoutubeLinkCont";
+import { createCategoryCont } from "./controllers/create/createCategoryCont";
+import { createExerciseCont } from "./controllers/create/createExerciseCont";
+import { createExerciseDifficultyRecommendedValsCont } from "./controllers/create/createExerciseDifficultyRecommendedValsCont";
+import { createExerciseInformationLabCont } from "./controllers/create/createExerciseInformationLabCont";
+import { createExerciseInformationValCont } from "./controllers/create/createExerciseInformationValCont";
+import { createSportCont } from "./controllers/create/createSportCont";
+import { createSportDetailLabCont } from "./controllers/create/createSportDetailLabCont";
+import { createSportDifficultyCont } from "./controllers/create/createSportDifficultyCont";
+import { deleteCategoryController } from "./controllers/delete/deleteCategoryCont";
+import { deleteExerciseCont } from "./controllers/delete/deleteExerciseCont";
+import { deleteExerciseInformationLabCont } from "./controllers/delete/deleteExerciseInformationLabCont";
+import { deleteSportDetailLabCont } from "./controllers/delete/deleteSportDetailLabCont";
+import { deleteSportDifficultyCont } from "./controllers/delete/deleteSportDifficultyCont";
+import { getAllUserAtrsCont } from "./controllers/get/getAllUserAtrsCont";
+import { getCategoriesWithExercisesCont } from "./controllers/get/getCategoriesWithExercisesCont";
+import { getDifficultiesCont } from "./controllers/get/getDifficultiesCont";
+import { getExerciseDifficultiesCont } from "./controllers/get/getExerciseDifficultiesCont";
+import { getExerciseInformationLabsCont } from "./controllers/get/getExerciseInformationLabsCont";
+import { getExerciseInformationValsCont } from "./controllers/get/getExerciseInformationValsCont";
+import { getExercisesCont } from "./controllers/get/getExercisesCont";
+import { getSportDetailLabsAndValsCont } from "./controllers/get/getSportDetailLabsAndValsCont";
+import { getSportsCont } from "./controllers/get/getSportsCont";
+import { getTrainingPlanCreationPropsCont } from "./controllers/get/getTrainingPlanCreationPropsCont";
+import { moveCategoryCont } from "./controllers/move/moveCategoryCont";
+import { moveExerciseCont } from "./controllers/move/moveExerciseCont";
+import { moveExerciseInformationLabCont } from "./controllers/move/moveExerciseInformationLabCont";
+import { moveSportDetailLabelCont } from "./controllers/move/moveSportDetailLabelCont";
+import { moveSportDifficultyCont } from "./controllers/move/moveSportDifficultyCont";
+import { emailVerificationCont } from "./controllers/residue/emailVerificationCont";
+import { forgottenPasswordCont } from "./controllers/residue/forgottenPasswordCont";
+import { loginCont } from "./controllers/residue/loginCont";
+import { newPswCont } from "./controllers/residue/newPswCont";
+import { registerCont } from "./controllers/residue/registerCont";
+import { verifyEmailCont } from "./controllers/residue/verifyEmailCont";
+import { changeUserAtrCont } from "./controllers/change/changeUserAtrCont";
+import { getDiaryCont } from "./controllers/get/getDiaryCont";
+import { changeDiaryContentCont } from "./controllers/change/changeDiaryContentCont";
+import { changeUserPswCont } from "./controllers/change/changeUserPswCont";
+import { createDefaultGraphCont } from "./controllers/create/createSportGraphCont";
+import { getGraphsCont } from "./controllers/get/getGraphsCont";
 // #endregion
 
 const router = Router();
 
 // POSTs requests
-router.post("/register", registerController);
-router.post("/login", loginController);
-router.post("/send-email", emailVerificationController);
-router.post("/forgotten-password", forgottenPasswordController);
-router.post("/new-password", newPasswordController);
+router.post("/register", registerCont);
+router.post("/login", loginCont);
+router.post("/send-email", emailVerificationCont);
+router.post("/forgotten-password", forgottenPasswordCont);
+router.post("/new-password", newPswCont);
 
-router.post("/create-sport", createSportController);
-router.post("/create-category", createCategoryController);
-router.post("/create-exercise", createExerciseController);
-router.post("/create-exercise-information-label", createExerciseInformationLabelController);
-router.post("/create-exercise-information-value", createExerciseInformationValueController);
+router.post("/create-sport", createSportCont);
+router.post("/create-sport-detail-label", createSportDetailLabCont);
+router.post("/create-category", createCategoryCont);
+router.post("/create-exercise", createExerciseCont);
+router.post("/create-exercise-information-label", createExerciseInformationLabCont);
+router.post("/create-exercise-information-value", createExerciseInformationValCont);
+router.post("/create-sport-difficulty", createSportDifficultyCont);
+router.post("/create-exercise-difficulty-recommended-values", createExerciseDifficultyRecommendedValsCont);
+router.post("/create-default-graph", createDefaultGraphCont);
 
 
 router.post("/delete-category", deleteCategoryController);
-router.post("/delete-exercise", deleteExerciseController);
+router.post("/delete-exercise", deleteExerciseCont);
+router.post("/delete-exercise-information-label", deleteExerciseInformationLabCont);
+router.post("/delete-sport-detail-label", deleteSportDetailLabCont);
+router.post("/delete-sport-difficulty", deleteSportDifficultyCont);
 
-router.post("/move-category", moveCategoryController);
-router.post("/move-exercise", moveExerciseController);
+router.post("/move-category", moveCategoryCont);
+router.post("/move-exercise", moveExerciseCont);
+router.post("/move-sport-difficulty", moveSportDifficultyCont);
+router.post("/move-sport-detail-label", moveSportDetailLabelCont);
+router.post("/move-exercise-information-label", moveExerciseInformationLabCont);
 
-router.post("/change-exercise-description", changeExerciseDescriptionController);
-router.post("/change-youtube-link", changeYoutubeLinkController);
+router.post("/change-category", changeCategoryCont);
+router.post("/change-sport-difficulty", changeSportDifficultyCont);
+router.post("/change-sport-description", changeSportDescCont);
+router.post("/change-sport-detail-value", changeSportDetailValCont);
+router.post("/change-sport-has-categories", changeSportHasCategoriesCont);
+router.post("/change-sport-has-difficulties", changeSportHasDifficultiesCont);
+router.post("/change-sport-has-recommended-values", changeSportHasRecommendedValsCont);
+router.post("/change-sport-has-recommended-difficulty-values", changeSportHasRecommendedDifficultyValsCont);
+router.post("/change-unit-code", changeUnitCodeCont);
+router.post("/change-exercise-series-repetitions-or-burden", changeExerciseRecommendedValsCont);
+router.post("/change-exercise-with-difficulty-series-repetitions-or-burden", changeExerciseDifficultyRecommendedValsCont);
+router.post("/change-exercise-unit-code", changeExerciseUnitCodeCont);
+router.post("/change-exercise-description", changeExerciseDescCont);
+router.post("/change-youtube-link", changeYoutubeLinkCont);
+router.post("/change-user-health", changeUserHealthCont);
+router.post("/change-user-password", changeUserPswCont);
+router.post("/change-user-atr", changeUserAtrCont);
+router.post("/change-diary-content", changeDiaryContentCont);
+
 
 // GETs requests
-router.get("/verify-email", verifyEmailController);
+router.get("/verify-email", verifyEmailCont);
+router.get("/get-sports", getSportsCont);
+router.get("/get-training-plan-creation-props", getTrainingPlanCreationPropsCont);
+router.get("/get-sport-detail-labels-and-values", getSportDetailLabsAndValsCont);
+router.get("/get-exercises", getExercisesCont);
+router.get("/get-categories-and-exercises", getCategoriesWithExercisesCont);
+router.get("/get-difficulties", getDifficultiesCont);
+router.get("/get-exercise-difficulties", getExerciseDifficultiesCont);
+router.get("/get-exercise-information-labels", getExerciseInformationLabsCont);
+router.get("/get-exercise-information-values", getExerciseInformationValsCont);
+router.get("/get-all-user-atrs", getAllUserAtrsCont);
+router.get("/get-diary", getDiaryCont);
+router.get("/get-graphs", getGraphsCont);
 
-router.get("/get-sports", getSportsController);
-router.get("/get-exercises", getExercisesController);
-router.get("/get-categories-and-exercises", getCategoriesAndExercisesController);
-router.get("/get-exercise-information-labels", getExerciseInformationLabelsController);
-router.get("/get-exercise-information-values", getExerciseInformationValuesController);
+
 
 export default router;

@@ -1,53 +1,62 @@
-import GeneralCard from "@/components/GeneralCard";
-import SingleColumnPage from "@/components/SingleColumnPage";
+import { Exercise } from "@/api/get/getExercisesReq";
+import { Sport } from "@/api/get/getSportsReq";
+import { Category, getTrainingPlanCreationPropsReq } from "@/api/get/getTrainingPlanCreationPropsReq";
+import { ExerciseDifficulty } from "@/components/large/ExerciseInformations";
+import GeneralCard from "@/components/large/GeneralCard";
+import SingleColumnPage from "@/components/large/SingleColumnPage";
 import { ArrowBack, ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import { Autocomplete, Box, Button, Paper, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, Button, FormControl, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { getCategoriesAndExercisesRequest } from "../api/getCategoriesAndExercisesRequest";
 
-const options = ["Záda", "Ramena", "Biceps", "Triceps", "Prsa"];
-const exerciseOptions = ["Deadlift", "Bench Press", "Squat", "Pull-up", "Push-up", "Stahování horní kladky nadhmatem ve stoje"];
+const cookie = require("cookie");
 
-export interface Day {
+export interface LocalDay {
 	nthDay: number;
-	categories: Category[];
+	categories: LocalCategory[];
 }
 
-interface Category {
+interface LocalCategory {
 	nthDay: number;
 	nthCategory: number;
 	categoryName: string;
-	exercises: Exercise[];
+	exercises: LocalExercise[];
 }
 
-interface Exercise {
+interface LocalExercise {
 	nthDay: number;
 	nthCategory: number;
 	nthExercise: number;
 
 	categoryName: string;
 
-	//exerciseId: number; TODO předělat na numberz databáze
 	exerciseName: string;
 
 	repetitions: number;
 	series: number;
-	weightTime: number;
-	isWeight: boolean;
+	burden: number;
+	unitCode: number;
 
 	boxHeight: number;
 	isVisible?: boolean;
 }
 
-const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
-	const [days, setDays] = useState<Day[]>([]);
-	const [showDeleteButtons, setShowDeleteButtons] = useState<boolean>(false); // TODO → doimplementovat ?
-	const [showMoveButtons, setShowMoveButtons] = useState<boolean>(false);
+interface Props {
+	selectedSport: Sport;
+
+	categoriesData: Category[];
+	exercisesData: Exercise[];
+	recommendedDifficultiesData: ExerciseDifficulty[];
+}
+
+const ManualCreation = (props: Props) => {
+	const [days, setDays] = useState<LocalDay[]>([]);
+	const [showMoveAndDeleteButtons, setShowMoveAndDeleteButtons] = useState<boolean>(false); // TODO → doimplementovat ?
+	const [showRecommendeValues, setShowRecommendeValues] = useState<boolean>(false);
 
 	const [exerciseSearchInputValue, setExerciseSearchInputValue] = useState<{ [key: string]: string }>({});
 	const [exerciseSearchValue, setExerciseSearchValue] = useState<{ [key: string]: string }>({});
@@ -55,19 +64,67 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 	const [categorySearchInputValue, setCategorySearchInputValue] = useState<{ [key: string]: string }>({});
 	const [categorySearchValue, setCategorySearchValue] = useState<{ [key: string]: string }>({});
 
+	const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+	const [exerciseOptions, setExerciseOptions] = useState<{ category: string; exercises: string[] }[]>([]);
+	const [exerciseOptionsWithoutCategory, setExerciseOptionsWithoutCategory] = useState<string[]>([]);
+	const [exerciseIds, setExerciseIds] = useState<{ exerciseName: string; exerciseId: number }[]>([]);
+
 	useEffect(() => {
-		const storedDays = sessionStorage.getItem("categories");
+		/*const storedDays = sessionStorage.getItem("categories");
 		if (storedDays) {
 			setDays(JSON.parse(storedDays));
+		}*/
+
+		console.log("--------------- \n" + JSON.stringify(props.exercisesData, null, 2));
+
+		if (props.categoriesData) {
+			setCategoryOptions(props.categoriesData.map((category) => category.categoryName));
 		}
-	}, []);
+
+		let exerciseIds: { exerciseName: string; exerciseId: number }[] = [];
+
+		if (props.selectedSport.hasCategories) {
+			const newCategoryWithExercises = props.categoriesData.map((category) => {
+				const exercises = category.exercises.map((exercise) => exercise.exerciseName);
+
+				category.exercises.map((exercise) => {
+					exerciseIds.push({ exerciseName: exercise.exerciseName, exerciseId: exercise.exerciseId });
+				});
+
+				return {
+					category: category.categoryName,
+					exercises: exercises,
+				};
+			});
+			setExerciseOptions(newCategoryWithExercises);
+		} else {
+			const newExercisesOptions = props.exercisesData.map((exercise) => {
+				exerciseIds.push({ exerciseName: exercise.exerciseName, exerciseId: exercise.exerciseId });
+				return exercise.exerciseName;
+			});
+
+			setExerciseOptionsWithoutCategory(newExercisesOptions);
+		}
+
+		setExerciseIds(exerciseIds);
+	}, [props]);
 
 	// #region Day
 	const addDay = () => {
-		const newDay: Day = {
+		let emptyCategory;
+		if (!props.selectedSport.hasCategories) {
+			emptyCategory = {
+				nthDay: days.length > 0 ? days[days.length - 1].nthDay + 1 : 1,
+				nthCategory: 1,
+				categoryName: "",
+				exercises: [],
+			} as LocalCategory;
+		}
+
+		const newDay = {
 			nthDay: days.length > 0 ? days[days.length - 1].nthDay + 1 : 1,
-			categories: [],
-		};
+			categories: props.selectedSport.hasCategories ? [] : [emptyCategory],
+		} as LocalDay;
 		setDays([...days, newDay]);
 	};
 
@@ -351,6 +408,8 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 		let exerciseId: number;
 		let categoryName: string;
 
+		const unitCode = findUnitCode(exerciseName);
+
 		setDays((prevDays) =>
 			prevDays.map((day) => {
 				if (day.nthDay === dayId) {
@@ -364,8 +423,8 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 								exerciseName: exerciseName,
 								repetitions: 0,
 								series: 0,
-								weightTime: 0,
-								isWeight: true,
+								burden: 0,
+								unitCode: unitCode,
 								boxHeight: 0,
 								isVisible: false, // Nový stav pro viditelnost
 							};
@@ -406,8 +465,8 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 						exerciseName: exerciseName,
 						repetitions: 0,
 						series: 0,
-						weightTime: 0,
-						isWeight: true,
+						burden: 0,
+						unitCode: unitCode,
 						boxHeight: 0,
 					},
 					element
@@ -608,7 +667,7 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 		addExercise(newValue, nthDay, nthCategory);
 	};
 
-	const updateBoxSize = (exercise: Exercise, element: HTMLElement) => {
+	const updateBoxSize = (exercise: LocalExercise, element: HTMLElement) => {
 		const { height } = element.getBoundingClientRect();
 		setDays((prevDays) =>
 			prevDays.map((day) => {
@@ -711,7 +770,7 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 		);
 	};
 
-	const insertValueFromTextField = (exercise: Exercise, component: React.FormEvent<HTMLDivElement>, isValueForRepetitions: boolean, isValueForSeries: boolean) => {
+	const insertValueFromTextField = (exercise: LocalExercise, component: React.FormEvent<HTMLDivElement>, isValueForRepetitions: boolean, isValueForSeries: boolean) => {
 		const input = component.target as HTMLInputElement;
 
 		const value = parseInt(input.value, 10) || 0; // Převedení na číslo, pokud je prázdné, tak 0
@@ -739,7 +798,7 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 											} else {
 												return {
 													...ex,
-													weightTime: value,
+													burden: value,
 												};
 											}
 										}
@@ -756,6 +815,133 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 		);
 	};
 
+	const findUnitCode = (exerciseName: string) => {
+		const unitCode = props.categoriesData.flatMap((category) => category.exercises).find((exercise) => exercise.exerciseName === exerciseName)?.unitCode || 0;
+
+		return unitCode;
+	};
+
+	const findRecommendedDifficultyVal = (exerciseName: string, valCode: number) => {
+		const exerciseId = exerciseIds.find((exercise) => exercise.exerciseName === exerciseName)?.exerciseId;
+		const recVal = props.recommendedDifficultiesData.find((val) => val.exerciseId === exerciseId);
+
+		const retrunVal = valCode === 1 ? recVal?.series : valCode === 2 ? recVal?.repetitions : recVal?.burden;
+
+		return retrunVal ? retrunVal : "";
+	};
+
+	const executeRecommendedDifficultyValsForExercise = (exerciseName: string, nthDay: number, nthCategory: number, nthExercise: number) => {
+		const exerciseId = exerciseIds.find((exercise) => exercise.exerciseName === exerciseName)?.exerciseId;
+		const recVal = props.recommendedDifficultiesData.find((val) => val.exerciseId === exerciseId);
+
+		const newDays = days.map((day) => {
+			if (day.nthDay === nthDay) {
+				return {
+					...day,
+					categories: day.categories.map((category) => {
+						if (category.nthCategory === nthCategory) {
+							return {
+								...category,
+								exercises: category.exercises.map((exercise) => {
+									if (exercise.nthExercise === nthExercise) {
+										return {
+											...exercise,
+											series: recVal?.series ? recVal.series : exercise.series,
+											repetitions: recVal?.repetitions ? recVal.repetitions : exercise.repetitions,
+											burden: recVal?.burden ? recVal.burden : exercise.burden,
+										};
+									} else {
+										return exercise;
+									}
+								}),
+							};
+						} else {
+							return category;
+						}
+					}),
+				};
+			} else {
+				return day;
+			}
+		});
+
+		setDays(newDays);
+
+		return;
+	};
+
+	const executeRecommendedDifficultyValsForCategories = (nthDay: number, nthCategory: number) => {
+		const newDays = days.map((day) => {
+			if (day.nthDay === nthDay) {
+				return {
+					...day,
+					categories: day.categories.map((category) => {
+						if (category.nthCategory === nthCategory) {
+							return {
+								...category,
+								exercises: category.exercises.map((exercise) => {
+									const exerciseId = exerciseIds.find((exerciseDiff) => exerciseDiff.exerciseName === exercise.exerciseName)?.exerciseId;
+									const recVal = props.recommendedDifficultiesData.find((val) => val.exerciseId === exerciseId);
+
+									return {
+										...exercise,
+										series: recVal?.series ? recVal.series : exercise.series,
+										repetitions: recVal?.repetitions ? recVal.repetitions : exercise.repetitions,
+										burden: recVal?.burden ? recVal.burden : exercise.burden,
+									};
+								}),
+							};
+						} else {
+							return category;
+						}
+					}),
+				};
+			} else {
+				return day;
+			}
+		});
+
+		setDays(newDays);
+
+		return;
+	};
+
+	const changeUnitCode = (nthDay: number, nthCategory: number, nthExercise: number, event: SelectChangeEvent<number>) => {
+		const unitCode = event.target.value as number;
+		const newDays = days.map((day) => {
+			if (day.nthDay === nthDay) {
+				return {
+					...day,
+					categories: day.categories.map((category) => {
+						if (category.nthCategory === nthCategory) {
+							return {
+								...category,
+								exercises: category.exercises.map((exercise) => {
+									if (exercise.nthExercise === nthExercise) {
+										return {
+											...exercise,
+											unitCode: unitCode,
+										};
+									} else {
+										return exercise;
+									}
+								}),
+							};
+						} else {
+							return category;
+						}
+					}),
+				};
+			} else {
+				return day;
+			}
+		});
+
+		console.log(unitCode);
+
+		setDays(newDays);
+	};
+
 	return (
 		<>
 			<Head>
@@ -768,82 +954,99 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 						width="w-full"
 						height="h-full relative"
 						firstTitle="Tvorba tréninku"
-						border
 						firstChildren={
 							<Box className="space-y-7">
+								<Button
+									onClick={() => {
+										setShowRecommendeValues(!showRecommendeValues);
+									}}>
+									{showRecommendeValues ? "Skrýt doporučené hodnoty" : "Zobrazit doporučené hodnoty"}
+								</Button>
+								<Button
+									onClick={() => {
+										setShowMoveAndDeleteButtons(!showMoveAndDeleteButtons);
+									}}>
+									{showMoveAndDeleteButtons ? "Skrýt mazání a přesouvání" : "Zobrazit mazání a přesouvání"}
+								</Button>
+
 								{days.map((day, index) => (
 									<Box
 										key={day.nthDay}
 										className="flex flex-col mt-4">
 										{index > 0 && <Box className="w-full border-t-2 border-gray-100 border-dashed absolute left-0" />}
 
-										<Box className={`flex mr-[20.1rem] ${index + 1 > 1 && "pt-4"}`}>
+										<Box className={`flex  ${showRecommendeValues ? "mr-[20.1rem]" : "mr-0.5"} ${index + 1 > 1 && "pt-4"}`}>
 											<Box className="flex items-center w-full">
 												<Typography className="text-2xl w-full"> {`Den ${index + 1}.`} </Typography>
 
-												<MoveAndDeleteButtons nthDay={day.nthDay} />
+												{showMoveAndDeleteButtons && <MoveAndDeleteButtons nthDay={day.nthDay} />}
 											</Box>
 										</Box>
 
 										<Box className="flex flex-col flex-wrap ">
-											{day.categories.map((category) => (
+											{day.categories.map((category, index) => (
 												<Box
-													key={category.nthDay}
+													key={index} // category.nthDay
 													className="flex">
-													<Box
-														key={category.nthCategory}
-														className={` mt-3 ${"pt-0"} flex flex-col w-full border-2 border-gray-100 rounded-xl mb-8 `}>
-														<Box className="flex items-center gap-8 border-b-4 border-double  border-gray-100 h-[3.06rem] ">
-															<Box className="w-full h-full items-center flex">
-																<Typography className="text-lg pl-3">{category.categoryName}</Typography>
-															</Box>
-
-															<Box className="flex items-center gap-10  relative ">
-																<Box className="flex mr-[3.15rem]">
-																	<Image
-																		src="/icons/cycle.svg"
-																		width={28}
-																		height={28}
-																		alt=""
-																	/>
-																	<Typography className="w-6 mt-0.5 mx-3 text-center font-light">x</Typography>
-																	<Image
-																		src="/icons/sequence.svg"
-																		width={28}
-																		height={28}
-																		alt=""
-																	/>
+													<Box className={` mt-3 ${"pt-0"} flex flex-col w-full border-2 border-gray-100 rounded-xl overflow-hidden mb-10 `}>
+														{props.selectedSport.hasCategories ? (
+															<Box className="flex items-center gap-8 border-b-4 border-double  border-gray-100 h-[3.06rem] ">
+																<Box className="w-full h-full items-center flex">
+																	<Typography className="text-lg pl-3">{category.categoryName}</Typography>
 																</Box>
 
-																<Box className="flex mr-[1.5rem] ">
-																	<Image
-																		src="/icons/weight.svg"
-																		width={28}
-																		height={28}
-																		alt=""
-																	/>
-																	<Typography className="font-thin text-2xl mx-1.5 w-6">|</Typography>
-																	<Image
-																		src="/icons/time.svg"
-																		width={28}
-																		height={28}
-																		alt=""
-																	/>
-																</Box>
-															</Box>
+																<Box className="flex items-center gap-10  relative ">
+																	<Box className="flex mr-[3.15rem]">
+																		<Image
+																			src="/icons/sequence.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
+																		<Typography className="w-6 mt-0.5 mx-3 text-center font-light">x</Typography>
+																		<Image
+																			src="/icons/cycle.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
+																	</Box>
 
-															<MoveAndDeleteButtons
-																nthDay={day.nthDay}
-																nthCategory={category.nthCategory}
-															/>
-														</Box>
+																	<Box className="flex mr-[2.15rem] ">
+																		{/* FIXME mr-[2.15rem] když jsou zobrazene doporucene hodnoty */}
+																		<Image
+																			src="/icons/weight.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
+																		<Typography className="font-thin text-2xl mx-1.5 w-6">|</Typography>
+																		<Image
+																			src="/icons/time.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
+																	</Box>
+																</Box>
+
+																{showMoveAndDeleteButtons && (
+																	<MoveAndDeleteButtons
+																		nthDay={day.nthDay}
+																		nthCategory={category.nthCategory}
+																	/>
+																)}
+															</Box>
+														) : (
+															<></>
+														)}
 
 														<Box className="">
-															{category.exercises.map((exercise) => (
+															{category.exercises.map((exercise, index) => (
 																<Box
 																	key={exercise.nthExercise}
 																	id={`exercise-${exercise.nthDay}-${exercise.nthCategory}-${exercise.nthExercise}`}
-																	className={`flex items-center pl-3 py-2   border-b-2 gap-8 border-gray-100  
+																	className={`flex items-center pl-3 py-2 border-b-2 gap-8 border-gray-100  
 																	${exercise.nthExercise % 2 !== 0 && "bg-gray-50"} 
 																	transition-all duration-150 ease-in-out`} // Přidání přechodu
 																	style={{
@@ -855,37 +1058,12 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 																	<Box className="flex items-center gap-12">
 																		<Box className="flex items-center">
 																			<TextField
-																				value={exercise.repetitions != 0 ? exercise.repetitions : ""}
-																				variant="standard"
-																				size="small"
-																				className="w-[2.2rem] p-0"
-																				InputProps={{
-																					classes: { input: "p-1 text-right" },
-																					inputProps: { min: 1, max: 999, step: 1 },
-																				}}
-																				onInput={(e) => {
-																					const input = e.target as HTMLInputElement;
-																					let value = input.value.replace(/[^0-9]/g, ""); // Odstranění nečíselných znaků
-																					if (value) {
-																						const numericValue = parseInt(value, 10);
-																						if (numericValue < 1) value = "1";
-																						if (numericValue > 999) value = "999";
-																					}
-																					input.value = value;
-
-																					insertValueFromTextField(exercise, e, true, false);
-																				}}
-																			/>
-
-																			<Typography className="w-6  text-center font-light">x</Typography>
-
-																			<TextField
 																				value={exercise.series || ""}
 																				variant="standard"
 																				size="small"
-																				className="w-[2.2rem] p-0"
+																				className="w-[2.2rem] p-0 -mt-1"
 																				InputProps={{
-																					classes: { input: "p-1  " },
+																					classes: { input: "p-1 text-right pb-[0.08rem]" },
 																					inputProps: { min: 1, max: 999, step: 1 },
 																				}}
 																				onInput={(e) => {
@@ -901,16 +1079,41 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 																					insertValueFromTextField(exercise, e, false, true);
 																				}}
 																			/>
+
+																			<Typography className="w-6  text-center font-light">x</Typography>
+
+																			<TextField
+																				value={exercise.repetitions || ""}
+																				variant="standard"
+																				size="small"
+																				className="w-[2.2rem] p-0 -mt-1"
+																				InputProps={{
+																					classes: { input: "p-1  pb-[0.08rem]" },
+																					inputProps: { min: 1, max: 999, step: 1 },
+																				}}
+																				onInput={(e) => {
+																					const input = e.target as HTMLInputElement;
+																					let value = input.value.replace(/[^0-9]/g, ""); // Odstranění nečíselných znaků
+																					if (value) {
+																						const numericValue = parseInt(value, 10);
+																						if (numericValue < 1) value = "1";
+																						if (numericValue > 999) value = "999";
+																					}
+																					input.value = value;
+
+																					insertValueFromTextField(exercise, e, true, false);
+																				}}
+																			/>
 																		</Box>
 
 																		<Box className="flex items-center">
 																			<TextField
-																				value={exercise.weightTime || ""}
+																				value={exercise.burden || ""}
 																				variant="standard"
 																				size="small"
-																				className="w-[2.2rem] p-0" // TODO kg 3rem, sec 2.8rem
+																				className="w-[2.2rem] p-0 -mt-1 " // TODO kg 3rem, sec 2.8rem
 																				InputProps={{
-																					classes: { input: "p-1  text-right" },
+																					classes: { input: "p-1  text-right pb-[0.08rem]" },
 																					inputProps: { min: 1, max: 999, step: 1 },
 																				}}
 																				onInput={(e) => {
@@ -926,21 +1129,42 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 																					insertValueFromTextField(exercise, e, false, false);
 																				}}
 																			/>
-																			<Typography className="ml-2 font-light w-6">{exercise.nthExercise % 2 !== 0 ? "kg" : "sec"}</Typography>
+																			<FormControl
+																				variant="standard"
+																				className="w-12 ml-2 text-transparent">
+																				<Select
+																					className={`${exercise.unitCode < 1 && "text-transparent"}`}
+																					value={exercise.unitCode === 0 ? "" : exercise.unitCode}
+																					onChange={(event) => {
+																						changeUnitCode(exercise.nthDay, exercise.nthCategory, exercise.nthExercise, event);
+																					}}
+																					disableUnderline
+																					sx={{
+																						"& .MuiSelect-select": {
+																							paddingBottom: "0.08rem",
+																						},
+																					}}>
+																					<MenuItem value="1">kg</MenuItem>
+																					<MenuItem value="2">sec</MenuItem>
+																					<MenuItem value="0">{"bez jednotky"}</MenuItem>
+																				</Select>
+																			</FormControl>
 																		</Box>
 																	</Box>
 
-																	<MoveAndDeleteButtons
-																		nthDay={day.nthDay}
-																		nthCategory={category.nthCategory}
-																		nthExercise={exercise.nthExercise}
-																	/>
+																	{showMoveAndDeleteButtons && (
+																		<MoveAndDeleteButtons
+																			nthDay={day.nthDay}
+																			nthCategory={category.nthCategory}
+																			nthExercise={exercise.nthExercise}
+																		/>
+																	)}
 																</Box>
 															))}
 														</Box>
 
 														<Box
-															className={`flex py-2 items-center pl-3 rounded-b-xl 
+															className={`flex py-2 items-center pl-3 rounded-b-lg 
   																	${category.exercises.length % 2 === 0 ? "bg-gray-50" : ""}`}>
 															<Autocomplete
 																className="w-full mr-2 font-bold"
@@ -950,7 +1174,14 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 																onChange={(event, newValue) => handleExerciseSearchChange(event, newValue, day.nthDay, category.nthCategory)}
 																inputValue={exerciseSearchInputValue[`${day.nthDay}-${category.nthCategory}`] || ""}
 																onInputChange={(event, newInputValue) => handleExerciseInputChange(event, newInputValue, day.nthDay, category.nthCategory)}
-																options={exerciseOptions}
+																options={
+																	props.selectedSport.hasCategories
+																		? exerciseOptions
+																				.filter((categoryWithExercises) => categoryWithExercises.category === category.categoryName) // Filtrujeme podle názvu kategorie
+																				.map((categoryWithExercises) => categoryWithExercises.exercises) // Mapujeme cvičení do pole
+																				.flat() // Sloučíme všechny cvičení do jednoho pole
+																		: exerciseOptionsWithoutCategory
+																}
 																renderInput={(params) => (
 																	<TextField
 																		{...params}
@@ -989,133 +1220,160 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 														</Box>
 													</Box>
 
-													<Box
-														key={"sec-" + category.nthCategory}
-														className={`ml-8 flex flex-col border-2 border-gray-100 rounded-xl mb-8 mt-3 w-72 min-w-72 max-w-72`}>
-														<Box className="flex items-center justify-end gap-8  h-[3.06rem] border-b-4 border-double w-full border-gray-100">
-															<Box className="flex mr-[1.15rem] ">
-																<Image
-																	src="/icons/cycle.svg"
-																	width={28}
-																	height={28}
-																	alt=""
-																/>
-																<Typography className="w-6 mt-0.5 mx-1 text-center font-light">x</Typography>
-																<Image
-																	src="/icons/sequence.svg"
-																	width={28}
-																	height={28}
-																	alt=""
-																/>
-															</Box>
-
-															<Box className="flex  mr-[0.7rem]">
-																<Image
-																	src="/icons/weight.svg"
-																	width={28}
-																	height={28}
-																	alt=""
-																/>
-																<Typography className="font-thin text-2xl mx-1.5">|</Typography>
-																<Image
-																	src="/icons/time.svg"
-																	width={28}
-																	height={28}
-																	alt=""
-																/>
-															</Box>
-														</Box>
-
-														<Box className="">
-															{category.exercises.map((exercise) => (
-																<Box
-																	key={`exercise-${exercise.nthExercise}`}
-																	id={`exercise-${exercise.nthDay}-${exercise.nthCategory}-${exercise.nthExercise}`}
-																	className={`flex items-center py-2 w-full border-b-2  border-gray-100  ${exercise.nthExercise % 2 !== 0 && "bg-gray-50"} transition-all duration-100 ease-in-out`} // Přechod na všechny vlastnosti
-																	style={{
-																		height: exercise.boxHeight,
-																		opacity: exercise.isVisible ? 1 : 0, // Postupné zobrazování pomocí opacity
-																		transform: exercise.isVisible ? "translateY(0)" : "translateY(-10px)", // Jemný pohyb při zobrazení
-																	}}>
+													{showRecommendeValues && (
+														<Box
+															key={"sec-" + category.nthCategory}
+															className={`ml-8 flex flex-col  border-gray-100   mt-3 w-72 min-w-72 max-w-72  overflow-hidden
+																		${category.exercises.length == 0 ? "border-x-2  rounded-t-xl mb-[5.4rem]" : "mb-[5.28rem] border-2 rounded-xl"}
+																		${category.exercises.length == 0 && props.selectedSport.hasCategories && "border-t-2"}`}>
+															{props.selectedSport.hasCategories ? (
+																<Box className="flex items-center justify-start gap-8  h-[3.06rem] border-b-4 border-double w-full border-gray-100">
 																	<Button
 																		size="small"
-																		className={`w-auto h-auto p-1 min-w-8 ml-1 mr-3 `}>
-																		{/*${nthCategory && !nthExercise && "mt-3 top-0.5"} ${!nthCategory && " top-1"} */}
+																		className={`w-auto h-auto p-1 min-w-8  ml-1 mr-1 `}
+																		onClick={() => executeRecommendedDifficultyValsForCategories(category.nthDay, category.nthCategory)}>
 																		<ArrowBack
 																			className="text-blue-300"
 																			fontSize="small"
 																		/>
 																	</Button>
-																	<Box className="flex items-center w-full justify-center gap-10">
-																		<Box className="flex items-center">
-																			<Typography className="w-[2.2rem] text-right">{exercise.repetitions}</Typography>
-																			<Typography className="mx-2 font-light">x</Typography>
-																			<Typography className="w-[2.2rem]">{exercise.series}</Typography>
-																		</Box>
-																		<Box className="flex items-center">
-																			<Typography className="w-[2.2rem] text-right">{exercise.weightTime}</Typography>
-																			<Typography className="ml-2 font-light w-6">{"sec"}</Typography>
-																		</Box>
+																	<Box className="flex mr-[1.15rem] ">
+																		<Image
+																			src="/icons/sequence.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
+																		<Typography className="w-6 mt-0.5 mx-1 text-center font-light">x</Typography>
+																		<Image
+																			src="/icons/cycle.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
+																	</Box>
+
+																	<Box className="flex  mr-[0.7rem]">
+																		<Image
+																			src="/icons/weight.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
+																		<Typography className="font-thin text-2xl mx-1.5">|</Typography>
+																		<Image
+																			src="/icons/time.svg"
+																			width={28}
+																			height={28}
+																			alt=""
+																		/>
 																	</Box>
 																</Box>
-															))}
+															) : (
+																<></>
+															)}
+
+															<Box className="">
+																{category.exercises.map((exercise, index) => (
+																	<Box
+																		key={`exercise-${exercise.nthExercise}`}
+																		id={`exercise-${exercise.nthDay}-${exercise.nthCategory}-${exercise.nthExercise}`}
+																		className={`flex items-center py-2 w-full   border-gray-100  
+																			${exercise.nthExercise % 2 !== 0 && "bg-gray-50"} ${index != 0 ? "border-t-2" : !props.selectedSport.hasCategories ? "rounded-t-lg" : ""}
+																			transition-all duration-100 ease-in-out`} // Přechod na všechny vlastnosti
+																		style={{
+																			height: exercise.boxHeight,
+																			opacity: exercise.isVisible ? 1 : 0, // Postupné zobrazování pomocí opacity
+																			transform: exercise.isVisible ? "translateY(0)" : "translateY(-10px)", // Jemný pohyb při zobrazení
+																		}}>
+																		<Button
+																			size="small"
+																			className={`w-auto h-auto p-1 min-w-8 ml-1 mr-3 `}
+																			onClick={() => executeRecommendedDifficultyValsForExercise(exercise.exerciseName, exercise.nthDay, exercise.nthCategory, exercise.nthExercise)}>
+																			{/*${nthCategory && !nthExercise && "mt-3 top-0.5"} ${!nthCategory && " top-1"} */}
+
+																			<ArrowBack
+																				className="text-blue-300"
+																				fontSize="small"
+																			/>
+																		</Button>
+																		<Box className="flex items-center w-full justify-center gap-10">
+																			<Box className="flex items-center">
+																				<Typography className="w-[2.2rem] text-right">{findRecommendedDifficultyVal(exercise.exerciseName, 1)}</Typography>
+																				<Typography className="mx-2 font-light">x</Typography>
+																				<Typography className="w-[2.2rem]">{findRecommendedDifficultyVal(exercise.exerciseName, 2)}</Typography>
+																			</Box>
+																			<Box className="flex items-center">
+																				<Typography className="w-[2.2rem] text-right">{findRecommendedDifficultyVal(exercise.exerciseName, 3)}</Typography>
+																				<Typography className="ml-2 font-light w-6">{exercise.unitCode == 0 ? "" : exercise.unitCode == 1 ? "kg" : "sec"}</Typography>
+																			</Box>
+																		</Box>
+																	</Box>
+																))}
+															</Box>
 														</Box>
-													</Box>
+													)}
 												</Box>
 											))}
 
-											<Box className="mr-[20rem]">
-												<Box className={` mt-3 ${"pt-0"} flex flex-col w-full border-x-2 border-t-2 border-gray-100 rounded-t-xl mb-8`}>
-													<Box className="flex items-center gap-8 border-b-4 border-double  border-gray-100 h-[3.06rem] ">
-														<Box className="w-full h-full items-center flex">
-															<Autocomplete
-																className="w-full mr-2 ml-3 mt-0.5 font-bold"
-																freeSolo
-																disableClearable
-																value={categorySearchValue[`${day.nthDay}`] || ""}
-																onChange={(event, newValue) => handleCategorySearchChange(event, newValue, day.nthDay)}
-																inputValue={categorySearchInputValue[`${day.nthDay}`] || ""}
-																onInputChange={(event, newInputValue) => handleCategoryInputChange(event, newInputValue, day.nthDay)}
-																options={options} // Seznam kategorií
-																renderInput={(params) => (
-																	<TextField
-																		{...params}
-																		variant="standard"
-																		placeholder="Přidat kategorii"
-																		size="small"
-																		sx={{
-																			"& .MuiInputBase-input::placeholder": {
-																				color: "gray",
-																				opacity: 1,
-																			},
-																		}}
-																		InputProps={{
-																			...params.InputProps,
-																			classes: { input: "text-black text-lg" },
-																		}}
+											{props.selectedSport.hasCategories ? (
+												<Box className={`${showRecommendeValues ? "mr-[20rem]" : ""}`}>
+													<Box className={` mt-3 ${"pt-0"} flex flex-col w-full border-x-2 border-t-2 border-gray-100 rounded-t-xl mb-8`}>
+														<Box className="flex items-center gap-8 border-b-4 border-double  border-gray-100 h-[3.06rem] ">
+															<Box className="w-full h-full items-center flex">
+																{props.selectedSport.hasCategories && (
+																	<Autocomplete
+																		className="w-full mr-2 ml-3 mt-0.5 font-bold"
+																		freeSolo
+																		disableClearable
+																		value={categorySearchValue[`${day.nthDay}`] || ""}
+																		onChange={(event, newValue) => handleCategorySearchChange(event, newValue, day.nthDay)}
+																		inputValue={categorySearchInputValue[`${day.nthDay}`] || ""}
+																		onInputChange={(event, newInputValue) => handleCategoryInputChange(event, newInputValue, day.nthDay)}
+																		options={categoryOptions} // Seznam kategorií
+																		renderInput={(params) => (
+																			<TextField
+																				{...params}
+																				variant="standard"
+																				placeholder="Přidat kategorii"
+																				size="small"
+																				sx={{
+																					"& .MuiInputBase-input::placeholder": {
+																						color: "gray",
+																						opacity: 1,
+																					},
+																				}}
+																				InputProps={{
+																					...params.InputProps,
+																					classes: { input: "text-black text-lg" },
+																				}}
+																			/>
+																		)}
+																		PaperComponent={(props) => (
+																			<Paper
+																				{...props}
+																				className=" text-black text-lg"
+																			/>
+																		)}
 																	/>
 																)}
-																PaperComponent={(props) => (
-																	<Paper
-																		{...props}
-																		className=" text-black text-lg"
-																	/>
-																)}
-															/>
 
-															<Button
-																onClick={() => addCategory(categorySearchInputValue[`${day.nthDay}`] || "", day.nthDay)}
-																size="small"
-																className="w-auto h-auto p-1 min-w-8 mr-2">
-																<AddIcon
-																	className="text-green-500"
-																	fontSize="small"
-																/>
-															</Button>
+																<Button
+																	onClick={() => addCategory(categorySearchInputValue[`${day.nthDay}`] || "", day.nthDay)}
+																	size="small"
+																	className="w-auto h-auto p-1 min-w-8 mr-2">
+																	<AddIcon
+																		className="text-green-500"
+																		fontSize="small"
+																	/>
+																</Button>
+															</Box>
 														</Box>
 													</Box>
 												</Box>
-											</Box>
+											) : (
+												<></>
+											)}
 										</Box>
 									</Box>
 								))}
@@ -1157,22 +1415,31 @@ const ManualCreation = ({ sportsData }: { sportsData: Category[] }) => {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
 	try {
-		const response = await getCategoriesAndExercisesRequest({ props: { sportId: 8 } });
+		const cookies = cookie.parse(context.req.headers.cookie || "");
+		const authToken = cookies.authToken || null;
+		const sportId = cookies.tpc_tmp ? Number(atob(cookies.tpc_tmp)) : -1;
 
-		// Check if the request was successful
+		//console.log("Sport ID → " + sportId);
+		context.res.setHeader("Set-Cookie", "tpc_tmp=; path=/; max-age=0;"); // TODO Možná smazat až po vytvořenní tréninku. Kdybych zaktualizoval stránku, tka nevím, jaký sport začít dělat.
+
+		const response = await getTrainingPlanCreationPropsReq({ sportId, authToken });
+
 		if (response.status === 200) {
-			console.log(response.data);
-
 			return {
 				props: {
-					sportsData: response.data || [], // Pass the sports data to the component
+					sportsData: response.data || [],
+					selectedSport: response.data?.sport,
+					categoriesData: response.data?.categoriesWithExercises || [],
+					exercisesData: response.data?.exercises || [],
+					recommendedDifficultiesData: response.data?.recommendedDifficultyVals || [],
 				},
 			};
 		} else {
 			console.error("Error fetching sports data:", response.message);
 			return {
 				props: {
-					sportsData: [], // Empty array if there was an error
+					sportsData: [],
+					selectedSport: null,
 				},
 			};
 		}
@@ -1180,7 +1447,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 		console.error("Error fetching sports data:", error);
 		return {
 			props: {
-				sportsData: [], // Provide an empty array in case of any error
+				sportsData: [],
+				selectedSport: null,
 			},
 		};
 	}

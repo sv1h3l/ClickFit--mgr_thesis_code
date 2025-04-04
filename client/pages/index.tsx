@@ -1,7 +1,7 @@
 import { Button, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import Card from "../components/Card";
+import Card from "../components/small/Card";
 
 function Index() {
 	const router = useRouter();

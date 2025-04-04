@@ -4,44 +4,149 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap");
 
+@font-face {
+	font-family: "Boldonse";
+	src: url("/fonts/Boldonse-Regular.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "Righteous";
+	src: url("/fonts/Righteous-Regular.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "Audiowide";
+	src: url("/fonts/Audiowide-Regular.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "BrunoAceSC";
+	src: url("/fonts/BrunoAceSC-Regular.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
+
+
+
+
 * {
 	font-family: "Roboto", sans-serif;
 	margin: 0;
 }
 
-@layer base {
-	html {
-		font-size: 12px;
-	}
-
-	@media (min-width: 640px) {
-		html {
-			font-size: 14px;
-		}
-	}
-
-	@media (min-width: 1024px) {
-		html {
-			font-size: 16px;
-		}
-	}
-
-	@media (min-width: 1536px) {
-		html {
-			font-size: 17.5px;
-		}
-	}
+p,
+h1,
+h2,
+h3,
+li,
+ul,
+ol {
+	color: #f5f5f4;
+	text-shadow: 3px 3px 3px #00000040; /* černý stín kolem textu */
 }
 
+	@layer base {
+		html {
+			font-size: 12px;
+		}
+
+		@media (min-width: 640px) {
+			html {
+				font-size: 14px;
+			}
+		}
+
+		@media (min-width: 1024px) {
+			html {
+				font-size: 16px;
+			}
+		}
+
+		@media (min-width: 1536px) {
+			html {
+				font-size: 17.5px;
+			}
+		}
+	}
+
 body {
-	background-color: rgb(249 250 251) /* #f9fafb */;
+	background-color: #181818;
 }
 
 .h-content {
-	height: calc(100vh - 6rem); /* Výška stránky mínus výška headeru */
-	max-height: calc(100vh - 6rem); /* Výška stránky mínus výška headeru */
+	height: calc(100vh - 7.2rem); /* Výška stránky mínus výška headeru */
+	max-height: calc(100vh - 7.2rem); /* Výška stránky mínus výška headeru */
+}
+
+.txt-clr-neutral {
+	color: #bfff00;
 }
 
 .max-w-content {
 	max-width: 100rem; /* 1750px */
+}
+
+.react-markdown p {
+	margin-bottom: 0;
+}
+
+.react-markdown p + p {
+	margin-top: 1rem;
+}
+
+.react-markdown ul {
+	margin-bottom: 1rem;
+}
+
+.react-markdown ol {
+	margin-bottom: 1rem;
+}
+
+/* NEUTRAL */
+.bg-primary-color-neutral {
+	background-color: #232323;
+	border-color: #2d2d2d;
+}
+.bg-navigation-color-neutral {
+	background-color: rgb(70, 70, 70);
+	border-color: #505050;
+}
+.btn-border-color {
+	box-shadow: 0 6px 6px #00000070;
+}
+
+/* RED */
+.bg-primary-color-red {
+	background-color: rgb(50, 32, 32);
+	border-color: rgb(60, 42, 42);
+}
+.bg-navigation-color-red {
+	background-color: #782525;
+	border-color: rgb(130, 47, 47);
+}
+
+/* BLUE */
+.bg-primary-color-blue {
+	background-color: rgb(32, 32, 45);
+	border-color: rgb(42, 42, 55);
+}
+.bg-navigation-color-blue {
+	background-color: rgb(30, 33, 123);
+	border-color: rgb(40, 44, 133);
+}
+
+/* GREEN */
+.bg-primary-color-green {
+	background-color: rgb(32, 40, 32);
+	border-color: rgb(42, 50, 42);
+}
+.bg-navigation-color-green {
+	background-color: rgb(46, 75, 30);
+	border-color: rgb(56, 85, 40);
 }

@@ -2,9 +2,9 @@ import { Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import Card from "../components/Card";
+import Card from "../components/small/Card";
 import GenericApiResponse from "../api/GenericApiResponse";
-import { newPasswordRequest } from "../api/newPasswordRequest";
+import { newPasswordRequest } from "../api/residue/newPasswordRequest";
 
 const NewPassword = () => {
 	const router = useRouter();

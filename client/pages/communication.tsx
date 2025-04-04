@@ -1,5 +1,5 @@
-import GeneralCard from "@/components/GeneralCard";
-import TwoColumnsPage from "@/components/TwoColumnsPage";
+import GeneralCard from "@/components/large/GeneralCard";
+import TwoColumnsPage from "@/components/large/TwoColumnsPage";
 import Head from "next/head";
 
 function Communication() {

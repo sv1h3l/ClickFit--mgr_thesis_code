@@ -1,4 +1,4 @@
-import Layout from "@/components/Layout"; // Import Layout komponenty
+import Layout from "@/components/large/Layout"; // Import Layout komponenty
 import "@/styles/globals.css";
 import theme from "@/styles/theme";
 import useAuthRedirect from "@/utilities/useAuthRedirect";

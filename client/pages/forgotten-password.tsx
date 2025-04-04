@@ -1,10 +1,9 @@
-import checkLoggedUser from "@/components/CheckLoggedUser";
 import { Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import Card from "../components/Card";
-import { forgottenPasswordRequest } from "../api/forgottenPasswordRequest";
+import { forgottenPasswordRequest } from "../api/residue/forgottenPasswordRequest";
+import Card from "../components/small/Card";
 
 function ForgotPassword() {
 	const router = useRouter();
@@ -99,4 +98,4 @@ function ForgotPassword() {
 	);
 }
 
-export default checkLoggedUser(ForgotPassword);
+export default ForgotPassword;

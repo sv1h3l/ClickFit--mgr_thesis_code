@@ -13,20 +13,30 @@
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",
-    "autoprefixer": "^10.4.19",
+    "@tailwindcss/postcss": "^4.1.1",
     "cookie": "^1.0.2",
-    "next": "^14.2.20",
+    "eslint-plugin-react": "^7.37.4",
     "react": "^18",
     "react-dom": "^18",
-    "tailwindcss": "^3.4.6"
+    "react-markdown": "^10.1.0",
+    "recharts": "^2.15.1",
+    "remark-breaks": "^4.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/eslint-parser": "^7.27.0",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-react": "^7.26.3",
     "@types/node": "^20.17.10",
     "@types/react": "^18",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.3",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.23.0",
+    "eslint-config-next": "^15.2.4",
+    "next": "^15.2.4",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
 }

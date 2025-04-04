@@ -3,9 +3,9 @@ import { Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import Card from "../components/Card";
-import { emailVerificationRequest } from "../api/emailVerificationRequest";
-import { loginRequest } from "../api/loginRequest";
+import Card from "../components/small/Card";
+import { emailVerificationRequest } from "../api/residue/emailVerificationRequest";
+import { loginRequest } from "../api/residue/loginRequest";
 
 function Login() {
 	const router = useRouter();
