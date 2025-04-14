@@ -791,7 +791,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 					<LabelAndValue
 						noPaddingTop
 						mainStyle="mb-6 mt-2 justify-center"
-						typographyStyle=" text-3xl"
+						firstTypographyStyle=" text-3xl"
 						isSelected={isSport(props.selectedSportOrExercise.state) && props.selectedSportOrExercise.state === props.selectedSport.state}
 						onClick={() => {
 							props.selectedSportOrExercise.setState(props.selectedSport.state);
@@ -848,9 +848,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 													</Button>*/}
 
 													<ButtonComp
-														key={"edit"}
 														style="ml-2 mr-3 "
-														size="small"
 														icon={category.show ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
 														onClick={() => {
 															props.categoriesData.setState((prevCategories) => prevCategories.map((cat) => (cat.categoryId === category.categoryId ? { ...cat, show: !cat.show } : cat)));

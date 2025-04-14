@@ -1,10 +1,14 @@
 // #region Imports
 import { Router } from "express";
 import { changeCategoryCont } from "./controllers/change/changeCategoryCont";
+import { changeDiaryContentCont } from "./controllers/change/changeDiaryContentCont";
 import { changeExerciseDescCont } from "./controllers/change/changeExerciseDescCont";
 import { changeExerciseDifficultyRecommendedValsCont } from "./controllers/change/changeExerciseDifficultyRecommendedValsCont";
 import { changeExerciseRecommendedValsCont } from "./controllers/change/changeExerciseRecommendedValsCont";
 import { changeExerciseUnitCodeCont } from "./controllers/change/changeExerciseUnitCodeCont";
+import { changeGoalGraphValueCont } from "./controllers/change/changeGoalGraphValueCont";
+import { changeGraphCont } from "./controllers/change/changeGraphCont";
+import { changeGraphValueCont } from "./controllers/change/changeGraphValueCont";
 import { changeSportDescCont } from "./controllers/change/changeSportDescCont";
 import { changeSportDetailValCont } from "./controllers/change/changeSportDetailValCont";
 import { changeSportDifficultyCont } from "./controllers/change/changeSportDifficultyCont";
@@ -13,48 +17,57 @@ import { changeSportHasDifficultiesCont } from "./controllers/change/changeSport
 import { changeSportHasRecommendedDifficultyValsCont } from "./controllers/change/changeSportHasRecommendedDifficultyValsCont";
 import { changeSportHasRecommendedValsCont } from "./controllers/change/changeSportHasRecommendedValsCont";
 import { changeUnitCodeCont } from "./controllers/change/changeUnitCodeCont";
+import { changeUserAtrCont } from "./controllers/change/changeUserAtrCont";
 import { changeUserHealthCont } from "./controllers/change/changeUserHealthCont";
+import { changeUserPswCont } from "./controllers/change/changeUserPswCont";
 import { changeYoutubeLinkCont } from "./controllers/change/changeYoutubeLinkCont";
 import { createCategoryCont } from "./controllers/create/createCategoryCont";
 import { createExerciseCont } from "./controllers/create/createExerciseCont";
 import { createExerciseDifficultyRecommendedValsCont } from "./controllers/create/createExerciseDifficultyRecommendedValsCont";
 import { createExerciseInformationLabCont } from "./controllers/create/createExerciseInformationLabCont";
 import { createExerciseInformationValCont } from "./controllers/create/createExerciseInformationValCont";
+import { createGraphCont } from "./controllers/create/createGraphCont";
+import { createGraphValueCont } from "./controllers/create/createGraphValueCont";
 import { createSportCont } from "./controllers/create/createSportCont";
 import { createSportDetailLabCont } from "./controllers/create/createSportDetailLabCont";
 import { createSportDifficultyCont } from "./controllers/create/createSportDifficultyCont";
 import { deleteCategoryController } from "./controllers/delete/deleteCategoryCont";
 import { deleteExerciseCont } from "./controllers/delete/deleteExerciseCont";
 import { deleteExerciseInformationLabCont } from "./controllers/delete/deleteExerciseInformationLabCont";
+import { deleteGraphCont } from "./controllers/delete/deleteGraphCont";
+import { deleteGraphValueCont } from "./controllers/delete/deleteGraphValueCont";
 import { deleteSportDetailLabCont } from "./controllers/delete/deleteSportDetailLabCont";
 import { deleteSportDifficultyCont } from "./controllers/delete/deleteSportDifficultyCont";
 import { getAllUserAtrsCont } from "./controllers/get/getAllUserAtrsCont";
 import { getCategoriesWithExercisesCont } from "./controllers/get/getCategoriesWithExercisesCont";
+import { getDiaryCont } from "./controllers/get/getDiaryCont";
 import { getDifficultiesCont } from "./controllers/get/getDifficultiesCont";
 import { getExerciseDifficultiesCont } from "./controllers/get/getExerciseDifficultiesCont";
 import { getExerciseInformationLabsCont } from "./controllers/get/getExerciseInformationLabsCont";
 import { getExerciseInformationValsCont } from "./controllers/get/getExerciseInformationValsCont";
 import { getExercisesCont } from "./controllers/get/getExercisesCont";
+import { getGraphsCont } from "./controllers/get/getGraphsCont";
+import { getGraphValuesCont } from "./controllers/get/getGraphValuesCont";
 import { getSportDetailLabsAndValsCont } from "./controllers/get/getSportDetailLabsAndValsCont";
 import { getSportsCont } from "./controllers/get/getSportsCont";
 import { getTrainingPlanCreationPropsCont } from "./controllers/get/getTrainingPlanCreationPropsCont";
+import { hideDefaultGraphCont } from "./controllers/move/hideDefaultGraphCont";
 import { moveCategoryCont } from "./controllers/move/moveCategoryCont";
 import { moveExerciseCont } from "./controllers/move/moveExerciseCont";
 import { moveExerciseInformationLabCont } from "./controllers/move/moveExerciseInformationLabCont";
+import { moveGraphCont } from "./controllers/move/moveGraphCont";
+import { moveGraphValueCont } from "./controllers/move/moveGraphValueCont";
 import { moveSportDetailLabelCont } from "./controllers/move/moveSportDetailLabelCont";
 import { moveSportDifficultyCont } from "./controllers/move/moveSportDifficultyCont";
+import { showDefaultGraphCont } from "./controllers/move/showDefaultGraphCont";
 import { emailVerificationCont } from "./controllers/residue/emailVerificationCont";
 import { forgottenPasswordCont } from "./controllers/residue/forgottenPasswordCont";
 import { loginCont } from "./controllers/residue/loginCont";
 import { newPswCont } from "./controllers/residue/newPswCont";
 import { registerCont } from "./controllers/residue/registerCont";
 import { verifyEmailCont } from "./controllers/residue/verifyEmailCont";
-import { changeUserAtrCont } from "./controllers/change/changeUserAtrCont";
-import { getDiaryCont } from "./controllers/get/getDiaryCont";
-import { changeDiaryContentCont } from "./controllers/change/changeDiaryContentCont";
-import { changeUserPswCont } from "./controllers/change/changeUserPswCont";
-import { createDefaultGraphCont } from "./controllers/create/createSportGraphCont";
-import { getGraphsCont } from "./controllers/get/getGraphsCont";
+import { getConnectionAtrsCont } from "./controllers/get/getConnectionAtrsCont";
+import { createConnectionCont } from "./controllers/create/createConnectionCont";
 // #endregion
 
 const router = Router();
@@ -74,7 +87,9 @@ router.post("/create-exercise-information-label", createExerciseInformationLabCo
 router.post("/create-exercise-information-value", createExerciseInformationValCont);
 router.post("/create-sport-difficulty", createSportDifficultyCont);
 router.post("/create-exercise-difficulty-recommended-values", createExerciseDifficultyRecommendedValsCont);
-router.post("/create-default-graph", createDefaultGraphCont);
+router.post("/create-graph", createGraphCont);
+router.post("/create-graph-value", createGraphValueCont);
+router.post("/create-connection", createConnectionCont);
 
 
 router.post("/delete-category", deleteCategoryController);
@@ -82,12 +97,18 @@ router.post("/delete-exercise", deleteExerciseCont);
 router.post("/delete-exercise-information-label", deleteExerciseInformationLabCont);
 router.post("/delete-sport-detail-label", deleteSportDetailLabCont);
 router.post("/delete-sport-difficulty", deleteSportDifficultyCont);
+router.post("/delete-graph-value", deleteGraphValueCont);
+router.post("/delete-graph", deleteGraphCont);
 
 router.post("/move-category", moveCategoryCont);
 router.post("/move-exercise", moveExerciseCont);
 router.post("/move-sport-difficulty", moveSportDifficultyCont);
 router.post("/move-sport-detail-label", moveSportDetailLabelCont);
 router.post("/move-exercise-information-label", moveExerciseInformationLabCont);
+router.post("/move-graph-value", moveGraphValueCont);
+router.post("/move-graph", moveGraphCont);
+router.post("/hide-default-graph", hideDefaultGraphCont);
+router.post("/show-default-graph", showDefaultGraphCont);
 
 router.post("/change-category", changeCategoryCont);
 router.post("/change-sport-difficulty", changeSportDifficultyCont);
@@ -107,7 +128,9 @@ router.post("/change-user-health", changeUserHealthCont);
 router.post("/change-user-password", changeUserPswCont);
 router.post("/change-user-atr", changeUserAtrCont);
 router.post("/change-diary-content", changeDiaryContentCont);
-
+router.post("/change-graph-value", changeGraphValueCont);
+router.post("/change-goal-graph-value", changeGoalGraphValueCont);
+router.post("/change-graph", changeGraphCont);
 
 // GETs requests
 router.get("/verify-email", verifyEmailCont);
@@ -123,7 +146,7 @@ router.get("/get-exercise-information-values", getExerciseInformationValsCont);
 router.get("/get-all-user-atrs", getAllUserAtrsCont);
 router.get("/get-diary", getDiaryCont);
 router.get("/get-graphs", getGraphsCont);
-
-
+router.get("/get-graph-values", getGraphValuesCont);
+router.get("/get-connection-code", getConnectionAtrsCont);
 
 export default router;

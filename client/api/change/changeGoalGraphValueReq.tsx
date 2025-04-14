@@ -3,12 +3,13 @@ import GenericApiResponse from "../GenericApiResponse";
 const cookie = require("cookie");
 
 interface Props {
-	sportId: number;
+	graphValueId: number;
+	isGoal: boolean;
 }
 
-export const createDefaultGraphReq = async (props: Props): Promise<GenericApiResponse<{ grapId: number; graphLabel: string }>> => {
+export const changeGoalGraphValueReq = async (props: Props): Promise<GenericApiResponse<null>> => {
 	try {
-		const response = await fetch("http://localhost:5000/api/create-default-graph", {
+		const response = await fetch("http://localhost:5000/api/change-goal-graph-value", {
 			method: "POST",
 			credentials: "include",
 			headers: {

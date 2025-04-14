@@ -10,11 +10,11 @@ const cookie = require("cookie");
 function Header() {
 	const router = useRouter();
 
-	const [isTight, setIsTight] = useState(false);
-
 	const [user, setUser] = useState<any>(null);
 
 	const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString("cs-CZ"));
+
+	const [externalClicked, setExternalClicked] = useState(false);
 
 	useEffect(() => {
 		// Tato funkce se zavolá při každé změně cookies
@@ -33,11 +33,6 @@ function Header() {
 		const interval = setInterval(checkUserCookie, 10);
 		return () => clearInterval(interval); // Po odpojení komponenty zastavíme interval
 	}, []);
-
-	useEffect(() => {
-		const tightPages = ["/communication"];
-		setIsTight(!tightPages.includes(router.pathname));
-	}, [router.pathname]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -77,16 +72,25 @@ function Header() {
 							/>
 						</Box>
 						<Box className="w-4/6 flex flex-col   rounded-br-3xl  h-28   bg-primary-color-neutral">
-							<Typography className="text-[3.1rem] -mt-1 h-16 font-audiowide tracking-wide">KlikFit</Typography>
+							<Typography className="text-[3.1rem] -mt-1 h-16 font-audiowide tracking-widest">KlikFit</Typography>
 
-							<Box className=" w-full flex justify-center	 mt-[0.15rem]">{user && <Navigation />}</Box>
+							<Box className=" w-full flex justify-center	 mt-[0.15rem]">{user && <Navigation externalClicked={{ state: externalClicked, setState: setExternalClicked }} />}</Box>
 						</Box>
 
 						<Box className=" w-1/6 h-[4.1rem] flex items-center justify-center  border-r-[3px] border-b-[3px] rounded-br-3xl    bg-primary-color-neutral">
 							{user && (
 								<Box className="flex w-full justify-between px-10">
 									<ButtonComp
-										color="#fff"
+										style=""
+										size="medium"
+										icon={IconEnum.PROFILE}
+										externalClicked={{ state: externalClicked, setState: setExternalClicked }}
+										onClick={() => {
+											router.push(`/profile`);
+										}}
+									/>
+
+									<ButtonComp
 										style=""
 										size="medium"
 										icon={IconEnum.SETTINGS}
@@ -94,19 +98,10 @@ function Header() {
 									/>
 
 									<ButtonComp
-										color="#fff"
-										style=""
-										size="medium"
-										icon={IconEnum.SETTINGS}
-										onClick={() => {}}
-									/>
-
-									<ButtonComp
-										color="#fff"
 										style=""
 										size="medium"
 										icon={IconEnum.LOGOUT}
-										onClick={() => {} /*handleLogout*/}
+										onClick={handleLogout	}
 									/>
 								</Box>
 							)}

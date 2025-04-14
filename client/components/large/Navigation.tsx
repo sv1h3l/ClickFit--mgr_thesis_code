@@ -1,20 +1,26 @@
+import { StateAndSet } from "@/utilities/generalInterfaces";
 import { Box, Button, Toolbar, Typography } from "@mui/material";
 import { useRouter } from "next/router";
 
-function Navigation() {
+interface Props {
+	externalClicked: StateAndSet<boolean>;
+}
+
+const Navigation = (props: Props) => {
 	const router = useRouter();
 
 	const pages = new Map<string, string>([
 		["training-plans", "Tréninky"],
 		["diary", "Deník"],
 		["sports-and-exercises", "Sporty"], // FIXME opravit odkaz
-		["communication", "Komunita"],
+		["connection", "Spojení"],
 	]);
 
-	// Funkce pro navigaci
-	function navigate(link: string) {
+	const navigate = (link: string) => {
+		props.externalClicked.setState(false);
+
 		router.push(`/${link}`);
-	}
+	};
 
 	return (
 		<Toolbar className="min-h-0 px-0 w-full mt-[0.05rem]">
@@ -44,6 +50,6 @@ function Navigation() {
 			</Box>
 		</Toolbar>
 	);
-}
+};
 
 export default Navigation;

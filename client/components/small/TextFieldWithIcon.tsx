@@ -1,12 +1,14 @@
+import { StateAndSetFunction } from "@/utilities/generalInterfaces";
 import AddIcon from "@mui/icons-material/Add";
 import SaveIcon from "@mui/icons-material/Save"; // Import ikony uložení
-import { Box, Button, InputAdornment, TextField } from "@mui/material";
+import { Box, Button, InputAdornment, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
 interface Props {
 	previousValue?: string;
 	label?: string;
 	placeHolder?: string;
+	externalValue?: StateAndSetFunction<string>;
 
 	onClick: (value: string) => void;
 	onClickForBlur?: boolean;
@@ -16,11 +18,15 @@ interface Props {
 	dontDeleteValue?: boolean;
 	onlyNumbers?: boolean;
 	withoutIcon?: boolean;
+	fontSize?: string;
 	psw?: boolean;
 	fontLight?: boolean;
 	unit?: string;
 	maxLength?: number;
 	helperText?: string;
+	disabled?: boolean;
+	customMargin?: string;
+	tfCenterValueAndPlaceholder?: boolean;
 
 	border?: boolean;
 
@@ -42,10 +48,15 @@ const TextFieldWithIcon = ({
 	onChangeCond,
 	icon,
 	withoutIcon,
+	fontSize,
 	fontLight,
+	customMargin,
+	tfCenterValueAndPlaceholder,
 	unit,
 	maxLength,
 	helperText,
+	disabled,
+	externalValue,
 	canBeEmptyValue,
 	dontDeleteValue,
 	onlyNumbers,
@@ -73,6 +84,8 @@ const TextFieldWithIcon = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [previousValue]);
 
+	
+
 	const handleAction = () => {
 		if (!canBeEmptyValue && value.trim() === "") return;
 		if (savedValue === value) return;
@@ -89,6 +102,11 @@ const TextFieldWithIcon = ({
 		onlyNumbers && value === "0" && setValue("");
 		onlyNumbers && value === "0" && setSavedValue("");
 
+		if (externalValue) {
+			!dontDeleteValue && externalValue.setState("");
+			onlyNumbers && value === "0" && externalValue.setState("");
+		}
+
 		setTimeout(() => setShowDefaultIcon(false), 150);
 		setTimeout(() => setShowSaveIcon(true), 150);
 
@@ -99,7 +117,12 @@ const TextFieldWithIcon = ({
 	return (
 		<Box
 			className={`flex flex-shrink-0 relative
-						${!helperText ? "mt-[0.4rem]" : "mt-[1.2rem]"} ${!noPaddingY && "py-2"} ${border && "border-t-2 border-blue-300 "} ${onToggleChange && !isChecked && "opacity-50"} ${style} ${withoutIcon && "mr-8"}`}>
+						${customMargin ? customMargin : helperText && withoutIcon ? "mt-[1.25rem]" : helperText ? "mt-[1.2rem]" : withoutIcon ? "mt-0" : "mt-[0.42rem]"}
+						${withoutIcon && "mr-8"}
+						${!noPaddingY && "py-2"}s
+						${border && "border-t-2 border-blue-300 "}
+						${onToggleChange && !isChecked && "opacity-50"}
+						${style}`}>
 			{titleBorderWidth && (
 				<Box
 					style={{ width: titleBorderWidth }}
@@ -108,7 +131,7 @@ const TextFieldWithIcon = ({
 			)}
 
 			<TextField
-				disabled={onToggleChange && !isChecked}
+				disabled={disabled || (onToggleChange && !isChecked)}
 				className={`w-full  `}
 				placeholder={placeHolder}
 				variant="standard"
@@ -118,6 +141,8 @@ const TextFieldWithIcon = ({
 					style: {
 						padding: 0,
 						paddingBottom: 0.75,
+						fontSize: fontSize,
+						textAlign: tfCenterValueAndPlaceholder ? "center" : "left",
 					},
 					maxLength: maxLength || 50,
 				}}
@@ -132,13 +157,23 @@ const TextFieldWithIcon = ({
 					sx: {
 						"& input::placeholder": {
 							fontWeight: fontLight ? "300" : "normal",
+							textAlign: tfCenterValueAndPlaceholder ? "center" : "left",
 						},
 					},
-					endAdornment: <InputAdornment position="end">{unit === "let" && value === "1" ? " rok" : unit === "let" && (value === "2" || value === "3" || value === "4") ? " roky" : unit}</InputAdornment>,
+					endAdornment: (
+						<InputAdornment position="end">
+							<Typography>{unit === "let" && value === "1" ? "rok" : unit === "let" && (value === "2" || value === "3" || value === "4") ? "roky" : unit}</Typography>
+						</InputAdornment>
+					),
 				}}
 				onBlur={onClickForBlur ? handleAction : () => {}}
+				error={!!helperText}
 				onChange={(e) => {
 					const newValue = e.target.value;
+
+					if (externalValue) {
+						externalValue.setState(newValue);
+					}
 
 					onChangeCond && setShowAnyIcon(onChangeCond(newValue));
 

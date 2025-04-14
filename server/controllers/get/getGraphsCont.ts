@@ -2,30 +2,26 @@ import { Request, Response } from "express";
 import { createDefaultGraphOrderNumberMod } from "../../models/create/createDefaultGraphOrderNumberMod";
 import { getDefaultGraphsMod } from "../../models/get/getDefaultGraphsMod";
 import { getDefaultGraphOrderNumberMod } from "../../models/get/getDefaultGraphsOrderNumbersMod";
-import { getHighestDefaultGraphsOrderNumberMod } from "../../models/get/getHighestDefaultGraphsOrderNumberMod";
+import { getHighestDefaultGraphsOrderNumberModNEW } from "../../models/get/getHighestDefaultGraphsOrderNumberModNEW";
+import { getHighestGraphsOrderNumberMod } from "../../models/get/getHighestGraphsOrderNumberMod";
 import { getUserAtrFromAuthTokenMod } from "../../models/get/getUserAtrFromAuthTokenMod";
+import { getUserGraphsMod } from "../../models/get/getUserGraphsMod";
 import { GenEnum } from "../../utilities/GenResEnum";
-
-interface GraphValue {
-	graphValueId: number;
-
-	firstValue: number;
-	secondValue: string;
-}
 
 export interface Graph {
 	graphId: number;
 
 	graphLabel: string;
-	hasDate?: boolean;
-
 	orderNumber: number;
+	unit?: string;
+
+	hasDate?: boolean;
 	defaultGraphOrderNumberId?: number;
+
+	hasGoals?: boolean;
 
 	yAxisLabel: string;
 	xAxisLabel: string;
-
-	graphValue: GraphValue[];
 }
 
 export const getGraphsCont = async (req: Request, res: Response): Promise<void> => {
@@ -54,8 +50,10 @@ export const getGraphsCont = async (req: Request, res: Response): Promise<void> 
 		const dbGetDefaultGraphsRes = await getDefaultGraphsMod({ sportId: sportIdNumber });
 
 		let highestOrderNumber = 0;
-		const resHighestOrderNumber = await getHighestDefaultGraphsOrderNumberMod({ userId: userAtrs.data?.userId! });
-		highestOrderNumber = resHighestOrderNumber.data?.highestOrderNumber! + 1;
+		const resHighestDefaultOrderNumber = await getHighestDefaultGraphsOrderNumberModNEW({ userId: userAtrs.data?.userId! });
+		const resHighestUserOrderNumber = await getHighestGraphsOrderNumberMod({ userId: userAtrs.data?.userId! });
+
+		highestOrderNumber = resHighestDefaultOrderNumber.data?.highestOrderNumber! + resHighestUserOrderNumber.data?.highestOrderNumber! + 1;
 
 		let formattedGraphs: Graph[] = [];
 
@@ -78,7 +76,8 @@ export const getGraphsCont = async (req: Request, res: Response): Promise<void> 
 					defaultGraphOrderNumberId: dbGetDefaultGraphOrderNumberRes.data?.default_graph_order_number_id,
 					yAxisLabel: graph.y_axis_label,
 					xAxisLabel: graph.x_axis_label,
-					graphValue: [],
+					unit: graph.unit,
+					hasGoals: graph.has_goals,
 				};
 
 				return newGraph;
@@ -88,7 +87,28 @@ export const getGraphsCont = async (req: Request, res: Response): Promise<void> 
 			formattedGraphs = await Promise.all(graphPromises);
 		}
 
-		res.status(dbGetDefaultGraphsRes.status).json({ message: dbGetDefaultGraphsRes.message, data: formattedGraphs });
+		const dbResUserGraphs = await getUserGraphsMod({ sportId: sportIdNumber, userId: userAtrs.data.userId });
+		if (dbResUserGraphs.status === 200 && dbResUserGraphs.data) {
+			dbResUserGraphs.data.forEach((graph) => {
+				const newGraph: Graph = {
+					graphId: graph.graph_id,
+					graphLabel: graph.graph_label,
+					hasDate: graph.has_date,
+					orderNumber: graph.order_number,
+					defaultGraphOrderNumberId: undefined,
+					hasGoals: graph.has_goals,
+					unit: graph.unit,
+					yAxisLabel: graph.y_axis_label,
+					xAxisLabel: graph.x_axis_label,
+				};
+
+				formattedGraphs.push(newGraph);
+			});
+		}
+
+		formattedGraphs.sort((a, b) => a.orderNumber - b.orderNumber);
+
+		res.status(200).json({ message: "Grafy předány", data: formattedGraphs });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Nastala serverová chyba, zkuste to znovu" });

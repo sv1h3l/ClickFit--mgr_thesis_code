@@ -1,0 +1,41 @@
+import GenericApiResponse from "../GenericApiResponse";
+
+const cookie = require("cookie");
+
+interface Props {
+	graphId: number;
+
+	graphLabel: string;
+
+	xAxisLabel: string;
+	yAxisLabel: string;
+
+	unit: string;
+
+	hasDate: boolean;
+	hasGoals: boolean;
+
+	isDefGraph: boolean;
+	changedHasDate: boolean;
+}
+
+export const changeGraphReq = async (props: Props): Promise<GenericApiResponse<{ helperTexts: { [key: string]: string } }>> => {
+	try {
+		const response = await fetch("http://localhost:5000/api/change-graph", {
+			method: "POST",
+			credentials: "include",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(props),
+		});
+
+		const responseData = await response.json().catch(() => ({
+			message: "Server returned an invalid response format",
+		}));
+
+		return { status: response.status, message: responseData.message, data: responseData.data };
+	} catch {
+		return { status: 500, message: "Network error or server unreachable" };
+	}
+};

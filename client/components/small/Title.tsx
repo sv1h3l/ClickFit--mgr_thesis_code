@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 interface TitleProps {
 	title: string;
 	sideContent?: React.ReactNode;
+	titleStyle?: string;
 
 	border?: boolean;
 
@@ -33,38 +34,25 @@ function Title(props: TitleProps) {
 	}, []);
 
 	return (
-		<Box className={`${props.secondTitle && "flex"}`}> {/* TODO  klikací název kategorie na otevření cviků.*/}
+		<Box className={`${props.secondTitle && "flex"}`}>
+			{/* TODO  klikací název kategorie na otevření cviků.*/}
 			<Box
 				className={`relative flex  items-center
                            ${props.style} ${props.smallPaddingTop ? "pt-2" : "pt-8"}  ${props.secondTitle && "w-1/2"}`}>
 				{props.sideContent}
 
-				{props.border && (
-					<Box
-						style={{ width: `${widthOfTitle}px` }}
-						className="border-t-2 border-l-2 border-blue-300 h-6 rounded-tl-lg absolute -left-2.5 -mt-2"
-					/>
-				)}
-
 				<Typography
 					ref={titleRef}
-					className={`pt-1  text-lg text-nowrap w-fit`}>
+					className={`pt-1   text-nowrap w-fit
+								${props.titleStyle ? props.titleStyle : "text-xl"}`}>
 					{props.title}
 				</Typography>
 			</Box>
-
 			{props.secondTitle && (
 				<Box className={`relative ${props.smallPaddingTop ? "pt-2" : "pt-8"}`}>
-					{props.border && (
-						<Box
-							style={{ width: `${widthOfSecondTitle}px` }}
-							className="border-t-2 border-l-2 border-blue-300 h-6 rounded-tl-lg absolute -left-2.5"
-						/>
-					)}
-
 					<Typography
 						ref={secondTitleRef}
-						className={`pt-1  text-lg text-nowrap w-fit`}>
+						className={`pt-1 text-lg text-nowrap w-fit`}>
 						{props.secondTitle}
 					</Typography>
 				</Box>

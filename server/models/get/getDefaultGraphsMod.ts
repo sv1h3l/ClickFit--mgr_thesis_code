@@ -14,17 +14,17 @@ interface Res {
 
 	y_axis_label: string;
 	x_axis_label: string;
+
+	unit: string;
+
+	has_goals: boolean;
 }
 
 export const getDefaultGraphsMod = async (props: Props): Promise<GenRes<Res[]>> => {
 	try {
 		const query = `
 			SELECT 
-				graph_id,
-				graph_label,
-				has_date,
-				y_axis_label,
-				x_axis_label
+				*
 			FROM default_graphs
 			WHERE sport_id = ?;
 		`;

@@ -1,5 +1,4 @@
 const cookie = require("cookie");
-import bcrypt from "bcryptjs";
 
 import { Request, Response } from "express";
 import { LoginStatus, loginUserMod } from "../../models/residue/loginUserMod";
@@ -14,18 +13,15 @@ export const loginCont = async (req: Request, res: Response): Promise<void> => {
 	}
 
 	try {
-		const status = await loginUserMod(email, password);
+		const dbRes = await loginUserMod(email, password);
 
-		switch (status) {
+		switch (dbRes.status) {
 			case LoginStatus.SUCCESS:
-				const authToken = await bcrypt.hash(email, 10);
-
 				res.setHeader(
 					"Set-Cookie",
-					cookie.serialize("authToken", authToken, {
+					cookie.serialize("authToken", dbRes.authToken, {
 						maxAge: 60 * 60 * 24 * 14, // Cookie will expire in 14 days
 						path: "/", // The cookie is available for the entire site
-						
 					})
 				);
 

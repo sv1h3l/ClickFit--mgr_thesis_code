@@ -1,6 +1,6 @@
 import { getSportsReq, Sport } from "@/api/get/getSportsReq";
-import DiaryAndGraphs from "@/components/large/DiaryAndGraphs";
-import Sports from "@/components/large/Sports";
+import DiaryAndGraphs, { Graph } from "@/components/large/DiaryAndGraphs";
+import SportsAndValues from "@/components/large/SportsAndValues";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
@@ -16,6 +16,10 @@ const Diary = (props: Props) => {
 	const [sportsData, setSportsData] = useState<Sport[]>(props.sports ?? []);
 
 	const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
+	const [selectedGraph, setSelectedGraph] = useState<Graph | null>(null);
+
+	const [isSelectedFirstSection, setIsSelectedFirstSection] = useState(true);
+	const [isDisabledFirstSection, setIsDisabledFirstSection] = useState(false);
 
 	return (
 		<>
@@ -24,10 +28,13 @@ const Diary = (props: Props) => {
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth="w-2/6"
-				secondColumnWidth="w-4/6"
+				firstColumnWidth="w-9/24"
+				secondColumnWidth="w-15/24"
 				firstColumnChildren={
-					<Sports
+					<SportsAndValues
+						isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
+						isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
+
 						selectedSport={{
 							state: selectedSport,
 							setState: setSelectedSport,
@@ -36,13 +43,23 @@ const Diary = (props: Props) => {
 							state: sportsData,
 							setState: setSportsData,
 						}}
+						selectedGraph={{
+							state: selectedGraph,
+							setState: setSelectedGraph,
+						}}
 					/>
 				}
 				secondColumnChildren={
 					<DiaryAndGraphs
+						isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
+						isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
 						selectedSport={{
 							state: selectedSport,
 							setState: setSelectedSport,
+						}}
+						selectedGraph={{
+							state: selectedGraph,
+							setState: setSelectedGraph,
 						}}
 					/>
 				}

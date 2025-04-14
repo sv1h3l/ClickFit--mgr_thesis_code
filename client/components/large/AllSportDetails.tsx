@@ -265,6 +265,7 @@ const Sports = (props: Props) => {
 
 									{props.editing.state && (
 										<TextFieldWithIcon
+										fontLight
 											placeHolder="Přidat sportovní údaj"
 											style="w-2/5 ml-4 pt-3 "
 											onClick={(value) => handleCreateSportDetailLab(value, sportDetail.sportId)}

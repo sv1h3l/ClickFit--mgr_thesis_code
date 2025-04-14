@@ -1,16 +1,22 @@
 import { changeDiaryContentReq } from "@/api/change/changeDiaryContentReq";
-import { createDefaultGraphReq } from "@/api/create/createDefaultGraphReq";
+import { changeGraphReq } from "@/api/change/changeGraphReq";
+import { createGraphReq } from "@/api/create/createGraphReq";
+import { deleteGraphReq } from "@/api/delete/deleteGraphReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { getDiaryReq } from "@/api/get/getDiaryReq";
 import { getGraphsReq } from "@/api/get/getGraphsReq";
+import { getGraphValuesReq } from "@/api/get/getGraphValuesReq";
 import { Sport } from "@/api/get/getSportsReq";
+import { hideDefGraphReq } from "@/api/move/hideDefGraphReq";
+import { moveGraphReq } from "@/api/move/moveGraphReq";
+import { showDefGraphReq } from "@/api/move/showDefGraphReq";
 import { StateAndSetFunction } from "@/utilities/generalInterfaces";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import { Box, Checkbox, FormControl, FormControlLabel, MenuItem, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Brush, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Customized, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import remarkBreaks from "remark-breaks";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import DoubleLabelAndValue from "../small/DoubleLabelAndValue";
@@ -20,6 +26,10 @@ import GeneralCard from "./GeneralCard";
 
 interface Props {
 	selectedSport: StateAndSetFunction<Sport | null>;
+	selectedGraph: StateAndSetFunction<Graph | null>;
+
+	isSelectedFirstSection: StateAndSetFunction<boolean>;
+	isDisabledFirstSection: StateAndSetFunction<boolean>;
 }
 
 export interface Diary {
@@ -28,11 +38,15 @@ export interface Diary {
 	content: string;
 }
 
-interface GraphValue {
+export interface GraphValue {
 	graphValueId: number;
 
-	firstValue: number;
-	secondValue: string;
+	yAxisValue: number;
+	xAxisValue: string;
+
+	isGoal: boolean;
+
+	orderNumber: number;
 }
 
 export interface Graph {
@@ -40,13 +54,17 @@ export interface Graph {
 
 	graphLabel: string;
 	orderNumber: number;
-	hasDate?: boolean;
+	unit: string;
+
+	hasDate: boolean;
+	hasGoals: boolean;
+
 	defaultGraphOrderNumberId?: number;
 
 	yAxisLabel: string;
 	xAxisLabel: string;
 
-	graphValue: GraphValue[];
+	graphValues: GraphValue[];
 }
 
 const DiaryAndGraphs = (props: Props) => {
@@ -58,6 +76,24 @@ const DiaryAndGraphs = (props: Props) => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [props.selectedSport.state]);
+
+	useEffect(() => {
+		if (props.selectedGraph.state?.graphValues) {
+			setGraphsData((prevGraphsData) => {
+				// Vrátíme nové pole s upravenými grafy
+				return prevGraphsData.map((graph) => {
+					// Pokud graphId odpovídá, přidáme nové graphValues, jinak je necháme beze změny
+					if (graph.graphId === props.selectedGraph.state?.graphId) {
+						return {
+							...graph,
+							graphValues: props.selectedGraph.state.graphValues, // Nahradíme graphValues novými
+						};
+					}
+					return graph;
+				});
+			});
+		}
+	}, [props.selectedGraph.state?.graphValues]);
 
 	// #region Diary
 
@@ -104,36 +140,95 @@ const DiaryAndGraphs = (props: Props) => {
 	// #region Graphs
 
 	const [graphsData, setGraphsData] = useState<Graph[]>([]);
-	const [actualGraph, setActualGraph] = useState<Graph>();
 
-	const [graphEditing, setGraphEditing] = useState(false);
-	const [sportGraphEditing, setSportGraphEditing] = useState(false);
-	const [hasDate, setHasDate] = useState(false);
+	const [newGraph, setNewGraph] = useState(false);
+	const [newDefaultGraph, setNewDefaultGraph] = useState(false);
+
+	const [editGraph, setEditGraph] = useState<Graph | null>(null);
 
 	const [reorderGraphs, setReorderGraphs] = useState(false);
 
 	const [selectedValue, setSelectedValue] = useState("");
+	const [previousSelectedValue, setPreviousSelectedValue] = useState("");
 
 	const [menuItems, setMenuItems] = useState<{ value: string; label: string }[]>([]);
 
-	const handleChange = (event: SelectChangeEvent) => {
+	const [highestOrderNumber, setHighestOrderNumber] = useState(0);
+
+	/*const handleChange = (event: SelectChangeEvent) => {
 		setSelectedValue(event.target.value);
-	};
+	};*/
 
 	useEffect(() => {
-		if (selectedValue === "newGraph") {
+		if (selectedValue === "newGraph" || selectedValue === "newDefaultGraph" || selectedValue === "reorderGraphs") {
+			props.isSelectedFirstSection.setState(true);
+			props.isDisabledFirstSection.setState(true);
+			props.selectedGraph.setState(null);
 			setSelectedValue("");
-			setGraphEditing(true);
-		} else if (selectedValue === "newDefaultGraph") {
-			setSelectedValue("");
-			createNewDefaultGraph();
-			setSportGraphEditing(true);
-		} else if (selectedValue === "reorderGraphs") {
-			setSelectedValue("");
-			setReorderGraphs(true);
+
+			if (selectedValue === "reorderGraphs") {
+				setReorderGraphs(true);
+			} else {
+				setGraphLabel("");
+
+				setHasDate(true);
+				setYAxisLabel("");
+				setXAxisLabel("");
+
+				setUnit("");
+
+				setHasGoals(false);
+
+				if (selectedValue === "newGraph") setNewGraph(true);
+				else if (selectedValue === "newDefaultGraph") setNewDefaultGraph(true);
+			}
+		} else {
+			const orderNumber = parseInt(selectedValue, 10);
+
+			getValues(orderNumber);
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedValue]);
+
+	const editGraphPrerequisites = (graph: Graph) => {
+		props.isSelectedFirstSection.setState(true);
+		props.isDisabledFirstSection.setState(true);
+
+		setGraphLabel(graph.graphLabel);
+
+		setHasDate(graph.hasDate);
+		setYAxisLabel(graph.yAxisLabel);
+		setXAxisLabel(graph.hasDate ? "" : graph.xAxisLabel);
+
+		setUnit(graph.unit);
+
+		setHasGoals(graph.hasGoals);
+
+		setHelperTexts(emptyHelperTexts);
+
+		setEditGraph(graph);
+	};
+
+	const getValues = async (orderNumber: number) => {
+		let selectedGraph = graphsData.find((graph) => graph.orderNumber === orderNumber);
+
+		if (selectedGraph && !selectedGraph?.graphValues) {
+			try {
+				const res = await getGraphValuesReq({ graphId: selectedGraph.graphId, defaultGraph: selectedGraph.defaultGraphOrderNumberId ? true : false });
+
+				if (res.status === 200 && res.data) {
+					selectedGraph.graphValues = res.data;
+				}
+
+				consoleLogPrint(res);
+			} catch (error) {
+				console.error("Error: ", error);
+			}
+		}
+
+		props.selectedGraph.setState(selectedGraph || null);
+	};
 
 	const getGraphs = async (sportId: number) => {
 		try {
@@ -145,19 +240,25 @@ const DiaryAndGraphs = (props: Props) => {
 				let newMenuItems: { value: string; label: string }[] = [];
 
 				res.data.forEach((graph) => {
-					newMenuItems.push({
-						value: graph.defaultGraphOrderNumberId ? "D" + graph.defaultGraphOrderNumberId.toString() : graph.graphId.toString(),
-						label: graph.graphLabel,
-					});
+					if (graph.orderNumber !== 0) {
+						newMenuItems.push({
+							value: graph.orderNumber.toString(),
+							label: graph.graphLabel,
+						});
+					}
 				});
 
 				setMenuItems(newMenuItems);
 
-				console.log(menuItems);
-
-				const selectedVal = newMenuItems.find((item) => item.value.match("1"));
+				const selectedVal = newMenuItems[0];
 
 				setSelectedValue(selectedVal?.value || "");
+
+				//const filtredGraphs =
+
+				const newHighestOrderNumber = res.data.filter((graph) => graph.orderNumber !== 0).length;
+
+				setHighestOrderNumber(newHighestOrderNumber);
 			} else {
 				setMenuItems([]);
 			}
@@ -168,26 +269,161 @@ const DiaryAndGraphs = (props: Props) => {
 		}
 	};
 
-	const createNewDefaultGraph = async () => {
+	const [open, setOpen] = useState(false);
+
+	const handleOpen = () => {
+		setOpen(true);
+	};
+
+	const handleClose = () => {
+		setOpen(false);
+	};
+
+	const handleChange = (event: SelectChangeEvent<string>) => {
+		setPreviousSelectedValue(selectedValue);
+		setSelectedValue(event.target.value);
+		handleClose();
+	};
+
+	const [graphLabel, setGraphLabel] = useState("");
+
+	const [hasDate, setHasDate] = useState(true);
+	const [yAxisLabel, setYAxisLabel] = useState("");
+	const [xAxisLabel, setXAxisLabel] = useState("");
+
+	const [unit, setUnit] = useState("");
+
+	const [hasGoals, setHasGoals] = useState(false);
+
+	useEffect(() => {
+		if (!hasDate) {
+			setHasGoals(false);
+		}
+	}, [hasDate]);
+
+	enum HelperTextCodeEnum {
+		GRAPH_LABEL = 1,
+		Y_AXIS_LABEL = 2,
+		X_AXIS_LABEL = 3,
+		Y_AXIS_GOAL = 4,
+		X_AXIS_GOAL = 5,
+		UNIT = 6,
+	}
+
+	const emptyHelperTexts: { [key: string]: string } = {
+		[HelperTextCodeEnum.GRAPH_LABEL]: "",
+		[HelperTextCodeEnum.Y_AXIS_LABEL]: "",
+		[HelperTextCodeEnum.X_AXIS_LABEL]: "",
+		[HelperTextCodeEnum.UNIT]: "",
+	};
+
+	const [helperTexts, setHelperTexts] = useState<{ [key: string]: string }>(emptyHelperTexts);
+
+	const checkTextFieldValidity = (): boolean => {
+		setHelperTexts(emptyHelperTexts);
+
+		let error = false;
+
+		if (graphLabel.length < 1) {
+			setHelperTexts((prev) => ({
+				...prev,
+				[HelperTextCodeEnum.GRAPH_LABEL]: "Název grafu nesmí být prázdný",
+			}));
+			error = true;
+		} else if (graphLabel.length > 50) {
+			setHelperTexts((prev) => ({
+				...prev,
+				[HelperTextCodeEnum.GRAPH_LABEL]: "Název grafu nesmí mít více než 50 znaků",
+			}));
+			error = true;
+		}
+
+		if (yAxisLabel.length < 1) {
+			setHelperTexts((prev) => ({
+				...prev,
+				[HelperTextCodeEnum.Y_AXIS_LABEL]: "Název osy Y nesmí být prázdný",
+			}));
+			error = true;
+		} else if (yAxisLabel.length > 20) {
+			setHelperTexts((prev) => ({
+				...prev,
+				[HelperTextCodeEnum.Y_AXIS_LABEL]: "Název osy Y nesmí mít více než 20 znaků",
+			}));
+			error = true;
+		}
+
+		if (!hasDate && xAxisLabel.length < 1) {
+			setHelperTexts((prev) => ({
+				...prev,
+				[HelperTextCodeEnum.X_AXIS_LABEL]: "Název osy X nesmí být prázdný",
+			}));
+			error = true;
+		} else if (!hasDate && xAxisLabel.length > 20) {
+			setHelperTexts((prev) => ({
+				...prev,
+				[HelperTextCodeEnum.X_AXIS_LABEL]: "Název osy X nesmí mít více než 20 znaků",
+			}));
+			error = true;
+		}
+
+		if (unit.length > 5) {
+			setHelperTexts((prev) => ({
+				...prev,
+				[HelperTextCodeEnum.UNIT]: "Jednotka nesmí mít více než 5 znaků",
+			}));
+			error = true;
+		}
+
+		return error;
+	};
+
+	const handleCreateGraph = async () => {
+		if (checkTextFieldValidity()) return;
+
 		try {
-			const res = await createDefaultGraphReq({ sportId: props.selectedSport.state?.sportId! });
+			const res = await createGraphReq({ sportId: props.selectedSport.state?.sportId!, graphLabel, hasDate, xAxisLabel: hasDate ? "Datum" : xAxisLabel, yAxisLabel, unit, hasGoals, createDefGraph: newDefaultGraph });
 
-			if (res.status === 200 && res.data) {
-				setActualGraph({
-					graphId: res.data.grapId,
+			if (res.status === 400 && res.data) {
+				setHelperTexts(res.data.helperTexts);
+			} else if (res.status === 200 && res.data) {
+				const newGraph = {
+					graphId: res.data.graphId,
 
-					graphLabel: res.data.graphLabel,
-					orderNumber: 1,
-					hasDate: false,
+					graphLabel,
+					orderNumber: res.data.orderNumber,
+					hasDate,
+					hasGoals,
 
-					yAxisLabel: "",
-					xAxisLabel: "",
+					yAxisLabel,
+					xAxisLabel: hasDate ? "Datum" : xAxisLabel,
 
-					graphValue: [],
+					defaultGraphOrderNumberId: res.data.defaultGraphOnId,
+
+					unit,
+
+					graphValues: [],
+				} as Graph;
+
+				setGraphsData((prev) => [...prev, newGraph]);
+
+				props.selectedGraph.setState(newGraph);
+
+				let newMenuItems: { value: string; label: string }[] = menuItems;
+
+				newMenuItems.push({
+					value: res.data.orderNumber.toString(),
+					label: graphLabel,
 				});
-			}
 
-			console.log(actualGraph);
+				setMenuItems(newMenuItems);
+				setSelectedValue(res.data.orderNumber.toString());
+
+				setNewGraph(false);
+				setNewDefaultGraph(false);
+				props.isDisabledFirstSection.setState(false);
+
+				setHighestOrderNumber(highestOrderNumber + 1);
+			}
 
 			consoleLogPrint(res);
 		} catch (error) {
@@ -195,23 +431,330 @@ const DiaryAndGraphs = (props: Props) => {
 		}
 	};
 
+	const handleChangeGraph = async () => {
+		if (checkTextFieldValidity()) return;
+
+		try {
+			const res = await changeGraphReq({
+				graphId: editGraph?.graphId!,
+				graphLabel,
+				hasDate,
+				xAxisLabel: hasDate ? "Datum" : xAxisLabel,
+				yAxisLabel,
+				unit,
+				hasGoals,
+				isDefGraph: !!editGraph?.defaultGraphOrderNumberId,
+				changedHasDate: !editGraph?.hasDate && hasDate,
+			});
+
+			if (res.status === 400 && res.data) {
+				setHelperTexts(res.data.helperTexts);
+			} else if (res.status === 200) {
+				setGraphsData((prev) =>
+					prev.map((graph) => {
+						if (graph.graphId === editGraph?.graphId && graph.defaultGraphOrderNumberId === editGraph.defaultGraphOrderNumberId) {
+							return { ...graph, graphLabel, hasDate, xAxisLabel: hasDate ? "Datum" : xAxisLabel, yAxisLabel, unit, hasGoals, graphValues: [] };
+						} else return graph;
+					})
+				);
+
+				setMenuItems((prev) =>
+					prev.map((menuItem) => {
+						if (menuItem.value === editGraph?.orderNumber.toString()) {
+							return { ...menuItem, label: graphLabel };
+						} else return menuItem;
+					})
+				);
+
+				setEditGraph(null);
+			}
+
+			consoleLogPrint(res);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	const handleDeleteGraph = async () => {
+		try {
+			const res = await deleteGraphReq({
+				graphId: editGraph?.graphId!,
+				isDefGraph: !!editGraph?.defaultGraphOrderNumberId,
+				orderNumber: editGraph?.orderNumber!,
+				sportId: props.selectedSport.state?.sportId!,
+			});
+
+			if (res.status === 200) {
+				const newGraphData = graphsData
+					.filter((graph) => !(graph.graphId === editGraph?.graphId && !!graph.defaultGraphOrderNumberId === !!editGraph?.defaultGraphOrderNumberId))
+					.map((graph) => {
+						if (graph.orderNumber > editGraph?.orderNumber!) return { ...graph, orderNumber: graph.orderNumber - 1 };
+						else return graph;
+					});
+
+				setGraphsData(newGraphData);
+
+				let newMenuItems: { value: string; label: string }[] = [];
+
+				newGraphData.forEach((graph) => {
+					if (graph.orderNumber !== 0) {
+						newMenuItems.push({
+							value: graph.orderNumber.toString(),
+							label: graph.graphLabel,
+						});
+					}
+				});
+
+				setMenuItems(newMenuItems);
+
+				if (editGraph?.orderNumber !== 0) setHighestOrderNumber(highestOrderNumber - 1);
+				setEditGraph(null);
+			}
+
+			consoleLogPrint(res);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	const cartesianStroke = "#3A3A3A";
+	const lineStroke = "#939393";
+
 	// #endregion
+
+	let formattedData: any[] = [];
+	let minTimestamp = 0;
+	let maxTimestamp = 0;
+	let minWeight = 0;
+	let maxWeight = 0;
+	let dateTicks: number[] = [];
+	let goalValues: any[] = [];
+	let nonGoalValues: any[] = [];
+	const tickLastYearRef = useRef<number | null>(null);
+
+	if (props.selectedGraph.state?.hasDate && props.selectedGraph.state?.graphValues?.length > 1) {
+		formattedData = [];
+		minTimestamp = 0;
+		maxTimestamp = 0;
+		minWeight = 0;
+		maxWeight = 0;
+		dateTicks = [];
+		goalValues = [];
+		nonGoalValues = [];
+
+		const graphValues = props.selectedGraph.state.graphValues;
+
+		minWeight = Math.min(...graphValues.map((entry) => entry.yAxisValue));
+		maxWeight = Math.max(...graphValues.map((entry) => entry.yAxisValue));
+
+		const tickCount = 10;
+
+		formattedData = graphValues.map((entry) => ({
+			...entry,
+			originalDate: entry.xAxisValue,
+			date: new Date(entry.xAxisValue.split(".").reverse().join("-")).getTime(),
+		}));
+
+		minTimestamp = Math.min(...formattedData.map((entry) => entry.date));
+		maxTimestamp = Math.max(...formattedData.map((entry) => entry.date));
+
+		dateTicks = [];
+		for (let i = 0; i < tickCount; i++) {
+			dateTicks.push(minTimestamp + ((maxTimestamp - minTimestamp) / (tickCount - 1)) * i);
+		}
+
+		goalValues = formattedData.filter((entry) => entry.isGoal);
+		nonGoalValues = formattedData.filter((entry) => !entry.isGoal);
+	}
+
+	const generateTicks = (values: number[]) => {
+		if (!values || values.length === 0) return [];
+
+		const min = Math.min(...values);
+		const max = Math.max(...values);
+		const count = 10;
+
+		const step = (max - min) / (count - 1);
+		const ticks = [];
+
+		for (let i = 0; i < count; i++) {
+			ticks.push(Math.round(min + i * step));
+		}
+
+		return Array.from(new Set(ticks));
+	};
+
+	const FlagSVG = () => (
+		<svg
+			version="1.2"
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 317"
+			width="15"
+			height="15"
+			style={{
+				filter: "drop-shadow(3px 3px 3px #00000060)",
+			}}>
+			<defs>
+				<image
+					width="13"
+					height="13"
+					id="img1"
+					href="data:image/png;base64,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"
+				/>
+			</defs>
+			<use
+				href="#img1"
+				x="0"
+				y="0"
+			/>
+		</svg>
+	);
+
+	const renderGoalDot = (props: any) => {
+		const { cx, cy } = props;
+
+		return (
+			<g transform={`translate(${cx - 1.5}, ${cy})`}>
+				<FlagSVG />
+			</g>
+		);
+	};
+
+	const handleMoveGraph = async (primaryGraphId: number, orderNumber: number, moveUp: boolean, isPrimaryGraphDef: boolean) => {
+		if ((orderNumber === 1 && moveUp) || (orderNumber === highestOrderNumber && !moveUp)) return;
+
+		const secondaryGraph = graphsData.find((graph) => graph.orderNumber + (moveUp ? 1 : -1) === orderNumber);
+		const isSecondaryGraphDef = !!secondaryGraph?.defaultGraphOrderNumberId;
+		const secondaryGraphId = secondaryGraph?.defaultGraphOrderNumberId || secondaryGraph?.graphId || -1;
+
+		try {
+			const res = await moveGraphReq({ primaryGraphId, secondaryGraphId, moveUp, isPrimaryGraphDef, isSecondaryGraphDef });
+
+			if (res.status === 200) {
+				setGraphsData((prev) => {
+					const updatedGraphs = prev.map((graph) => {
+						if ((!isPrimaryGraphDef && graph.graphId === primaryGraphId && graph.defaultGraphOrderNumberId === undefined) || (isPrimaryGraphDef && graph.defaultGraphOrderNumberId === primaryGraphId))
+							return { ...graph, orderNumber: moveUp ? orderNumber - 1 : orderNumber + 1 };
+						else if ((!isSecondaryGraphDef && graph.graphId === secondaryGraphId && graph.defaultGraphOrderNumberId === undefined) || (isSecondaryGraphDef && graph.defaultGraphOrderNumberId === secondaryGraphId))
+							return { ...graph, orderNumber: orderNumber };
+						else return graph;
+					});
+
+					updatedGraphs.sort((a, b) => a.orderNumber - b.orderNumber);
+
+					let newMenuItems: { value: string; label: string }[] = [];
+
+					updatedGraphs.forEach((graph) => {
+						if (graph.orderNumber !== 0) {
+							newMenuItems.push({
+								value: graph.orderNumber.toString(),
+								label: graph.graphLabel,
+							});
+						}
+					});
+
+					setMenuItems(newMenuItems);
+
+					return updatedGraphs;
+				});
+			}
+
+			consoleLogPrint(res);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	const handleHideDefGraph = async (defGraphId: number, orderNumber: number) => {
+		try {
+			const res = await hideDefGraphReq({ defGraphId, sportId: props.selectedSport.state?.sportId!, orderNumber });
+
+			if (res.status === 200) {
+				setGraphsData((prev) => {
+					const updatedGraphs = prev.map((graph) => {
+						if (graph.defaultGraphOrderNumberId === defGraphId) return { ...graph, orderNumber: 0 };
+						else if (graph.orderNumber > orderNumber) return { ...graph, orderNumber: graph.orderNumber - 1 };
+						else return graph;
+					});
+
+					updatedGraphs.sort((a, b) => a.orderNumber - b.orderNumber);
+
+					let newMenuItems: { value: string; label: string }[] = [];
+
+					updatedGraphs.forEach((graph) => {
+						if (graph.orderNumber !== 0) {
+							newMenuItems.push({
+								value: graph.orderNumber.toString(),
+								label: graph.graphLabel,
+							});
+						}
+					});
+
+					setMenuItems(newMenuItems);
+
+					return updatedGraphs;
+				});
+
+				setHighestOrderNumber(highestOrderNumber - 1);
+			}
+
+			consoleLogPrint(res);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	const handleShowDefGraph = async (defGraphId: number) => {
+		try {
+			const res = await showDefGraphReq({ defGraphId, orderNumber: highestOrderNumber + 1 });
+
+			if (res.status === 200) {
+				let graphLabel;
+
+				setGraphsData((prev) => {
+					const updatedGraphs = prev.map((graph) => {
+						if (graph.defaultGraphOrderNumberId === defGraphId) {
+							graphLabel = graph.graphLabel;
+							return { ...graph, orderNumber: highestOrderNumber + 1 };
+						} else return graph;
+					});
+
+					updatedGraphs.sort((a, b) => a.orderNumber - b.orderNumber);
+
+					return updatedGraphs;
+				});
+
+				setMenuItems([...menuItems, { value: (highestOrderNumber + 1).toString(), label: graphLabel || "" }]);
+
+				setHighestOrderNumber(highestOrderNumber + 1);
+			}
+
+			consoleLogPrint(res);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
 
 	return (
 		<GeneralCard
 			height="h-full "
+			disabled={!props.selectedSport.state}
 			firstTitle="Deník"
-			firstSideContent={[
-				<ButtonComp
-					key={"edit"}
-					style="ml-2 mt-1"
-					size="medium"
-					icon={IconEnum.EDIT}
-					onClick={() => {
-						setDiaryEditing(!diaryEditing);
-					}}
-				/>,
-			]}
+			firstSideContent={
+				props.selectedSport.state
+					? [
+							<ButtonComp
+								key={"edit"}
+								style="ml-2 mt-0.5"
+								size="small"
+								icon={IconEnum.EDIT}
+								onClick={() => {
+									setDiaryEditing(!diaryEditing);
+								}}
+							/>,
+					  ]
+					: []
+			}
 			firstChildren={
 				<Box className=" h-full ">
 					{diaryEditing ? (
@@ -251,65 +794,324 @@ const DiaryAndGraphs = (props: Props) => {
 			secondTitle="Grafy"
 			secondChildren={
 				<Box className="h-full mt-2 ">
-					{graphEditing || sportGraphEditing ? (
-						<Box className="h-full">
-							<Box className="flex">
-								<TextFieldWithIcon
-									style="w-2/5  "
-									placeHolder="Název grafu"
-									onClick={() => {}}
-									previousValue={actualGraph?.graphLabel}></TextFieldWithIcon>
-							</Box>
-							<Box className=" w-full ">
-								<Box className="w-2/5 pl-2">
-									<LabelAndValue
-										noPaddingTop
-										label="Osa Y"
-										placeHolder="Název vertikální osy Y"
-										textFieldOnClick={() => {}}
+					{newGraph || newDefaultGraph || editGraph ? (
+						<Box className="h-full w-full flex justify-center ">
+							<Box className="w-2/3 ">
+								<Box className="flex w-full pr-7 mb-6 mt-3 ">
+									<ButtonComp
+										iconStyle="scale-90"
+										icon={IconEnum.BACK}
+										size="small"
+										justClick
+										onClick={() => {
+											setNewGraph(false);
+											setEditGraph(null);
+											setNewDefaultGraph(false);
+											setSelectedValue(previousSelectedValue);
+										}}
+									/>
+
+									<Box className={`flex justify-center w-full -mt-1`}>
+										<TextFieldWithIcon
+											style="w-full ml-14 pr-6 h-6 "
+											fontLight
+											withoutIcon
+											placeHolder={newDefaultGraph ? "Název výchozího grafu" : "Název grafu"}
+											tfCenterValueAndPlaceholder
+											fontSize="1.25rem"
+											onClick={() => {}}
+											previousValue={graphLabel}
+											maxLength={50}
+											helperText={helperTexts[HelperTextCodeEnum.GRAPH_LABEL]}
+											dontDeleteValue
+											customMargin="-mt-0"
+											externalValue={{ state: graphLabel, setState: setGraphLabel }}
+										/>
+									</Box>
+
+									<ButtonComp
+										justClick
+										icon={IconEnum.CHECK}
+										size="small"
+										onClick={() => {
+											if (editGraph) handleChangeGraph();
+											else handleCreateGraph();
+										}}
 									/>
 								</Box>
 
-								<Box className="w-2/5 pl-2">
-									<LabelAndValue
-										label="Osa X"
-										placeHolder="Název horizontální osy X"
-										value="Datum"
-										textFieldOnClick={(!hasDate && (() => {})) || undefined}
-									/>
+								{newDefaultGraph || !!editGraph?.defaultGraphOrderNumberId ? (
+									<Typography className="mb-10  font-light pr-7 ">Vytváříš výchozí graf pro všechny uživatele tohoto sportu. Každý si do něj bude moct zaznamenávat své hodnoty a sledovat vlastní pokrok.</Typography>
+								) : (
+									<Typography className="mb-10  font-light pr-7 ">Navrhni si graf, který roste s tebou a sleduj, jak se mění tvé výsledky. Každá zaznamenaná hodnota tě posouvá blíž k cíli.</Typography>
+								)}
 
-									<FormControlLabel
-										className="w-full  ml-[4.3rem]"
-										control={
-											<Checkbox
-												checked={hasDate}
-												onChange={() => {
-													setHasDate(!hasDate);
-												}}
+								<Box className=" ">
+									<Box className=" w-full  ">
+										<Box className="w-full mt-8">
+											<LabelAndValue
+												mainStyle=""
+												noPaddingLeft
+												fontLight
+												withoutIcon
+												label="Osa X"
+												placeHolder="Název horizontální osy X"
+												value={hasDate ? "Datum" : xAxisLabel}
+												textFieldValue={xAxisLabel}
+												textFieldOnClick={(!hasDate && (() => {})) || undefined}
+												maxLength={20}
+												helperText={helperTexts[HelperTextCodeEnum.X_AXIS_LABEL]}
+												externalValue={{ state: xAxisLabel, setState: setXAxisLabel }}
 											/>
-										}
-										label={hasDate ? "Osa X je datum" : "Osa X není datum"}
-									/>
+
+											<FormControlLabel
+												className="ml-[3.9rem] mt-3"
+												control={
+													<Checkbox
+														checked={hasDate}
+														onChange={() => {
+															setHasDate(!hasDate);
+														}}
+													/>
+												}
+												label={hasDate ? "Osa X je datum" : "Osa X není datum"}
+											/>
+
+											{!editGraph?.hasDate && hasDate && editGraph ? (
+												<Box>
+													<Typography className="font-light mt-3 ">
+														Jelikož jste změnil osu X na datum, tak hodnoty osy X všech existujících záznamů budou nastaveny na dnešní datum, které lze po úpravě grafu změnit.
+													</Typography>
+													<Typography className="font-light mt-3 text-[#FF7667]">Po uložení je navrácení původního hodnot nemožné!</Typography>
+												</Box>
+											) : null}
+										</Box>
+										<Box className="w-full mt-10">
+											<LabelAndValue
+												textFieldValue={yAxisLabel}
+												withoutIcon
+												noPaddingLeft
+												fontLight
+												noPaddingTop
+												label="Osa Y"
+												placeHolder="Název vertikální osy Y"
+												textFieldOnClick={() => {}}
+												maxLength={20}
+												helperText={helperTexts[HelperTextCodeEnum.Y_AXIS_LABEL]}
+												externalValue={{ state: yAxisLabel, setState: setYAxisLabel }}
+											/>
+											<Typography className="font-light ml-[4.6rem] mt-4">Hodnoty osy Y musí být číselné.</Typography>
+										</Box>
+										<Box className="w-full mt-10">
+											<LabelAndValue
+												value={unit}
+												textFieldValue={unit}
+												withoutIcon
+												noPaddingLeft
+												fontLight
+												noPaddingTop
+												label="Jednotka"
+												placeHolder="Zkratka jednotky hodnot osy Y"
+												textFieldOnClick={() => {}}
+												maxLength={5}
+												externalValue={{ state: unit, setState: setUnit }}
+											/>
+										</Box>
+									</Box>
+
+									<Box className=" w-full mt-12 ">
+										<Box className={`w-full `}>
+											{!hasDate && <Typography className="font-light   mb-0 pr-7">Pro aktivaci je nutné mít nastavenou osu X na datum.</Typography>}
+
+											<FormControlLabel
+												disabled={!hasDate}
+												control={
+													<Checkbox
+														checked={hasGoals}
+														onChange={() => {
+															setHasGoals(!hasGoals);
+														}}
+													/>
+												}
+												label={hasGoals ? "Nastavování cílů zapnuto" : "Nastavování cílů vypnuto"}
+											/>
+
+											<Typography
+												className={`font-light  mb-2 pr-7
+														${!hasDate && "opacity-30"}`}>
+												Zaškrtnutím povolíte možnost nastavení cílů pro váš graf, které vám pomůžou sledovat váš pokrok. Cíl je označen vlajkou.
+											</Typography>
+										</Box>
+									</Box>
+
+									{editGraph ? (
+										<Box className="mt-12 flex items-center  gap-4">
+											<ButtonComp
+												iconStyle="scale-[1.1]"
+												icon={IconEnum.TRASH}
+												onClick={handleDeleteGraph}
+												size="small"
+											/>
+
+											<Typography className="font-light  text-[#FF7667]">Odstranění grafu je nevratné!</Typography>
+										</Box>
+									) : null}
 								</Box>
 							</Box>
 						</Box>
 					) : reorderGraphs ? (
-						<Box className="h-full"></Box>
+						<Box className="h-full w-full flex justify-center ">
+							<Box className="w-2/3 ">
+								<Box className="flex  justify-center items-center w-full  mb-4 -ml-6">
+									<ButtonComp
+										iconStyle="scale-90"
+										icon={IconEnum.BACK}
+										size="small"
+										justClick
+										onClick={() => {
+											setReorderGraphs(false);
+											setSelectedValue(menuItems[0].value);
+											props.isDisabledFirstSection.setState(false);
+										}}
+									/>
+
+									<Typography className=" ml-4 mt-1 text-[1.5rem] ">Úprava grafů</Typography>
+								</Box>
+
+								<Typography className="mb-3 font-light  ">
+									Nastavte si pořadí vlastních i výchozích grafů tak, jak vám to nejvíce vyhovuje. Výchozí grafy, které nepotřebujete, můžete jednoduše skrýt. Skryté grafy nezmizí úplně, můžete je kdykoli znovu zobrazit.
+								</Typography>
+								<Typography className="mb-2 font-light  ">Kromě toho můžete upravit i základní vlastnosti jednotlivých grafů, které jste zvolili při jejich vytváření.</Typography>
+
+								{graphsData
+									.filter((graph) => graph.orderNumber !== 0)
+									.map((graph) => {
+										return (
+											<Box
+												key={graph.defaultGraphOrderNumberId ? "D" + graph.graphId : graph.graphId}
+												className="py-4 px-4">
+												<Box className="flex items-center">
+													<ButtonComp
+														style="mr-4 "
+														icon={IconEnum.EDIT}
+														size="small"
+														onClick={() => {
+															editGraphPrerequisites(graph);
+														}}
+													/>
+													<Typography className="mr-4">{graph.graphLabel}</Typography>
+													<Box className="ml-auto flex gap-4">
+														{graph.defaultGraphOrderNumberId ? (
+															<ButtonComp
+																style="mr-4 "
+																justClick
+																dontChangeOutline
+																hidden={graph.defaultGraphOrderNumberId ? false : true}
+																disabled={graph.defaultGraphOrderNumberId ? false : true}
+																icon={IconEnum.EYE}
+																size="small"
+																onClick={() => handleHideDefGraph(graph.defaultGraphOrderNumberId!, graph.orderNumber)}
+															/>
+														) : null}
+
+														<ButtonComp
+															justClick
+															dontChangeOutline
+															disabled={graph.orderNumber === 1}
+															icon={IconEnum.ARROW}
+															iconStyle="-rotate-90 scale-[1.16]"
+															size="small"
+															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, true, !!graph.defaultGraphOrderNumberId)}
+														/>
+
+														<ButtonComp
+															justClick
+															dontChangeOutline
+															icon={IconEnum.ARROW}
+															iconStyle="rotate-90 scale-[1.16]"
+															disabled={graph.orderNumber === highestOrderNumber}
+															size="small"
+															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, false, !!graph.defaultGraphOrderNumberId)}
+														/>
+													</Box>
+												</Box>
+											</Box>
+										);
+									})}
+
+								{graphsData.filter((graph) => graph.orderNumber === 0).length > 0 ? <Typography className="font-light text-xl mt-12">Skryté výchozí grafy</Typography> : null}
+
+								{graphsData
+									.filter((graph) => graph.orderNumber === 0)
+									.map((graph) => {
+										return (
+											<Box
+												key={"D" + graph.graphId}
+												className="py-4 px-5">
+												<Box className="flex">
+													<ButtonComp
+														style="mr-4 "
+														hidden={!!graph.defaultGraphOrderNumberId}
+														disabled={!!graph.defaultGraphOrderNumberId}
+														icon={IconEnum.EDIT}
+														size="small"
+														onClick={() => {
+															editGraphPrerequisites(graph);
+														}}
+													/>
+													<Typography className="mr-auto">{graph.graphLabel}</Typography>
+													<ButtonComp
+														style="ml-4 mr-4"
+														justClick
+														dontChangeOutline
+														hidden={graph.defaultGraphOrderNumberId ? false : true}
+														disabled={graph.defaultGraphOrderNumberId ? false : true}
+														icon={IconEnum.EYE_HIDDEN}
+														size="small"
+														onClick={() => handleShowDefGraph(graph.defaultGraphOrderNumberId!)}
+													/>
+												</Box>
+											</Box>
+										);
+									})}
+							</Box>
+						</Box>
 					) : (
 						<Box className="h-full">
-							<Box className="flex justify-end ">
+							<Box className="flex justify-end">
 								<FormControl
 									className="mr-10 w-fit  "
 									variant="standard"
 									sx={{
-										"& .MuiSelect-select": { backgroundColor: "transparent" }, // Průhlednost textového pole
+										"& .MuiSelect-select": {
+											backgroundColor: "transparent !important",
+										},
 									}}>
 									<Select
-										value={selectedValue}
+										open={open}
+										onClose={handleClose}
+										onOpen={handleOpen}
+										value={selectedValue || ""}
 										onChange={handleChange}
-										placeholder="Vyberte si graf"
+										displayEmpty
+										//placeholder="Vyberte graf"
 										className="text-lg h-[2rem] pr-1 "
 										disableUnderline
+										sx={{
+											"& .MuiSelect-select": {
+												backgroundColor: "transparent !important",
+											},
+										}}
+										IconComponent={() => (
+											<ButtonComp
+												icon={open ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
+												style=" min-w-7 max-w-7 -ml-5 -mt-1 "
+												size="medium"
+												color="text-[#fff]"
+												onClick={handleOpen}
+												externalClicked={{ state: open, setState: setOpen }}
+											/>
+										)}
 										MenuProps={{
 											anchorOrigin: {
 												vertical: "bottom",
@@ -334,86 +1136,193 @@ const DiaryAndGraphs = (props: Props) => {
 										<MenuItem
 											className=""
 											value="newGraph">
-											<Typography className="mr-2">Nový graf</Typography>
 											<AddIcon
-												className="text-green-500 ml-auto"
+												className="text-green-500 scale-[1.15] -ml-2"
 												fontSize="small"
+												style={{
+													filter: "drop-shadow(3px 3px 3px #00000060)",
+												}}
 											/>
+											<Typography className="ml-2">Nový graf</Typography>
 										</MenuItem>
 										<MenuItem
 											className=""
 											value="newDefaultGraph">
-											<Typography className="mr-2">Nový výchozí graf</Typography>
 											<AddIcon
-												className="text-green-500 ml-auto"
+												className="text-green-500 scale-[1.15] -ml-2"
 												fontSize="small"
+												style={{
+													filter: "drop-shadow(3px 3px 3px #00000060)",
+												}}
 											/>
+											<Typography className="ml-2">Nový výchozí graf</Typography>
 										</MenuItem>
 
 										<MenuItem
 											className=""
 											value="reorderGraphs">
-											<Typography className="mr-2">Přeuspořádat grafy</Typography>
-
 											<EditIcon
-												className={`text-blue-500 scale-60`}
+												className={`text-blue-500 scale-[0.9] -ml-2`}
 												fontSize="small"
+												style={{
+													filter: "drop-shadow(3px 3px 3px #00000060)",
+												}}
 											/>
+											<Typography className="ml-2">Úprava grafů</Typography>
 										</MenuItem>
 									</Select>
 								</FormControl>
 							</Box>
 
 							<Box className="h-[calc(100%-2rem)] flex justify-center items-center">
-								<ResponsiveContainer
-									height="98%"
-									width="100%">
-									<LineChart
-										data={weightData}
-										margin={{ top: 10, right: 50, bottom: 10, left: 25 }}>
-										<CartesianGrid
-											stroke="#e5e7eb"
-											strokeDasharray="20 20"
-										/>
-										<XAxis
-											dataKey="date"
-											height={50}
-										/>
-										<YAxis
-											domain={["auto", "auto"]}
-											width={30}
-										/>
-										<Tooltip
-											cursor={{ stroke: "#007bff" }}
-											content={({ active, payload }) => {
-												if (active && payload && payload.length) {
-													return (
-														<Box className="bg-white p-1 mt-3 border border-gray-400 shadow rounded ">
-															<DoubleLabelAndValue
-																firstLabel={"Date"}
-																firstValue={payload[0].payload.date}
-																secondLabel={"Weight"}
-																secondValue={payload[0].value + "kg"}></DoubleLabelAndValue>
-														</Box>
-													);
-												}
-												return null;
-											}}
-										/>
+								{props.selectedGraph.state?.graphValues && props.selectedGraph.state?.graphValues.length > 1 ? (
+									props.selectedGraph.state.hasDate ? (
+										<ResponsiveContainer
+											height="98%"
+											width="100%">
+											<LineChart
+												data={formattedData}
+												margin={{ top: 10, right: 50, bottom: 10, left: 30 }}>
+												<CartesianGrid
+													stroke={cartesianStroke}
+													strokeDasharray="10 25"
+												/>
+												<XAxis
+													dataKey="date"
+													type="number"
+													domain={[minTimestamp, maxTimestamp]}
+													ticks={dateTicks}
+													stroke={lineStroke}
+													tick={{ dy: 10 }}
+													tickFormatter={(tick) => {
+														const date = new Date(tick);
+														const day = date.getDate();
+														const month = date.getMonth() + 1;
+														const year = date.getFullYear();
 
-										<Line
-											type="monotone"
-											dataKey="weight"
-											stroke="#007bff"
-											dot={{ r: 3 }}
-										/>
-										<Brush
-											dataKey="date"
-											height={20}
-											stroke="#007bff"
-										/>
-									</LineChart>
-								</ResponsiveContainer>
+														const showYear = tickLastYearRef.current !== year;
+														tickLastYearRef.current = year;
+
+														const formatted = `${day}.${month}${showYear ? "." + year : ""}`;
+														return formatted;
+													}}
+												/>
+												<YAxis
+													stroke={lineStroke}
+													domain={[minWeight, maxWeight]}
+													ticks={generateTicks(props.selectedGraph.state?.graphValues.map((entry) => entry.yAxisValue))}
+													width={30}
+													tick={{ dx: -10 }}
+												/>
+												<Tooltip
+													content={({ active, payload }) => {
+														if (active && payload && payload.length) {
+															const dataPoint = payload[0].payload;
+															const originalDate = dataPoint.originalDate;
+															const isGoal = dataPoint.isGoal;
+
+															const [day, month, year] = originalDate.split(".");
+															const formattedDay = day.startsWith("0") ? day[1] : day;
+															const formattedMonth = month.startsWith("0") ? month[1] : month;
+															const formattedDate = `${formattedDay}. ${formattedMonth}. ${year}`;
+
+															return (
+																<Box className="bg-navigation-color-neutral p-1 mt-3 border-2 shadow rounded">
+																	<DoubleLabelAndValue
+																		goal={isGoal}
+																		firstLabel={props.selectedGraph.state?.yAxisLabel || ""}
+																		firstValue={payload[0].value + (props.selectedGraph.state?.unit ? " " + props.selectedGraph.state?.unit : "")}
+																		secondLabel={props.selectedGraph.state?.xAxisLabel || ""}
+																		secondValue={formattedDate}
+																	/>
+																</Box>
+															);
+														}
+														return null;
+													}}
+												/>
+												<Line
+													type="monotone"
+													dataKey="yAxisValue"
+													data={nonGoalValues}
+													stroke={lineStroke}
+												/>
+												{goalValues.length > 0 && (
+													<Line
+														type="monotone"
+														dataKey="yAxisValue"
+														data={goalValues}
+														stroke="#ffffff00" // Například průhledná čára
+														dot={<Customized component={renderGoalDot} />} // Použití vlastní komponenty pro tvar bodu
+														activeDot={false}
+													/>
+												)}
+											</LineChart>
+										</ResponsiveContainer>
+									) : (
+										<ResponsiveContainer
+											height="98%"
+											width="100%">
+											<LineChart
+												data={props.selectedGraph.state?.graphValues || []}
+												margin={{ top: 10, right: 50, bottom: 10, left: 30 }}>
+												<CartesianGrid
+													stroke={cartesianStroke}
+													strokeDasharray="10 25"
+												/>
+												<XAxis
+													dataKey="xAxisValue"
+													stroke={lineStroke}
+													tick={{
+														dy: 10,
+													}}
+												/>
+												<YAxis
+													type="number"
+													stroke={lineStroke}
+													tick={{ dx: -6 }}
+													width={30}
+													ticks={generateTicks(props.selectedGraph.state?.graphValues.map((entry) => entry.yAxisValue))}
+													domain={["dataMin", "dataMax"]}
+													allowDecimals={false}
+												/>
+
+												<Tooltip
+													content={({ active, payload }) => {
+														if (active && payload && payload.length) {
+															const dataPoint = payload[0].payload;
+
+															return (
+																<Box className="bg-navigation-color-neutral p-1 mt-3 border-2 shadow rounded">
+																	<DoubleLabelAndValue
+																		goal={false}
+																		firstLabel={props.selectedGraph.state?.yAxisLabel || ""}
+																		firstValue={payload[0].value + (props.selectedGraph.state?.unit ? " " + props.selectedGraph.state.unit : "")}
+																		secondLabel={props.selectedGraph.state?.xAxisLabel || ""}
+																		secondValue={`${dataPoint.xAxisValue}`}
+																	/>
+																</Box>
+															);
+														}
+														return null;
+													}}
+												/>
+												<Line
+													type="monotone"
+													dataKey="yAxisValue"
+													stroke={lineStroke}
+													dot={true}
+												/>
+											</LineChart>
+										</ResponsiveContainer>
+									)
+								) : (
+									<Box className=" h-1/3 ">
+										<Typography className="font-light text-2xl -ml-8	">↖</Typography>
+
+										<Typography className="font-light text-xl">Pro zobrazení grafu přidejte alespoň 2 záznamy.</Typography>
+									</Box>
+								)}
 							</Box>
 						</Box>
 					)}
@@ -422,32 +1331,5 @@ const DiaryAndGraphs = (props: Props) => {
 		/>
 	);
 };
-
-const weightData = [
-	{ date: "10.1.", weight: 80 },
-	{ date: "12.1.", weight: 110 },
-	{ date: "13.1.", weight: 100 },
-	{ date: "20.1.", weight: 130 },
-	{ date: "5.5.", weight: 140 },
-	{ date: "6.6.", weight: 145 },
-	{ date: "7.7.", weight: 150 },
-	{ date: "8.8.", weight: 155 },
-	{ date: "9.9.", weight: 160 },
-	{ date: "10.10.", weight: 165 },
-	{ date: "11.11.", weight: 170 },
-	{ date: "12.12.", weight: 175 },
-	{ date: "13.1.", weight: 180 },
-	{ date: "14.2.", weight: 185 },
-	{ date: "15.3.", weight: 190 },
-	{ date: "16.4.", weight: 195 },
-	{ date: "17.5.", weight: 200 },
-	{ date: "18.6.", weight: 205 },
-	{ date: "19.7.", weight: 210 },
-	{ date: "20.8.", weight: 215 },
-	{ date: "21.9.", weight: 220 },
-	{ date: "22.10.", weight: 225 },
-	{ date: "23.11.", weight: 230 },
-	{ date: "24.12.", weight: 235 },
-];
 
 export default DiaryAndGraphs;

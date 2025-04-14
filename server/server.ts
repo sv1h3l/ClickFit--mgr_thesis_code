@@ -6,19 +6,26 @@ import mysql from "mysql2";
 import routes from "./routes";
 
 dotenv.config();
-const db = mysql.createConnection({
+
+// ✅ Vytvoření connection poolu
+const db = mysql.createPool({
 	host: process.env.DB_HOST,
 	user: process.env.DB_USER,
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_NAME,
-	port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306, // Nastaví defaultní port
+	port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+	waitForConnections: true,
+	connectionLimit: 10,
+	queueLimit: 0,
 });
 
-db.connect((err) => {
+// ✅ Ověření připojení při startu
+db.getConnection((err, connection) => {
 	if (err) {
 		console.error("Chyba připojení k databázi:", err);
 	} else {
 		console.log("Připojeno k databázi");
+		connection.release(); // Nezapomeň uvolnit
 	}
 });
 
@@ -27,8 +34,8 @@ const port = process.env.SERVER_PORT || 5000;
 
 app.use(
 	cors({
-		origin: "http://localhost:3000", // Adresa klienta
-		credentials: true, // Povolujeme odesílání cookies
+		origin: "http://localhost:3000",
+		credentials: true,
 	})
 );
 app.use(bodyParser.json());
@@ -40,4 +47,3 @@ app.listen(port, () => {
 });
 
 export { db };
-

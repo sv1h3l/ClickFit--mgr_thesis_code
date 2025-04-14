@@ -1,9 +1,10 @@
+import { ResultSetHeader } from "mysql2";
 import { db } from "../../server";
 import { GenEnum, GenRes } from "../../utilities/GenResEnum";
 
 interface Props {
 	userId: number;
-	graphId: number;	
+	graphId: number;
 	highestOrderNumber: number;
 }
 
@@ -18,11 +19,9 @@ export const createDefaultGraphOrderNumberMod = async (props: Props): Promise<Ge
             VALUES (?, ?, ?)
         `;
 
-		const [result] = await db.promise().query(query, [props.graphId, props.userId, props.highestOrderNumber]);
+		const [result] = await db.promise().query<ResultSetHeader>(query, [props.graphId, props.userId, props.highestOrderNumber]);
 
-		const defaultGraphOrderNumberId = (result as { insertId: number }).insertId;
-
-		return { status: GenEnum.SUCCESS, message: "Pořadí výchozího grafu úspěšně vytvořeno", data: { defaultGraphOrderNumberId } };
+		return { status: GenEnum.SUCCESS, message: "Pořadí výchozího grafu úspěšně vytvořeno", data: { defaultGraphOrderNumberId: result.insertId } };
 	} catch (error) {
 		console.error("Database error: ", error);
 		return { status: GenEnum.FAILURE, message: "Nastala chyba během vytváření pořadí výchozího grafu" };

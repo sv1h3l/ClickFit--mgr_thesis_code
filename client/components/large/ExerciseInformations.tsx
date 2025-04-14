@@ -875,7 +875,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 							label="Název cviku"
 							value={props.exerciseName}
 						/>
-						{props.selectedSport.state?.hasCategories &&
+						{props.selectedSport.state?.hasCategories ?
 							(props.editing.state ? (
 								<Box className="flex">
 									<LabelAndValue
@@ -912,7 +912,8 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 									label="Kategorie"
 									value={props.exerciseCategory}
 								/>
-							))}
+							)) : <></>}
+
 						{props.selectedSport.state?.hasDifficulties &&
 							(props.editing.state ? (
 								<Box className="flex">

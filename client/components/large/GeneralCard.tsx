@@ -5,10 +5,11 @@ import { ReactNode, useState } from "react";
 interface GeneralCardProps {
 	firstTitle?: string;
 
-	border?: boolean;
 	height?: string;
 	width?: string;
+	style?: string;
 	marginBottom?: boolean;
+	disabled?: boolean;
 
 	secondTitle?: string;
 
@@ -26,7 +27,23 @@ interface GeneralCardProps {
 	showFirstSection?: StateAndSet<boolean>;
 }
 
-function GeneralCard({ firstTitle, secondTitle, height, width, marginBottom, secondGeneralCard, border, firstChildren, secondChildren, firstSideContent, secondSideContent, onlyRightContent, removeJustifyBetween, showFirstSection }: GeneralCardProps) {
+function GeneralCard({
+	firstTitle,
+	secondTitle,
+	height,
+	width,
+	style,
+	marginBottom,
+	disabled,
+	secondGeneralCard,
+	firstChildren,
+	secondChildren,
+	firstSideContent,
+	secondSideContent,
+	onlyRightContent,
+	removeJustifyBetween,
+	showFirstSection,
+}: GeneralCardProps) {
 	const [localShowFirstSection, setLocalShowFirstSection] = useState<boolean>(true);
 
 	const isFirstSectionVisible = showFirstSection ? showFirstSection.state : localShowFirstSection;
@@ -35,7 +52,7 @@ function GeneralCard({ firstTitle, secondTitle, height, width, marginBottom, sec
 	return (
 		<Box
 			className={`flex flex-col bg-primary-color-neutral overflow-auto px-8 rounded-3xl border-[3px]  shadow-md
-						${height} ${width} ${marginBottom && ""} `}>
+						${height} ${width} ${style} ${disabled && "opacity-50"} ${marginBottom && ""} `}>
 			{/* Header */}
 			<Box
 				className={`flex items-center pb-3 
@@ -43,8 +60,8 @@ function GeneralCard({ firstTitle, secondTitle, height, width, marginBottom, sec
 				{/* První title */}
 				<Box className="flex">
 					<Typography
-						className={`text-3xl ${secondTitle && "cursor-pointer"}  select-none transition-all ${!isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide `}
-						onClick={() => setSectionVisibility(true)}>
+						className={` text-[1.75rem] ${secondTitle && !disabled && "cursor-pointer"}  select-none transition-all ${!isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide `}
+						onClick={disabled ? () => {} : () => setSectionVisibility(true)}>
 						{firstTitle}
 					</Typography>
 
@@ -77,8 +94,8 @@ function GeneralCard({ firstTitle, secondTitle, height, width, marginBottom, sec
 						)}
 
 						<Typography
-							className={`text-3xl cursor-pointer transition-all select-none ${isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide  `}
-							onClick={() => setSectionVisibility(false)}>
+							className={`text-[1.75rem] ${!disabled && "cursor-pointer"} transition-all select-none ${isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide  `}
+							onClick={disabled ? () => {} : () => setSectionVisibility(false)}>
 							{secondTitle}
 						</Typography>
 					</Box>

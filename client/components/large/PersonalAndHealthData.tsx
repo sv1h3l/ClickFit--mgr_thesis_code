@@ -198,7 +198,6 @@ function PersonalAndHealthData(props: Props) {
 				marginBottom
 				firstTitle="Osobní údaje"
 				height="h-1/2"
-				border
 				onlyRightContent={[
 					<ButtonComp
 						key={"edit"}
@@ -213,9 +212,10 @@ function PersonalAndHealthData(props: Props) {
 					<Box className="flex flex-col gap-4 w-full ">
 						<Box className="flex w-1/2">
 							<LabelAndValue
-								mainStyle="ml-[0.65rem] mt-2"
+								mainStyle=" mt-2"
 								noPaddingTop
 								label="Email"
+								middleArrowStyle="ml-[0.65rem]"
 								value={user.email}
 							/>
 						</Box>
@@ -313,7 +313,8 @@ function PersonalAndHealthData(props: Props) {
 							<Box className="flex w-1/2">
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6 ml-[0.5rem]"
+										mainStyle="mr-6 "
+										middleArrowStyle="ml-[0.5rem]"
 										label="Výška"
 										fontLight
 										placeHolder="Zadejte výšku"
@@ -334,7 +335,7 @@ function PersonalAndHealthData(props: Props) {
 									/>
 								) : (
 									<LabelAndValue
-										mainStyle="ml-[0.5rem]"
+										middleArrowStyle="ml-[0.5rem]"
 										label="Výška"
 										notFilledIn={!user.height}
 										value={user.height ? user.height + " cm" : ""}
@@ -344,7 +345,8 @@ function PersonalAndHealthData(props: Props) {
 							<Box className="flex w-1/2">
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6 ml-[1.4rem]"
+										mainStyle="mr-6 "
+										middleArrowStyle="ml-[1.4rem]"
 										label="Váha"
 										fontLight
 										placeHolder="Zadejte váhu"
@@ -365,7 +367,7 @@ function PersonalAndHealthData(props: Props) {
 									/>
 								) : (
 									<LabelAndValue
-										mainStyle="ml-[1.4rem]"
+										middleArrowStyle="ml-[1.4rem]"
 										label="Váha"
 										notFilledIn={!user.weight}
 										value={user.weight ? user.weight + " kg" : ""}
@@ -377,7 +379,8 @@ function PersonalAndHealthData(props: Props) {
 							<Box className="flex w-1/2">
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6 ml-[1.5rem]"
+										mainStyle="mr-6 "
+										middleArrowStyle="ml-[1.5rem]"
 										label="Věk"
 										fontLight
 										placeHolder="Zadejte věk"
@@ -398,7 +401,7 @@ function PersonalAndHealthData(props: Props) {
 									/>
 								) : (
 									<LabelAndValue
-										mainStyle="ml-[1.5rem]"
+										middleArrowStyle="ml-[1.5rem]"
 										label="Věk"
 										notFilledIn={!user.age}
 										value={user.age ? (user.age === 1 ? user.age + " rok" : user.age < 5 ? user.age + " roky" : user.age + " let") : ""}
@@ -407,7 +410,7 @@ function PersonalAndHealthData(props: Props) {
 							</Box>
 							<Box className="flex w-1/2">
 								<LabelAndValue
-									mainStyle="ml-[0.4rem]"
+									middleArrowStyle="ml-[0.4rem]"
 									label="Pohlaví"
 									value={user.sex}
 								/>
@@ -481,9 +484,6 @@ function PersonalAndHealthData(props: Props) {
 
 			<GeneralCard
 				firstTitle="Zdravotní údaje"
-				secondGeneralCard
-				border
-				
 				height=" h-1/2"
 				firstChildren={
 					props.editing.state ? (
