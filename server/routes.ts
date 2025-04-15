@@ -22,6 +22,7 @@ import { changeUserHealthCont } from "./controllers/change/changeUserHealthCont"
 import { changeUserPswCont } from "./controllers/change/changeUserPswCont";
 import { changeYoutubeLinkCont } from "./controllers/change/changeYoutubeLinkCont";
 import { createCategoryCont } from "./controllers/create/createCategoryCont";
+import { createConnectionCont } from "./controllers/create/createConnectionCont";
 import { createExerciseCont } from "./controllers/create/createExerciseCont";
 import { createExerciseDifficultyRecommendedValsCont } from "./controllers/create/createExerciseDifficultyRecommendedValsCont";
 import { createExerciseInformationLabCont } from "./controllers/create/createExerciseInformationLabCont";
@@ -40,6 +41,7 @@ import { deleteSportDetailLabCont } from "./controllers/delete/deleteSportDetail
 import { deleteSportDifficultyCont } from "./controllers/delete/deleteSportDifficultyCont";
 import { getAllUserAtrsCont } from "./controllers/get/getAllUserAtrsCont";
 import { getCategoriesWithExercisesCont } from "./controllers/get/getCategoriesWithExercisesCont";
+import { getConnectionAtrsCont } from "./controllers/get/getConnectionAtrsCont";
 import { getDiaryCont } from "./controllers/get/getDiaryCont";
 import { getDifficultiesCont } from "./controllers/get/getDifficultiesCont";
 import { getExerciseDifficultiesCont } from "./controllers/get/getExerciseDifficultiesCont";
@@ -66,8 +68,7 @@ import { loginCont } from "./controllers/residue/loginCont";
 import { newPswCont } from "./controllers/residue/newPswCont";
 import { registerCont } from "./controllers/residue/registerCont";
 import { verifyEmailCont } from "./controllers/residue/verifyEmailCont";
-import { getConnectionAtrsCont } from "./controllers/get/getConnectionAtrsCont";
-import { createConnectionCont } from "./controllers/create/createConnectionCont";
+import { getConnectedUserCont } from "./controllers/get/getConnectedUserCont";
 // #endregion
 
 const router = Router();
@@ -90,7 +91,6 @@ router.post("/create-exercise-difficulty-recommended-values", createExerciseDiff
 router.post("/create-graph", createGraphCont);
 router.post("/create-graph-value", createGraphValueCont);
 router.post("/create-connection", createConnectionCont);
-
 
 router.post("/delete-category", deleteCategoryController);
 router.post("/delete-exercise", deleteExerciseCont);
@@ -147,6 +147,7 @@ router.get("/get-all-user-atrs", getAllUserAtrsCont);
 router.get("/get-diary", getDiaryCont);
 router.get("/get-graphs", getGraphsCont);
 router.get("/get-graph-values", getGraphValuesCont);
-router.get("/get-connection-code", getConnectionAtrsCont);
+router.get("/get-connection-attributes", getConnectionAtrsCont);
+router.get("/get-connected-user", getConnectedUserCont);
 
 export default router;

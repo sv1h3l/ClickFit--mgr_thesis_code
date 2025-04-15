@@ -3,17 +3,19 @@ import { GenericApiResponse } from "../GenericApiResponse";
 
 interface Props {
 	authToken: string;
+
+	connectionId: number;
 }
 
 interface Res {
-	connectionCode: number;
+	userId: number;
 
-	connectedUsers: ConnectedUser[];
+	connectedUser: ConnectedUser;
 }
 
-export const getConnectionAtrsReq = async (props: Props): Promise<GenericApiResponse<Res>> => {
+export const getConnectedUserReq = async (props: Props): Promise<GenericApiResponse<Res>> => {
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-connection-attributes`, {
+		const response = await fetch(`http://localhost:5000/api/get-connected-user?connectionId=${props.connectionId}`, {
 			method: "GET",
 			credentials: "include",
 			headers: {

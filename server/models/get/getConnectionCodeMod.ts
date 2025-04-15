@@ -10,7 +10,7 @@ interface Res {
 	connectionCode: string;
 }
 
-export const getConnectionAtrsMod = async (props: Props): Promise<GenRes<Res>> => {
+export const getConnectionCodeMod = async (props: Props): Promise<GenRes<Res>> => {
 	try {
 		const getCCquery = `
 			SELECT connection_code FROM users

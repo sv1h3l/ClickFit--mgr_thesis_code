@@ -1,23 +1,13 @@
 import { createConnectionReq } from "@/api/create/createConnectionReq";
+import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { Box, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import GeneralCard from "./GeneralCard";
-import { consoleLogPrint } from "@/api/GenericApiResponse";
 
 interface Props {
 	connectionCode: number;
 	qrCode: string;
-}
-
-export interface ConnectedUser {
-	connectionId: number;
-	connectedUserId: number;
-
-	connectedUserFirstName: string;
-	connectedUserLastName: string;
-
-	orderNumber: number;
 }
 
 const NewConnection = (props: Props) => {

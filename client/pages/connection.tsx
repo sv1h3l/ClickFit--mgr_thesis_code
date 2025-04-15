@@ -5,16 +5,30 @@ import TwoColumnsPage from "@/components/large/TwoColumnsPage";
 import { generateQRCode } from "@/components/small/QRComp";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
+import { useState } from "react";
 
 const cookie = require("cookie");
 
+export interface ConnectedUser {
+	connectionId: number;
+	connectedUserId: number;
+
+	connectedUserFirstName: string;
+	connectedUserLastName: string;
+
+	orderNumber: number;
+}
+
 interface Props {
 	connectionCode: number;
+	qrCode: string;
 
-	qrCode: any;
+	connectedUsers: ConnectedUser[];
 }
 
 const Connection = (props: Props) => {
+	const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>(props.connectedUsers);
+
 	return (
 		<>
 			<Head>
@@ -25,7 +39,7 @@ const Connection = (props: Props) => {
 				firstColumnWidth="w-1/3"
 				secondColumnWidth="w-1/3"
 				secondColumnHeight="h-fit"
-				firstColumnChildren={<Connections />}
+				firstColumnChildren={<Connections connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }} />}
 				secondColumnChildren={
 					<NewConnection
 						connectionCode={props.connectionCode}
@@ -44,18 +58,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 		const cookies = cookie.parse(context.req.headers.cookie || "");
 		const authToken = cookies.authToken || null;
 
-		const response = await getConnectionAtrsReq({ authToken });
+		const resConnectionAtrs = await getConnectionAtrsReq({ authToken });
+		const connectionCode = resConnectionAtrs.data?.connectionCode;
 
-		const connectionCode = response.data?.connectionCode;
-
-		if (response.status === 200 && connectionCode) {
+		if (resConnectionAtrs.status === 200 && connectionCode) {
 			const qrCode = await generateQRCode(connectionCode.toString());
 
-			return { props: { connectionCode, qrCode } };
+			return { props: { connectionCode, qrCode, connectedUsers: resConnectionAtrs.data?.connectedUsers } };
 		} else {
-			return { props: { connectionCode: 0, qrCode: 0 } };
+			return { props: { connectionCode: 0, qrCode: 0, connectedUsers: [] } };
 		}
 	} catch (error) {
-		return { props: { connectionCode: 0, qrCode: 0 } };
+		return { props: { connectionCode: 0, qrCode: 0, connectedUsers: [] } };
 	}
 };
