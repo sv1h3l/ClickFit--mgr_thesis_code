@@ -1,7 +1,13 @@
 import bcrypt from "bcryptjs";
 import { db } from "../../server"; // Import připojení k DB
+import { GenEnum, GenRes } from "../../utilities/GenResEnum";
 
-export const newPswMod = async (token: string, password: string): Promise<boolean> => {
+interface Props {
+	token: string;
+	password: string;
+}
+
+export const newPswMod = async (props: Props): Promise<GenRes<null>> => {
 	const query = `
 		UPDATE users
 		SET hashed_password = ?
@@ -9,23 +15,13 @@ export const newPswMod = async (token: string, password: string): Promise<boolea
 		`;
 
 	try {
-		const results = await new Promise<any>(async (resolve, reject) => {
-			const hashedPassword = await bcrypt.hash(password, 10);
+		const hashedPassword = await bcrypt.hash(props.password, 10);
 
-			db.query(query, [hashedPassword, token], (error, results) => {
-				if (error) {
-					reject(error);
-				} else {
-					resolve(results);
-				}
-			});
-		});
+		await db.promise().query(query, [hashedPassword, props.token]);
 
-		if (results.affectedRows === 0) {
-			return false;
-		}
-		return true;
+		return { status: GenEnum.SUCCESS, message: "Heslo uživatele úspěšně změněno" };
 	} catch (error) {
-		throw error;
+		console.error("Database error: " + error);
+		return { status: GenEnum.FAILURE, message: "Nastala chyba během změny hesla uživatele" };
 	}
 };

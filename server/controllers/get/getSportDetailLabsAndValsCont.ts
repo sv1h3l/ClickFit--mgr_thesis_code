@@ -21,7 +21,7 @@ export const getSportDetailLabsAndValsCont = async (req: Request, res: Response)
 
 	const authToken = req.headers["authorization"]?.split(" ")[1];
 
-	const checkRes = await checkAuthorizationCont({req,id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT, authToken}); // TODO předělat na SPORT_VIEW
+	const checkRes = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW, authToken }); // TODO předělat na SPORT_VIEW
 	if (checkRes.status !== GenEnum.SUCCESS || !checkRes.data?.userId) {
 		res.status(checkRes.status).json({ message: checkRes.message });
 		return;
@@ -53,10 +53,10 @@ export const getSportDetailLabsAndValsCont = async (req: Request, res: Response)
 
 		if (missingLabels) {
 			const missingSportDetailIds = missingLabels.map((lab) => {
-				return lab.sport_detail_label_id;
+				return { sportDetailLabelId: lab.sport_detail_label_id, orderNumber: lab.order_number };
 			});
 
-			const resCreateVals = await createMissingSportDetailValsMod({ missingSportDetailIds, userId: checkRes.data.userId });
+			const resCreateVals = await createMissingSportDetailValsMod({ sportId: sportIdNumber, missingSportDetailIds, userId: checkRes.data.userId });
 
 			if (resCreateVals.status === GenEnum.FAILURE) {
 				res.status(resCreateVals.status).json({ message: resCreateVals.message, data: [] });
@@ -78,7 +78,7 @@ export const getSportDetailLabsAndValsCont = async (req: Request, res: Response)
 					orderNumber: lab.order_number,
 				};
 			})
-			.sort((a, b) => a.orderNumber - b.orderNumber); 
+			.sort((a, b) => a.orderNumber - b.orderNumber);
 
 		res.status(200).json({ message: "Štítky a hodnoty podrobností sportu úspěšně předány", data: labsAndVals });
 	} catch (error) {

@@ -1,4 +1,5 @@
 import { getAllUserAtrsReq } from "@/api/get/getAllUserAtrsReq";
+import { getAllVisitedUserAtrsReq } from "@/api/get/getAllVisitedUserAtrsReq";
 import { getSportDetailLabsAndValsReq } from "@/api/get/getSportDetailLabsAndValsReq";
 import { getSportsReq } from "@/api/get/getSportsReq";
 import AllSportDetails, { SportDetailLabAndVal } from "@/components/large/AllSportDetails";
@@ -57,7 +58,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
 	try {
 		const cookies = cookie.parse(context.req.headers.cookie || "");
+
+		const visitedUserId = cookies.prf_tmp ? Number(atob(cookies.prf_tmp)) : -1;
 		const authToken = cookies.authToken || null;
+
+		if (visitedUserId > 0) {
+			const resUser = await getAllVisitedUserAtrsReq({ authToken, visitedUserId });
+
+			context.res.setHeader("Set-Cookie", "prf_tmp=; path=/; max-age=0;");
+
+
+			return { props: { sports: [], user: resUser.data } };
+		}
 
 		const resSports = await getSportsReq({ authToken });
 

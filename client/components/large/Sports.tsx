@@ -1,10 +1,7 @@
 import { Sport } from "@/api/get/getSportsReq";
 import { StateAndSetFunction } from "@/utilities/generalInterfaces";
-import { Box } from "@mui/material";
-import EditButton from "../small/EditButton";
+import { Box, Typography } from "@mui/material";
 import LabelAndValue from "../small/LabelAndValue";
-import Title from "../small/Title";
-import GeneralCard from "./GeneralCard";
 
 interface Props {
 	sportsData: StateAndSetFunction<Sport[]>;
@@ -13,33 +10,25 @@ interface Props {
 
 const Sports = (props: Props) => {
 	return (
-		<GeneralCard
-			height="h-full max-h-full"
-			border
-			firstTitle="Sporty"
-			firstChildren={
-				<Box className=" h-full ">
-					<Title
-						title="Sport"
-						secondTitle="Autor"
-						smallPaddingTop
-					/>
+		<Box className=" h-full ">
+			<Box className="flex rounded-xl  overflow-hidden pt-1.5 px-2.5 ">
+				<Typography className="w-1/2 font-light italic text-[0.9rem]">Sport</Typography>
+				<Typography className="w-1/2 font-light italic text-[0.9rem] pl-2">Autor</Typography>
+			</Box>
 
-					{props.sportsData.state.map((sport) => (
-						<LabelAndValue
-							key={sport.sportId}
-							spaceBetween
-							label={sport.sportName}
-							value={sport.userName}
-							isSelected={sport.sportId == props.selectedSport.state?.sportId}
-							onClick={() => {
-								props.selectedSport.setState(sport);
-							}}
-						/>
-					))}
-				</Box>
-			}
-		/>
+			{props.sportsData.state.map((sport) => (
+				<LabelAndValue
+					key={sport.sportId}
+					spaceBetween
+					label={sport.sportName}
+					value={sport.userName}
+					isSelected={sport.sportId == props.selectedSport.state?.sportId}
+					onClick={() => {
+						props.selectedSport.setState(sport);
+					}}
+				/>
+			))}
+		</Box>
 	);
 };
 

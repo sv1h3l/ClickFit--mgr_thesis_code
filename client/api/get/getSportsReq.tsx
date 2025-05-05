@@ -1,4 +1,4 @@
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 
 export interface Sport {
 	userId: number;
@@ -13,6 +13,7 @@ export interface Sport {
 	hasDifficulties: boolean;
 	hasRecommendedValues: boolean;
 	hasRecommendedDifficultyValues: boolean;
+	hasAutomaticPlanCreation: boolean;
 
 	unitCode: number;
 
@@ -23,10 +24,13 @@ interface Props {
 	authToken: string;
 }
 
-export const getSportsReq = async (props: Props): Promise<GenericApiResponse<Sport[]>> => {
+export const getSportsReq = async (props: Props): Promise<GenericResponse<Sport[]>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
+
 	try {
 		// Odesíláme email jako query parametr v GET požadavku
-		const response = await fetch(`http://localhost:5000/api/get-sports`, {
+		const response = await fetch(`http://${serverIp}/api/get-sports`, {
 			method: "GET",
 			credentials: "include",
 			headers: {

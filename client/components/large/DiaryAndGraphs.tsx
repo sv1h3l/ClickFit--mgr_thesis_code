@@ -747,7 +747,7 @@ const DiaryAndGraphs = (props: Props) => {
 								key={"edit"}
 								style="ml-2 mt-0.5"
 								size="small"
-								icon={IconEnum.EDIT}
+								content={IconEnum.EDIT}
 								onClick={() => {
 									setDiaryEditing(!diaryEditing);
 								}}
@@ -777,10 +777,10 @@ const DiaryAndGraphs = (props: Props) => {
 							<ReactMarkdown
 								remarkPlugins={[remarkBreaks]}
 								components={{
-									p: ({ children }) => <p className="font-light">{children}</p>,
-									ul: ({ children }) => <ul className="list-disc pl-8 mt-1 space-y-1">{children}</ul>,
-									ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 space-y-1">{children}</ol>,
-									li: ({ children }) => <li className="mb-0">{children}</li>,
+									p: ({ children }) => <p className="font-light ml-4">{children}</p>,
+									ul: ({ children }) => <ul className="list-disc pl-8 mt-1 mb-0 space-y-1">{children}</ul>,
+									ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 mb-0 space-y-1">{children}</ol>,
+									li: ({ children }) => <li className="mb-0 ml-4">{children}</li>,
 									h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
 									h2: ({ children }) => <h2 className="text-2xl font-semibold">{children}</h2>,
 									h3: ({ children }) => <h3 className="text-xl font-medium">{children}</h3>,
@@ -799,8 +799,8 @@ const DiaryAndGraphs = (props: Props) => {
 							<Box className="w-2/3 ">
 								<Box className="flex w-full pr-7 mb-6 mt-3 ">
 									<ButtonComp
-										iconStyle="scale-90"
-										icon={IconEnum.BACK}
+										contentStyle="scale-90"
+										content={IconEnum.BACK}
 										size="small"
 										justClick
 										onClick={() => {
@@ -831,7 +831,7 @@ const DiaryAndGraphs = (props: Props) => {
 
 									<ButtonComp
 										justClick
-										icon={IconEnum.CHECK}
+										content={IconEnum.CHECK}
 										size="small"
 										onClick={() => {
 											if (editGraph) handleChangeGraph();
@@ -947,8 +947,8 @@ const DiaryAndGraphs = (props: Props) => {
 									{editGraph ? (
 										<Box className="mt-12 flex items-center  gap-4">
 											<ButtonComp
-												iconStyle="scale-[1.1]"
-												icon={IconEnum.TRASH}
+												contentStyle="scale-[1.1]"
+												content={IconEnum.TRASH}
 												onClick={handleDeleteGraph}
 												size="small"
 											/>
@@ -964,13 +964,14 @@ const DiaryAndGraphs = (props: Props) => {
 							<Box className="w-2/3 ">
 								<Box className="flex  justify-center items-center w-full  mb-4 -ml-6">
 									<ButtonComp
-										iconStyle="scale-90"
-										icon={IconEnum.BACK}
+										contentStyle="scale-90"
+										content={IconEnum.BACK}
 										size="small"
 										justClick
 										onClick={() => {
 											setReorderGraphs(false);
-											setSelectedValue(menuItems[0].value);
+
+											if (menuItems.length > 0) setSelectedValue(menuItems[0].value);
 											props.isDisabledFirstSection.setState(false);
 										}}
 									/>
@@ -993,7 +994,7 @@ const DiaryAndGraphs = (props: Props) => {
 												<Box className="flex items-center">
 													<ButtonComp
 														style="mr-4 "
-														icon={IconEnum.EDIT}
+														content={IconEnum.EDIT}
 														size="small"
 														onClick={() => {
 															editGraphPrerequisites(graph);
@@ -1008,7 +1009,7 @@ const DiaryAndGraphs = (props: Props) => {
 																dontChangeOutline
 																hidden={graph.defaultGraphOrderNumberId ? false : true}
 																disabled={graph.defaultGraphOrderNumberId ? false : true}
-																icon={IconEnum.EYE}
+																content={IconEnum.EYE}
 																size="small"
 																onClick={() => handleHideDefGraph(graph.defaultGraphOrderNumberId!, graph.orderNumber)}
 															/>
@@ -1018,8 +1019,8 @@ const DiaryAndGraphs = (props: Props) => {
 															justClick
 															dontChangeOutline
 															disabled={graph.orderNumber === 1}
-															icon={IconEnum.ARROW}
-															iconStyle="-rotate-90 scale-[1.16]"
+															content={IconEnum.ARROW}
+															contentStyle="-rotate-90 scale-[1.16]"
 															size="small"
 															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, true, !!graph.defaultGraphOrderNumberId)}
 														/>
@@ -1027,8 +1028,8 @@ const DiaryAndGraphs = (props: Props) => {
 														<ButtonComp
 															justClick
 															dontChangeOutline
-															icon={IconEnum.ARROW}
-															iconStyle="rotate-90 scale-[1.16]"
+															content={IconEnum.ARROW}
+															contentStyle="rotate-90 scale-[1.16]"
 															disabled={graph.orderNumber === highestOrderNumber}
 															size="small"
 															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, false, !!graph.defaultGraphOrderNumberId)}
@@ -1053,7 +1054,7 @@ const DiaryAndGraphs = (props: Props) => {
 														style="mr-4 "
 														hidden={!!graph.defaultGraphOrderNumberId}
 														disabled={!!graph.defaultGraphOrderNumberId}
-														icon={IconEnum.EDIT}
+														content={IconEnum.EDIT}
 														size="small"
 														onClick={() => {
 															editGraphPrerequisites(graph);
@@ -1066,7 +1067,7 @@ const DiaryAndGraphs = (props: Props) => {
 														dontChangeOutline
 														hidden={graph.defaultGraphOrderNumberId ? false : true}
 														disabled={graph.defaultGraphOrderNumberId ? false : true}
-														icon={IconEnum.EYE_HIDDEN}
+														content={IconEnum.EYE_HIDDEN}
 														size="small"
 														onClick={() => handleShowDefGraph(graph.defaultGraphOrderNumberId!)}
 													/>
@@ -1079,99 +1080,133 @@ const DiaryAndGraphs = (props: Props) => {
 					) : (
 						<Box className="h-full">
 							<Box className="flex justify-end">
-								<FormControl
-									className="mr-10 w-fit  "
-									variant="standard"
-									sx={{
-										"& .MuiSelect-select": {
-											backgroundColor: "transparent !important",
-										},
-									}}>
-									<Select
-										open={open}
-										onClose={handleClose}
-										onOpen={handleOpen}
-										value={selectedValue || ""}
-										onChange={handleChange}
-										displayEmpty
-										//placeholder="Vyberte graf"
-										className="text-lg h-[2rem] pr-1 "
-										disableUnderline
+								{menuItems.length > 0 ? (
+									<FormControl
+										className="mr-10 w-fit  "
+										variant="standard"
 										sx={{
 											"& .MuiSelect-select": {
 												backgroundColor: "transparent !important",
 											},
-										}}
-										IconComponent={() => (
-											<ButtonComp
-												icon={open ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
-												style=" min-w-7 max-w-7 -ml-5 -mt-1 "
-												size="medium"
-												color="text-[#fff]"
-												onClick={handleOpen}
-												externalClicked={{ state: open, setState: setOpen }}
-											/>
-										)}
-										MenuProps={{
-											anchorOrigin: {
-												vertical: "bottom",
-												horizontal: "right",
-											},
-											transformOrigin: {
-												vertical: "top",
-												horizontal: "right",
-											},
 										}}>
-										{menuItems.map((item) => (
-											<MenuItem
-												key={item.value}
-												value={item.value}>
-												{item.label}
-											</MenuItem>
-										))}
-										<MenuItem
-											disabled
-											className="bg-gray-400 p-0 pt-[0.1rem] "
-										/>
-										<MenuItem
-											className=""
-											value="newGraph">
-											<AddIcon
-												className="text-green-500 scale-[1.15] -ml-2"
-												fontSize="small"
-												style={{
-													filter: "drop-shadow(3px 3px 3px #00000060)",
-												}}
-											/>
-											<Typography className="ml-2">Nový graf</Typography>
-										</MenuItem>
-										<MenuItem
-											className=""
-											value="newDefaultGraph">
-											<AddIcon
-												className="text-green-500 scale-[1.15] -ml-2"
-												fontSize="small"
-												style={{
-													filter: "drop-shadow(3px 3px 3px #00000060)",
-												}}
-											/>
-											<Typography className="ml-2">Nový výchozí graf</Typography>
-										</MenuItem>
+										<Select
+											open={open}
+											onClose={handleClose}
+											onOpen={handleOpen}
+											value={selectedValue || ""}
+											onChange={handleChange}
+											displayEmpty
+											//placeholder="Vyberte graf"
+											className="text-lg h-[2rem] pr-1 "
+											disableUnderline
+											sx={{
+												"& .MuiSelect-select": {
+													backgroundColor: "transparent !important",
+												},
+											}}
+											IconComponent={() => (
+												<ButtonComp
+													content={open ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
+													style=" min-w-7 max-w-7 -ml-5 -mt-1 "
+													size="medium"
+													color="text-[#fff]"
+													onClick={handleOpen}
+													externalClicked={{ state: open, setState: setOpen }}
+												/>
+											)}
+											MenuProps={{
+												anchorOrigin: {
+													vertical: "bottom",
+													horizontal: "right",
+												},
+												transformOrigin: {
+													vertical: "top",
+													horizontal: "right",
+												},
+											}}>
+											{menuItems.map((item) => (
+												<MenuItem
+													key={item.value}
+													value={item.value}>
+													{item.label}
+												</MenuItem>
+											))}
+											{menuItems.length > 0 ? (
+												<MenuItem
+													disabled
+													className="bg-gray-400 p-0 pt-[0.1rem] "
+												/>
+											) : null}
 
-										<MenuItem
-											className=""
-											value="reorderGraphs">
-											<EditIcon
-												className={`text-blue-500 scale-[0.9] -ml-2`}
-												fontSize="small"
-												style={{
-													filter: "drop-shadow(3px 3px 3px #00000060)",
+											<MenuItem
+												className=""
+												value="newGraph">
+												<AddIcon
+													className="text-green-500 scale-[1.15] -ml-2"
+													fontSize="small"
+													style={{
+														filter: "drop-shadow(3px 3px 3px #00000060)",
+													}}
+												/>
+												<Typography className="ml-2">Nový graf</Typography>
+											</MenuItem>
+											{props.selectedSport.state?.canUserEdit ? (
+												<MenuItem
+													className=""
+													value="newDefaultGraph">
+													<AddIcon
+														className="text-green-500 scale-[1.15] -ml-2"
+														fontSize="small"
+														style={{
+															filter: "drop-shadow(3px 3px 3px #00000060)",
+														}}
+													/>
+													<Typography className="ml-2">Nový výchozí graf</Typography>
+												</MenuItem>
+											) : null}
+
+											{menuItems.length > 0 ? (
+												<MenuItem
+													className=""
+													value="reorderGraphs">
+													<EditIcon
+														className={`text-blue-500 scale-[0.9] -ml-2`}
+														fontSize="small"
+														style={{
+															filter: "drop-shadow(3px 3px 3px #00000060)",
+														}}
+													/>
+													<Typography className="ml-2">Úprava grafů</Typography>
+												</MenuItem>
+											) : null}
+										</Select>
+									</FormControl>
+								) : (
+									<Box className="flex gap-4">
+										<ButtonComp
+											content={"Nový graf"}
+											size="medium"
+											secondContent={IconEnum.PLUS}
+											onClick={() => {
+												setPreviousSelectedValue(selectedValue);
+												setSelectedValue("newGraph");
+											}}
+											secondContentStyle="mr-1"
+										/>
+										{props.selectedSport.state?.canUserEdit ? (
+											<ButtonComp
+												size="medium"
+												secondContent={IconEnum.PLUS}
+												content={"Nový výchozí graf"}
+												onClick={() => {
+													setPreviousSelectedValue(selectedValue);
+													setSelectedValue("newDefaultGraph");
 												}}
+												secondContentStyle="mr-1"
 											/>
-											<Typography className="ml-2">Úprava grafů</Typography>
-										</MenuItem>
-									</Select>
-								</FormControl>
+										) : null}
+									</Box>
+								)}
 							</Box>
 
 							<Box className="h-[calc(100%-2rem)] flex justify-center items-center">
@@ -1229,7 +1264,8 @@ const DiaryAndGraphs = (props: Props) => {
 															return (
 																<Box className="bg-navigation-color-neutral p-1 mt-3 border-2 shadow rounded">
 																	<DoubleLabelAndValue
-																		goal={isGoal}
+																		style="items-center"
+																		goal={isGoal ? "Cíl" : "Záznam"}
 																		firstLabel={props.selectedGraph.state?.yAxisLabel || ""}
 																		firstValue={payload[0].value + (props.selectedGraph.state?.unit ? " " + props.selectedGraph.state?.unit : "")}
 																		secondLabel={props.selectedGraph.state?.xAxisLabel || ""}
@@ -1295,7 +1331,8 @@ const DiaryAndGraphs = (props: Props) => {
 															return (
 																<Box className="bg-navigation-color-neutral p-1 mt-3 border-2 shadow rounded">
 																	<DoubleLabelAndValue
-																		goal={false}
+																		goal={"Záznam"}
+																		style="items-center"
 																		firstLabel={props.selectedGraph.state?.yAxisLabel || ""}
 																		firstValue={payload[0].value + (props.selectedGraph.state?.unit ? " " + props.selectedGraph.state.unit : "")}
 																		secondLabel={props.selectedGraph.state?.xAxisLabel || ""}
@@ -1316,11 +1353,17 @@ const DiaryAndGraphs = (props: Props) => {
 											</LineChart>
 										</ResponsiveContainer>
 									)
-								) : (
+								) : menuItems.length > 0 ? (
 									<Box className=" h-1/3 ">
 										<Typography className="font-light text-2xl -ml-8	">↖</Typography>
 
 										<Typography className="font-light text-xl">Pro zobrazení grafu přidejte alespoň 2 záznamy.</Typography>
+									</Box>
+								) : (
+									<Box className=" h-1/3  flex flex-col items-center">
+										<Typography className="font-light text-2xl -mt-2 pb-2 ml-8	">↗</Typography>
+
+										<Typography className="font-light text-xl">Pro sledování pokroku je nutné si vytvořit nový graf.</Typography>
 									</Box>
 								)}
 							</Box>

@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -10,9 +10,11 @@ interface Props {
 	oldCategoryId: number
 	oldOrderNumber: number;
 }
-export const changeCategoryReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const changeCategoryReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/change-category", {
+		const response = await fetch(`http://${serverIp}/api/change-category`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

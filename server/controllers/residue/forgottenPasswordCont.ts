@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { createTokenMod } from "../../models/create/createTokenMod";
-import { forgottenPassword, ForgottenPasswordStatus } from "../../models/residue/forgottenPasswordMod";
 import { getTokenMod } from "../../models/get/getTokenMod";
+import { forgottenPassword, ForgottenPasswordStatus } from "../../models/residue/forgottenPasswordMod";
 import { modifyTokenExpirationMod } from "../../models/residue/modifyTokenExpirationMod";
 import { sendForgottenPasswordEmail } from "../../services/forgottenPasswordService";
 
@@ -28,18 +28,18 @@ export const forgottenPasswordCont = async (req: Request, res: Response): Promis
 
 		switch (status) {
 			case ForgottenPasswordStatus.ADD_TOKEN:
-				createTokenMod(email);
+				await createTokenMod(email);
 				statusOk(res, email);
 				break;
 			case ForgottenPasswordStatus.MODIFY_EXPIRATION:
-				modifyTokenExpirationMod(email);
+				await modifyTokenExpirationMod(email);
 				statusOk(res, email);
 				break;
 			case ForgottenPasswordStatus.FAILURE:
 				res.status(500).json({ message: "Neznámá chyba" });
 				break;
 			case ForgottenPasswordStatus.NO_USER_FOUND:
-				statusOk(res,email);
+				statusOk(res, email);
 				break;
 		}
 	} catch (error) {

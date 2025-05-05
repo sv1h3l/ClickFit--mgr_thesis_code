@@ -1,12 +1,12 @@
 // Upravíme GenericApiResponse, aby byla generická
-export interface GenericApiResponse<T> {
+export interface GenericResponse<T> {
 	status: number;
 	message: string;
 	user?: string;
 	data?: T; // Typ dat bude dynamický
 }
 
-export const consoleLogPrint = <T,>(response: GenericApiResponse<T>) => {
+export const consoleLogPrint = <T,>(response: GenericResponse<T>) => {
 	if (response.status >= 200 && response.status < 300) {
 		console.log("Kód: ", response.status, "\nZpráva:", response.message, "\nData:", response.data);
 	} else {
@@ -14,4 +14,4 @@ export const consoleLogPrint = <T,>(response: GenericApiResponse<T>) => {
 	}
 };
 
-export default GenericApiResponse;
+export default GenericResponse;

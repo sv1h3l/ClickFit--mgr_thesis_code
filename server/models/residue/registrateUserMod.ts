@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
 import { db } from "../../server";
 import { generateToken } from "../../utilities/generateToken";
-import { RowDataPacket } from "mysql2"; // Import pro správné typování
+import { ResultSetHeader, RowDataPacket } from "mysql2"; // Import pro správné typování
 
 // Funkce pro vytvoření uživatele
-export const registrateUserMod = async (email: string, password: string, firstName: string, lastName: string): Promise<string> => {
+export const registrateUserMod = async (email: string, password: string, firstName: string, lastName: string): Promise<{ token: string; userId: number }> => {
     const query = `
         INSERT INTO users 
         (email, first_name, last_name, hashed_password, auth_token, token, token_expires, connection_code) 
@@ -69,12 +69,14 @@ export const registrateUserMod = async (email: string, password: string, firstNa
     // Uložení uživatele s unikátními authToken a connection_code
     return new Promise((resolve, reject) => {
         db.query(query, [email, firstName, lastName, hashedPassword, authToken, token, uniqueConnectionCode], (error, results) => {
+            const typedResults = results as ResultSetHeader;
+            
             if (error) {
                 console.log("userModel: ", error);
                 reject(error);
             } else {
                 console.log("userModel: ", results);
-                resolve(token);
+                resolve({ token, userId: typedResults.insertId });
             }
         });
     });

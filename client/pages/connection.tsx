@@ -17,6 +17,7 @@ export interface ConnectedUser {
 	connectedUserLastName: string;
 
 	orderNumber: number;
+	unreadMessages: number;
 }
 
 interface Props {
@@ -42,6 +43,7 @@ const Connection = (props: Props) => {
 				firstColumnChildren={<Connections connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }} />}
 				secondColumnChildren={
 					<NewConnection
+						connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }}
 						connectionCode={props.connectionCode}
 						qrCode={props.qrCode}
 					/>

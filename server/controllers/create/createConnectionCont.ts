@@ -13,6 +13,7 @@ interface ConnectedUser {
 	connectedUserLastName: string;
 
 	orderNumber: number;
+	unreadMessages: number;
 }
 
 export const createConnectionCont = async (req: Request, res: Response): Promise<void> => {
@@ -52,6 +53,7 @@ export const createConnectionCont = async (req: Request, res: Response): Promise
 			connectedUserLastName: dbCheckConnectionCode.data.last_name,
 
 			orderNumber: 1,
+			unreadMessages: 0,
 		} as ConnectedUser;
 
 		res.status(dbResult.status).json({ message: dbResult.message, data: connectedUser });

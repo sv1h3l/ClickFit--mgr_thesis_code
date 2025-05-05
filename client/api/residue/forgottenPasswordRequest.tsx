@@ -4,7 +4,9 @@ interface LoginError extends Error {
 }
 
 export const forgottenPasswordRequest = async (data: { email: string }) => {
-	const response = await fetch("http://localhost:5000/api/forgotten-password", {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
+	const response = await fetch(`http://${serverIp}/api/forgotten-password`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

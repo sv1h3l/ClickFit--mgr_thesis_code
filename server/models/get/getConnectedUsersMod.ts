@@ -23,6 +23,7 @@ export const getConnectedUsersMod = async (props: Props): Promise<GenRes<Res[]>>
 							c.connection_id AS connectionId,
 							c.second_user_id AS connectedUserId,
 							c.first_user_order_number AS orderNumber,
+							c.first_user_unread_messages AS unreadMessages,
 							u.first_name AS connectedUserFirstName,
 							u.last_name AS connectedUserLastName
 						FROM connections c
@@ -35,6 +36,7 @@ export const getConnectedUsersMod = async (props: Props): Promise<GenRes<Res[]>>
 							c.connection_id AS connectionId,
 							c.first_user_id AS connectedUserId,
 							c.second_user_order_number AS orderNumber,
+							c.second_user_unread_messages AS unreadMessages,
 							u.first_name AS connectedUserFirstName,
 							u.last_name AS connectedUserLastName
 						FROM connections c

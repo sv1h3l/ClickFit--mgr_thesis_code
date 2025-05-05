@@ -39,6 +39,13 @@ export const getExercisesCont = async (req: Request, res: Response): Promise<voi
 
 					description: exercise.description,
 					youtubeLink: exercise.youtube_link,
+
+					hasRepeatability: exercise.has_repeatability,
+					repeatabilityQuantity: exercise.repeatability_quantity,
+					looseConnection: exercise.loose_connection,
+					tightConnection: exercise.tight_connection,
+					priorityPoints: exercise.priority_points,
+					blacklist: exercise.blacklist,
 				}))
 				.sort((a, b) => a.orderNumberWithoutCategories - b.orderNumberWithoutCategories);
 

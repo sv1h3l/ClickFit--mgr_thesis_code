@@ -1,13 +1,15 @@
-import { ConnectedUser } from "@/components/large/NewConnection";
-import GenericApiResponse from "../GenericApiResponse";
+import { ConnectedUser } from "@/pages/connection";
+import GenericResponse from "../GenericApiResponse";
 
 interface Props {
 	connectionCode: number;
 }
 
-export const createConnectionReq = async (props: Props): Promise<GenericApiResponse<ConnectedUser>> => {
+export const createConnectionReq = async (props: Props): Promise<GenericResponse<ConnectedUser>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/create-connection", {
+		const response = await fetch(`http://${serverIp}/api/create-connection`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

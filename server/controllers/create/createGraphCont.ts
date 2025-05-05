@@ -69,7 +69,7 @@ export const createGraphCont = async (req: Request, res: Response): Promise<void
 	}
 
 	try {
-		const checkRes = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT });
+		const checkRes = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW });
 		if (checkRes.status !== GenEnum.SUCCESS) {
 			res.status(checkRes.status).json({ message: checkRes.message });
 			return;

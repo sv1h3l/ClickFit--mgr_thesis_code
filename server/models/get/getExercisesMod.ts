@@ -16,25 +16,20 @@ export interface Res {
 
 	description: string;
 	youtube_link: string;
+
+	has_repeatability: boolean;
+	repeatability_quantity: number;
+	loose_connection: number[];
+	tight_connection: number;
+	priority_points: number[];
+	blacklist: number[];
 }
 
 export const getExercisesMod = async (sportId: number): Promise<Res[]> => {
 	try {
 		// JOIN sports table with users table to get first_name and last_name
 		const getExercisesQuery = `
-			SELECT 
-				exercise_id,
-				category_id,
-				sport_difficulty_id,
-				name,
-				description,
-				youtube_link,
-				order_number,
-				order_number_without_categories,
-				unit_code,
-				series,
-				repetitions,
-				burden
+			SELECT *
 			FROM exercises
 			WHERE sport_id = ?;
 		`;

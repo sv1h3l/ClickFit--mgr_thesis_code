@@ -1,7 +1,9 @@
-import { Button, Typography } from "@mui/material";
+import GeneralCard from "@/components/large/GeneralCard";
+import OneColumnPage from "@/components/large/OneColumnPage";
+import ButtonComp from "@/components/small/ButtonComp";
+import { Box, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import Card from "../components/small/Card";
 
 function Index() {
 	const router = useRouter();
@@ -24,48 +26,46 @@ function Index() {
 				/>
 			</Head>
 
-			<Card>
-				<Typography
-					variant="h5"
-					component="div"
-					gutterBottom>
-					Chcete si vytvořit komplexní tréninkový plán během pár kliknutí? <br />
-					Jste zde správně!
-				</Typography>
+			<OneColumnPage
+				firstColumnWidth="w-5/12 "
+				firstColumnHeight="h-fit"
+				firstColumnChildren={
+					<GeneralCard
+					dontShowHr
 
-				<div className="mt-8">
-					<Typography
-						variant="body1"
-						color="text.secondary"
-						gutterBottom>
-						KlikFit je webová aplikace pro vytváření, zobrazování a správu tréninkových plánů.
-					</Typography>
+						firstChildren={
+							<Box className="flex flex-col items-center gap-2">
+								<Typography className="font-light text-center">Chcete si vytvořit komplexní tréninkový plán během pár kliknutí?</Typography>
+								<Typography className="mb-8 text-center text-lg">Jste zde správně!</Typography>
 
-					<Typography
-						variant="body1"
-						color="text.secondary"
-						gutterBottom>
-						Aplikace je vhodná pro trenéry i samostatné sportovce.
-					</Typography>
-				</div>
+								<Typography className="font-light text-center">KlikFit je webová aplikace pro vytváření, zobrazování a správu tréninkových plánů.</Typography>
 
-				<div className="mt-8">
-					<Button
-						variant="contained"
-						color="primary"
-						className="mr-14"
-						onClick={handleLogin}>
-						Přihlášení
-					</Button>
+								<Typography className="font-light text-center">Aplikace je vhodná pro trenéry i samostatné sportovce.</Typography>
 
-					<Button
-						variant="outlined"
-						color="primary"
-						onClick={handleSignIn}>
-						Registrace
-					</Button>
-				</div>
-			</Card>
+								<Box className="mt-10 flex gap-10">
+									<ButtonComp
+										dontChangeOutline
+										justClick
+										content="Přihlášení"
+										size="medium"
+										onClick={() => {
+											handleLogin();
+										}}
+									/>
+
+									<ButtonComp
+										dontChangeOutline
+										justClick
+										size="medium"
+										content="Registrace"
+										onClick={handleSignIn}
+									/>
+								</Box>
+							</Box>
+						}
+					/>
+				}
+			/>
 		</>
 	);
 }

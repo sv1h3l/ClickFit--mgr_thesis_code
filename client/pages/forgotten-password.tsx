@@ -1,9 +1,11 @@
-import { Button, TextField, Typography } from "@mui/material";
+import GeneralCard from "@/components/large/GeneralCard";
+import OneColumnPage from "@/components/large/OneColumnPage";
+import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
+import { Box, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { forgottenPasswordRequest } from "../api/residue/forgottenPasswordRequest";
-import Card from "../components/small/Card";
 
 function ForgotPassword() {
 	const router = useRouter();
@@ -48,52 +50,61 @@ function ForgotPassword() {
 				/>
 			</Head>
 
-			<Card>
-				<Typography
-					variant="h5"
-					component="h2"
-					gutterBottom
-					style={{ textAlign: "center" }}
-					className="mb-0">
-					Zapomenuté heslo
-				</Typography>
+			<OneColumnPage
+				firstColumnWidth="w-7/24 "
+				firstColumnHeight="h-fit"
+				firstColumnChildren={
+					<GeneralCard
+						centerFirstTitle
+						prolog
+						dontShowHr
+						style="relative"
+						firstTitle="Zapomenuté heslo"
+						firstChildren={
+							<Box className="flex flex-col items-center gap-2 pr-3">
+								<Typography className="text-center font-light">Na zadaný email bude odeslán odkaz pro vytvoření nového hesla.</Typography>
 
-				<Typography
-					variant="body2"
-					component="p"
-					gutterBottom
-					style={{ textAlign: "center" }}
-					color="text.secondary"
-					className="mb-0">
-					Na email bude zaslán odkaz pro vytvoření nového hesla.
-				</Typography>
+								<TextField
+									className="w-full mt-4 mb-6 h-16"
+									error={!!errorEmail}
+									helperText={errorEmail}
+									placeholder="Email"
+									type="email"
+									variant="standard"
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									onBlur={() => {
+										const tempEmail = email;
+										const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-				<TextField
-					error={!!errorEmail}
-					helperText={errorEmail}
-					label="Email"
-					type="email"
-					fullWidth
-					margin="normal"
-					variant="standard"
-					value={email}
-					className="mb-6 h-16"
-					onChange={(e) => setEmail(e.target.value)}
-					onBlur={() => {
-						const tempEmail = email;
-						const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+										setErrorEmail(emailRegex.test(tempEmail) ? "" : errorMessage);
+									}}
+								/>
 
-						setErrorEmail(emailRegex.test(tempEmail) ? "" : errorMessage);
-					}}
-				/>
+								<ButtonComp
+									style="mb-4"
+									dontChangeOutline
+									justClick
+									size="medium"
+									content="Odeslat odkaz"
+									onClick={sendEmailWithNewPassword}
+								/>
 
-				<Button
-					variant="contained"
-					color="primary"
-					onClick={sendEmailWithNewPassword}>
-					Odeslat
-				</Button>
-			</Card>
+								<ButtonComp
+									content={IconEnum.BACK}
+									justClick
+									dontChangeOutline
+									size="small"
+									style="absolute left-3 top-3"
+									onClick={() => {
+										router.push("/login");
+									}}
+								/>
+							</Box>
+						}
+					/>
+				}
+			/>
 		</>
 	);
 }

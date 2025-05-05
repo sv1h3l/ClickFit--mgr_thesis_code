@@ -341,7 +341,7 @@ const DoubleValue = (props: Props) => {
 						justClick
 						dontChangeOutline
 						disabled={(!props.showCheckButttonAlways && !hasValueChanged) || !secondValue || (!firstValueDate && !firstValue) || firstValueError || !isValidDateState}
-						icon={IconEnum.CHECK}
+						content={IconEnum.CHECK}
 						size="small"
 						onClick={handleCheckButton}
 					/>
@@ -349,7 +349,7 @@ const DoubleValue = (props: Props) => {
 					{props.showGoalButton ? (
 						<ButtonComp
 							externalClicked={{ state: isGoal, setState: setIsGoal }}
-							icon={IconEnum.FLAG}
+							content={IconEnum.FLAG}
 							size="small"
 							onClick={() => {
 								const newIsGoal = !isGoal;
@@ -366,8 +366,8 @@ const DoubleValue = (props: Props) => {
 								justClick
 								dontChangeOutline
 								disabled={props.highestOrderNumber}
-								icon={IconEnum.ARROW}
-								iconStyle="-rotate-90"
+								content={IconEnum.ARROW}
+								contentStyle="-rotate-90"
 								size="small"
 								onClick={() => props.moveOnClick?.(props.graphValueId, props.orderNumber, false)}
 							/>
@@ -376,8 +376,8 @@ const DoubleValue = (props: Props) => {
 								justClick
 								dontChangeOutline
 								disabled={props.orderNumber === 1}
-								icon={IconEnum.ARROW}
-								iconStyle="rotate-90"
+								content={IconEnum.ARROW}
+								contentStyle="rotate-90"
 								size="small"
 								onClick={() => props.moveOnClick?.(props.graphValueId, props.orderNumber, true)}
 							/>
@@ -386,7 +386,7 @@ const DoubleValue = (props: Props) => {
 
 					{props.showCrossButton && (
 						<ButtonComp
-							icon={IconEnum.CROSS}
+							content={IconEnum.CROSS}
 							justClick
 							dontChangeOutline
 							size="small"

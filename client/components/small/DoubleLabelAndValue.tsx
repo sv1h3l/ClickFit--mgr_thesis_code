@@ -7,13 +7,16 @@ interface Props {
 	secondLabel: string;
 	secondValue: string;
 
-	goal?: boolean;
+	goal?: string;
+	style?: string;
 }
 
 const DoubleLabelAndValue = (props: Props) => {
 	return (
-		<Box className={`flex flex-col w-full items-center px-1`}>
-			<Typography className={`font-bold`}>{props.goal ? "Cíl" : "Záznam"}</Typography>
+		<Box
+			className={`flex flex-col w-full  px-1
+						${props.style}`}>
+			<Typography className={`font-bold`}>{props.goal}</Typography>
 			<Box className="flex gap-3">
 				<Box className="text-right">
 					<Typography className={`font-light `}>{props.firstLabel}</Typography>

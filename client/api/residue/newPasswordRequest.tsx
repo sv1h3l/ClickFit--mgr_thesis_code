@@ -1,10 +1,9 @@
 import genericApiResponse from "../GenericApiResponse";
 
 export const newPasswordRequest = async (requestData: {token: string; password: string; confirmPassword: string}) => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
 
-	console.log(requestData.token);
-
-	const response = await fetch(`http://localhost:5000/api/new-password`, {
+	const response = await fetch(`http://${serverIp}/api/new-password`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

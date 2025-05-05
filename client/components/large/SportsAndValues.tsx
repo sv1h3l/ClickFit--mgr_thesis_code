@@ -331,7 +331,7 @@ const SportsAndValues = (props: Props) => {
 						<Box className="w-fit pr-3 -ml-3 -mt-1">
 							<ButtonComp
 								disabled={!props.selectedGraph.state?.graphValues?.length}
-								icon={IconEnum.EDIT}
+								content={IconEnum.EDIT}
 								size="small"
 								onClick={() => setEdit(!edit)}
 							/>

@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -9,9 +9,11 @@ interface Props {
 
 	exerciseInformationValue: string;
 }
-export const createExerciseInformationsValReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const createExerciseInformationsValReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/create-exercise-information-value", {
+		const response = await fetch(`http://${serverIp}/api/create-exercise-information-value`, {
 			method: "POST",
 			credentials: 'include',
 			headers: {

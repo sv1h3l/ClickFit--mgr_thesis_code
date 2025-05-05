@@ -3,9 +3,9 @@ import { deleteAllGraphValuesMod } from "../../models/delete/deleteAllGraphValue
 import { deleteDefGraphOrderNumbersMod } from "../../models/delete/deleteDefGraphOrderNumbersMod";
 import { deleteGraphMod } from "../../models/delete/deleteGraphMod";
 import { getAllDefGraphOrderNumbersMod } from "../../models/get/getAllDefGraphOrderNumbersMod";
-import { getUserAtrFromAuthTokenMod } from "../../models/get/getUserAtrFromAuthTokenMod";
 import { reorderGraphsMod } from "../../models/move/reorderGraphsMod";
 import { GenEnum } from "../../utilities/GenResEnum";
+import { CheckAuthorizationCodeEnum, checkAuthorizationCont } from "../residue/checkAuthorizationCont";
 
 export const deleteGraphCont = async (req: Request, res: Response): Promise<void> => {
 	const { graphId, sportId, isDefGraph, orderNumber } = req.body;
@@ -20,25 +20,19 @@ export const deleteGraphCont = async (req: Request, res: Response): Promise<void
 		return;
 	}
 
+	const checkRes = await checkAuthorizationCont({ req, id: graphId, checkAuthorizationCode: CheckAuthorizationCodeEnum.GRAPH_EDIT });
+	if (checkRes.status !== GenEnum.SUCCESS && checkRes.data) {
+		res.status(checkRes.status).json({ message: checkRes.message });
+		return;
+	}
+
 	try {
-		const userAtrs = await getUserAtrFromAuthTokenMod({ req });
-		if (userAtrs.status !== GenEnum.SUCCESS || !userAtrs.data) {
-			res.status(userAtrs.status).json({ message: userAtrs.message });
-			return;
-		}
-
-		/*const checkRes = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT });
-		if (checkRes.status !== GenEnum.SUCCESS) {
-			res.status(checkRes.status).json({ message: checkRes.message });
-			return;
-		}*/
-
 		let resDefGraphOrderNumbers = null;
 		if (isDefGraph) resDefGraphOrderNumbers = await getAllDefGraphOrderNumbersMod({ graphId });
 
 		const dbResult = await deleteGraphMod({ graphId, isDefGraph });
 
-		if (dbResult.status === GenEnum.SUCCESS) {
+		if (dbResult.status === GenEnum.SUCCESS ) {
 			deleteAllGraphValuesMod({ graphId, isDefGraph });
 
 			if (isDefGraph) {
@@ -52,7 +46,7 @@ export const deleteGraphCont = async (req: Request, res: Response): Promise<void
 					});
 				}
 			} else {
-				reorderGraphsMod({ orderNumber, userId: userAtrs.data.userId });
+				reorderGraphsMod({ orderNumber, userId: checkRes.data?.userId! });
 			}
 		}
 

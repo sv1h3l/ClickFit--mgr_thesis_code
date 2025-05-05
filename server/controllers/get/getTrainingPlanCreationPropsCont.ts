@@ -75,6 +75,23 @@ export const getTrainingPlanCreationPropsCont = async (req: Request, res: Respon
 						categoryName: category.category_name,
 						orderNumber: category.order_number,
 
+						description: category.description,
+
+						hasRepeatability: category.has_repeatability,
+						repeatabilityQuantity: category.repeatability_quantity,
+						looseConnection: category.loose_connection,
+						tightConnection: category.tight_connection,
+						priorityPoints: category.priority_points,
+						blacklist: category.blacklist,
+
+						shortMinQuantity: category.short_min_quantity,
+						shortMaxQuantity: category.short_max_quantity,
+						mediumMinQuantity: category.medium_min_quantity,
+						mediumMaxQuantity: category.medium_max_quantity,
+						longMinQuantity: category.long_min_quantity,
+						longMaxQuantity: category.long_max_quantity,
+
+						// Přidáme seřazené cviky do každé kategorie
 						exercises: categoryExercises.map((exercise) => ({
 							exerciseId: exercise.exercise_id,
 							categoryId: exercise.category_id,
@@ -91,6 +108,13 @@ export const getTrainingPlanCreationPropsCont = async (req: Request, res: Respon
 
 							description: exercise.description,
 							youtubeLink: exercise.youtube_link,
+
+							hasRepeatability: exercise.has_repeatability,
+							repeatabilityQuantity: exercise.repeatability_quantity,
+							looseConnection: exercise.loose_connection,
+							tightConnection: exercise.tight_connection,
+							priorityPoints: exercise.priority_points,
+							blacklist: exercise.blacklist,
 						})),
 					};
 				})

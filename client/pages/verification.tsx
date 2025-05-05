@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Card from "../components/small/Card";
-import GenericApiResponse from "../api/GenericApiResponse";
+import GenericResponse from "../api/GenericApiResponse";
 import { verifyEmailRequest } from "../api/residue/verifyEmailRequest";
 
 const Verification = () => {
@@ -14,7 +14,7 @@ const Verification = () => {
 	// Funkce pro ověření tokenu
 	const verifyEmail = async (token: string) => {
 		try {
-			const data: GenericApiResponse<null> = await verifyEmailRequest(token);
+			const data: GenericResponse<null> = await verifyEmailRequest(token);
 
 			setStatusMessage(data.message);
 		} catch (error) {

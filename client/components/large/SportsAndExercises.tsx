@@ -11,10 +11,7 @@ import { Sport } from "@/api/get/getSportsReq";
 import { moveCategoryReq } from "@/api/move/moveCategoryReq";
 import { moveExerciseReq } from "@/api/move/moveExerciseReq";
 import { StateAndSet, StateAndSetFunction } from "@/utilities/generalInterfaces";
-import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import CloseIcon from "@mui/icons-material/Close";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import LabelAndValue from "../small/LabelAndValue";
@@ -29,7 +26,10 @@ const cookie = require("cookie");
 interface SportsProps {
 	exercisesDatabase?: boolean;
 
+	userId: number;
+
 	selectedSport: StateAndSet<Sport | null>;
+	selectedCategory: StateAndSet<Category | null>;
 	selectedSportOrExercise: StateAndSet<Sport | Exercise | null>;
 
 	sportsData: StateAndSetFunction<Sport[]>;
@@ -60,14 +60,7 @@ export function isExercise(obj: Sport | Exercise | null): obj is Exercise {
 }
 
 const SportsAndExercises = ({ props }: { props: SportsProps }) => {
-	const [userEmail, setUserEmail] = useState<string>("");
-
 	const [showFirstSection, setShowFirstSection] = useState(true);
-
-	useEffect(() => {
-		const cookies = cookie.parse(document.cookie || "");
-		setUserEmail(cookies.userEmail || null);
-	}, [setUserEmail]);
 
 	useEffect(() => {
 		props.editing.setState(false);
@@ -93,49 +86,36 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 		try {
 			const response = await createSportReq({ sportName });
 
-			switch (response.status) {
-				case 201:
-					if (response.data) {
-						const { sportId, userName, userId, userEmail } = response.data;
+			if (response.status === 200 && response.data) {
+				const { sportId, userName, userId, userEmail } = response.data;
 
-						const newSport: Sport = {
-							userId: userId,
-							userEmail: userEmail,
-							userName: userName,
+				const newSport: Sport = {
+					userId: userId,
+					userEmail: userEmail,
+					userName: userName,
 
-							canUserEdit: true,
+					canUserEdit: true,
 
-							sportId: sportId,
-							sportName: sportName,
+					sportId: sportId,
+					sportName: sportName,
 
-							hasCategories: false,
-							hasDifficulties: false,
+					hasCategories: false,
+					hasDifficulties: false,
 
-							hasRecommendedValues: false,
-							hasRecommendedDifficultyValues: false,
+					hasRecommendedValues: false,
+					hasRecommendedDifficultyValues: false,
+					hasAutomaticPlanCreation: false,
 
-							unitCode: 0,
+					unitCode: 0,
 
-							description: "",
-						};
+					description: "Zde je vhodné napsat obecný popis sportu.",
+				};
 
-						props.sportsData.setState((prevSportsData) => [...prevSportsData, newSport]);
+				props.sportsData.setState((prevSportsData) => [...prevSportsData, newSport]);
 
-						consoleLogPrint(response);
-					}
-					break;
-				case 400:
-					//setSportNameError(response.message);
-					consoleLogPrint(response);
-					break;
-				case 409:
-					//setSportNameError(response.message);
-					consoleLogPrint(response);
-					break;
-				default:
-					consoleLogPrint(response);
-					break;
+				consoleLogPrint(response);
 			}
+			consoleLogPrint(response);
 		} catch (error) {
 			console.error("Error: ", error);
 		}
@@ -248,6 +228,24 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 							orderNumber: 1,
 
 							exercises: [],
+
+							description: "",
+
+							hasRepeatability: false,
+							repeatabilityQuantity: 1,
+							looseConnection: [],
+							tightConnection: null,
+							priorityPoints: [1, 2, 3],
+							blacklist: [],
+
+							shortMinQuantity: 2,
+							shortMaxQuantity: 4,
+							mediumMinQuantity: 4,
+							mediumMaxQuantity: 6,
+							longMinQuantity: 6,
+							longMaxQuantity: 8,
+
+							show: false,
 						};
 
 						const reorderedCategories: Category[] = [newCategory];
@@ -311,6 +309,13 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 
 							description: "",
 							youtubeLink: "",
+
+							hasRepeatability: false,
+							repeatabilityQuantity: 1,
+							looseConnection: [],
+							tightConnection: null,
+							priorityPoints: [1, 2, 3] as number[],
+							blacklist: [],
 						};
 
 						if (props.selectedSport.state?.hasCategories) {
@@ -673,57 +678,59 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 			(!props.selectedSport.state?.hasCategories && selectedExerciseOrderNumberWithoutCategories === getHighestOrderNumberWithoutCategories());
 
 		return (
-			<Box className="ml-auto flex relative ">
-				<Button
+			<Box className={`flex relative items-center pl-4 ml-auto gap-2`}>
+				<ButtonComp
+					content={IconEnum.ARROW}
+					contentStyle="-rotate-90"
 					disabled={disableUpArrow}
-					onClick={() =>
-						selectedExerciseId === -1
-							? moveCategory(selectedCategoryOrderNumber, "up")
-							: selectedCategoryOrderNumber !== -1
-							? moveOrDeleteExerciseFromCategory(selectedExerciseId, selectedCategoryId, selectedCategoryOrderNumber, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "up")
-							: moveExercise(selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "up")
-					}
 					size="small"
-					className={`w-8 h-8 p-1 min-w-8
-								${disableUpArrow && "opacity-30"}`}>
-					<ArrowUpward
-						className="text-blue-300"
-						fontSize="small"
-					/>
-				</Button>
+					justClick
+					dontChangeOutline
+					onClick={() => {
+						setTimeout(() => {
+							selectedExerciseId === -1
+								? moveCategory(selectedCategoryOrderNumber, "up")
+								: selectedCategoryOrderNumber !== -1
+								? moveOrDeleteExerciseFromCategory(selectedExerciseId, selectedCategoryId, selectedCategoryOrderNumber, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "up")
+								: moveExercise(selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "up");
+						}, 100);
+					}}
+				/>
 
-				<Button
+				<ButtonComp
+					content={IconEnum.ARROW}
+					contentStyle="rotate-90"
 					disabled={disableDownArrow}
-					onClick={() =>
-						selectedExerciseId === -1
-							? moveCategory(selectedCategoryOrderNumber, "down")
-							: selectedCategoryOrderNumber !== -1
-							? moveOrDeleteExerciseFromCategory(selectedExerciseId, selectedCategoryId, selectedCategoryOrderNumber, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "down")
-							: moveExercise(selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "down")
-					}
 					size="small"
-					className={`w-8 h-8 p-1 min-w-8
-								${disableDownArrow && "opacity-30"}`}>
-					<ArrowDownward
-						className="text-blue-300"
-						fontSize="small"
-					/>
-				</Button>
-				<Button
+					justClick
+					dontChangeOutline
 					onClick={() =>
-						selectedExerciseId === -1
-							? deleteCategory(selectedCategoryOrderNumber)
-							: selectedCategoryOrderNumber !== -1
-							? moveOrDeleteExerciseFromCategory(selectedExerciseId, selectedCategoryId, selectedCategoryOrderNumber, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories)
-							: deleteExercise(selectedExerciseId, selectedCategoryId, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories)
+						setTimeout(() => {
+							selectedExerciseId === -1
+								? moveCategory(selectedCategoryOrderNumber, "down")
+								: selectedCategoryOrderNumber !== -1
+								? moveOrDeleteExerciseFromCategory(selectedExerciseId, selectedCategoryId, selectedCategoryOrderNumber, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "down")
+								: moveExercise(selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories, "down");
+						}, 100)
 					}
+				/>
+
+				<ButtonComp
+					style="ml-2.5"
+					content={IconEnum.CROSS}
 					size="small"
-					className={`w-8 h-8 p-1 min-w-8 ml-3`}>
-					<CloseIcon
-						className="text-red-400"
-						fontSize="small"
-					/>
-				</Button>
+					justClick
+					dontChangeOutline
+					onClick={() =>
+						setTimeout(() => {
+							selectedExerciseId === -1
+								? deleteCategory(selectedCategoryOrderNumber)
+								: selectedCategoryOrderNumber !== -1
+								? moveOrDeleteExerciseFromCategory(selectedExerciseId, selectedCategoryId, selectedCategoryOrderNumber, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories)
+								: deleteExercise(selectedExerciseId, selectedCategoryId, selectedExerciseOrderNumber, selectedExerciseOrderNumberWithoutCategories);
+						}, 100)
+					}
+				/>
 			</Box>
 		);
 	};
@@ -733,7 +740,6 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 	return (
 		<GeneralCard
 			height="h-full max-h-full"
-			border
 			showFirstSection={{ state: showFirstSection, setState: setShowFirstSection }}
 			firstTitle="Sporty"
 			secondTitle={props.exercisesDatabase ? "Přehled" : undefined}
@@ -752,28 +758,34 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 							label={sport.sportName}
 							value={sport.userName}
 							isSelected={sport.sportId == props.selectedSport.state?.sportId}
-							onClick={() => {
-								props.selectedSport.setState(sport);
-								props.selectedSportOrExercise.setState(sport);
+							onClick={
+								sport.sportId != props.selectedSport.state?.sportId
+									? () => {
+											props.selectedCategory.setState(null);
 
-								if (sport.hasCategories) {
-									getCategoriesAndExercises(sport.sportId);
-								} else {
-									getExercises(sport.sportId);
-								}
+											props.selectedSport.setState(sport);
+											props.selectedSportOrExercise.setState(sport);
 
-								getExerciseInformationLabels(sport.sportId);
+											if (sport.hasCategories) {
+												getCategoriesAndExercises(sport.sportId);
+											} else {
+												getExercises(sport.sportId);
+											}
 
-								{
-									props.dontShow && setShowFirstSection(false); // XXX potom smazat!
-								}
-							}}
+											getExerciseInformationLabels(sport.sportId);
+
+											{
+												props.dontShow && setShowFirstSection(false); // XXX potom smazat!
+											}
+									  }
+									: () => {}
+							}
 						/>
 					))}
 
 					{props.exercisesDatabase && (
 						<TextFieldWithIcon
-							style="mt-1 ml-2"
+							style="pt-4 ml-1"
 							placeHolder="Název nového sportu"
 							onClick={handleCreateSport}
 						/>
@@ -788,162 +800,177 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 						smallPaddingTop
 					/>*/}
 
-					<LabelAndValue
-						noPaddingTop
-						mainStyle="mb-6 mt-2 justify-center"
-						firstTypographyStyle=" text-3xl"
-						isSelected={isSport(props.selectedSportOrExercise.state) && props.selectedSportOrExercise.state === props.selectedSport.state}
-						onClick={() => {
-							props.selectedSportOrExercise.setState(props.selectedSport.state);
-						}}
-						label={props.selectedSport.state?.sportName}
-						sideContent={
-							props.selectedSport.state?.canUserEdit && (
-								<ButtonComp
-									key={"edit"}
-									style="ml-3"
-									size="medium"
-									icon={IconEnum.EDIT}
-									onClick={() => {
-										props.editing.setState(!props.editing.state);
-									}}
-								/>
-							)
-						}
-					/>
+					<Box className="flex items-center mb-4 mt-2 justify-center">
+						<LabelAndValue
+							noPaddingTop
+							firstTypographyStyle=" text-2xl"
+							isSelected={isSport(props.selectedSportOrExercise.state) && props.selectedSportOrExercise.state === props.selectedSport.state}
+							onClick={() => {
+								props.selectedCategory.setState(null);
+								props.selectedSportOrExercise.setState(props.selectedSport.state);
+							}}
+							label={props.selectedSport.state?.sportName}
+						/>
+						{props.selectedSport.state?.canUserEdit && (
+							<ButtonComp
+								key={"edit"}
+								style="ml-2 -mt-0.5"
+								size="medium"
+								content={IconEnum.EDIT}
+								onClick={() => {
+									props.editing.setState(!props.editing.state);
+								}}
+							/>
+						)}
+					</Box>
 
 					<Box className="flex w-full ">
-						<Typography className={` text-xl -ml-3`}>{props.selectedSport.state?.hasCategories ? "Kategorie a cviky:" : "Cviky:"}</Typography>
+						<Typography className={` text-xl -ml-2`}>{props.selectedSport.state?.hasCategories ? "Kategorie a cviky:" : "Cviky:"}</Typography>
 					</Box>
 
 					{props.selectedSport.state?.hasCategories ? (
-						<Box className={`pl-1`}>
-							{props.selectedSport.state?.userEmail == userEmail && props.editing.state && (
-								<Box className="flex w-full items-center -ml-5">
-									<ArrowDropDownIcon className="opacity-25" />
+						<Box className={`pl-1 space-y-3 mt-2`}>
+							{props.selectedSport.state?.userId == props.userId && props.editing.state && (
+								<Box className="flex w-full items-center -ml-2 pr-6 pb-1 mt-2.5">
+									<ButtonComp
+										style=" mr-4 "
+										content={IconEnum.ARROW_DROP_DOWN}
+										disabled
+									/>
 									<TextFieldWithIcon
-										style=" mt-2  pt-1 pl-1 w-full pr-1"
+										style="   w-full  "
 										placeHolder="Název nové kategorie"
 										onClick={handleCreateCategory}
 									/>
 								</Box>
 							)}
 
-							{props.categoriesData.state.map((category) => (
-								<Box key={category.categoryId}>
-									<Box className="flex items-end">
-										<Title
-											style={`-ml-6  ${!category.show ? "mb-3" : "mb-0"}`}
-											//smallPaddingTop={categoriesData.length > 1 ? category.orderNumber === 1 : category.orderNumber === 0}
-											smallPaddingTop
-											title={category.categoryName}
-											sideContent={
-												<>
-													{/*<Button
-														className="w-8 h-8 p-1 min-w-8 "
-														onClick={() => {
-															props.categoriesData.setState((prevCategories) => prevCategories.map((cat) => (cat.categoryId === category.categoryId ? { ...cat, show: !cat.show } : cat)));
-														}}>
-														{category.show ? <ArrowDropUpIcon /> : <ArrowDropDownIcon />}
-													</Button>*/}
-
-													<ButtonComp
-														style="ml-2 mr-3 "
-														icon={category.show ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
-														onClick={() => {
-															props.categoriesData.setState((prevCategories) => prevCategories.map((cat) => (cat.categoryId === category.categoryId ? { ...cat, show: !cat.show } : cat)));
-														}}
-													/>
-												</>
-											}
-										/>
-
-										{props.editing.state && category.orderNumber !== 0 && (
-											<MoveAndDeleteButtons
-												selectedCategoryId={category.categoryId}
-												selectedCategoryOrderNumber={category.orderNumber}
+							{props.categoriesData.state.map((category) => {
+								return (
+									<Box
+										className={` pl-1
+												${category.show ? "pb-8" : ""}`}
+										key={category.categoryId}>
+										<Box className="flex items-center  -ml-3">
+											<ButtonComp
+												style=" mr-3 -mt-1"
+												content={category.show ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
+												externalClickedVal={props.categoriesData.state.find((insideCat) => insideCat.categoryId === category.categoryId)?.show}
+												onClick={() => {
+													props.categoriesData.setState((prevCategories) => prevCategories.map((cat) => (cat.categoryId === category.categoryId ? { ...cat, show: !cat.show } : cat)));
+												}}
 											/>
-										)}
-									</Box>
+											<LabelAndValue
+												secondClick
+												noPaddingTop
+												firstTypographyStyle="text-lg"
+												label={category.categoryName}
+												isSelected={category.categoryId === props.selectedCategory.state?.categoryId}
+												onClick={() => {
+													if (props.selectedCategory.state?.categoryId === category.categoryId)
+														props.categoriesData.setState((prevCategories) => prevCategories.map((cat) => (cat.categoryId === category.categoryId ? { ...cat, show: !cat.show } : cat)));
 
-									<Box className={`${category.show ? "mb-2" : "mb-0"}`}>
-										{category.show && (
-											<>
-												{category.exercises.length === 0 && !props.editing.state ? (
-													<Typography className="pl-7 font-light mt-4">Kategorie neobsahuje žádné cviky</Typography>
-												) : (
-													<>
-														{category.exercises.map((exercise) => (
-															<Box
-																key={exercise.exerciseId}
-																className={`flex items-end pl-5 `}>
-																<LabelAndValue
-																	label={exercise.exerciseName + " - " + exercise.orderNumber}
-																	isSelected={isExercise(props.selectedSportOrExercise.state) && exercise.exerciseId === props.selectedSportOrExercise.state.exerciseId}
-																	onClick={() => {
-																		props.selectedSportOrExercise.setState(exercise);
-																	}}
-																/>
-																{props.editing.state && (
-																	<MoveAndDeleteButtons
-																		selectedExerciseId={exercise.exerciseId}
-																		selectedCategoryId={exercise.categoryId}
-																		selectedCategoryOrderNumber={category.orderNumber}
-																		selectedExerciseOrderNumber={exercise.orderNumber}
-																		selectedExerciseOrderNumberWithoutCategories={exercise.orderNumberWithoutCategories}
+													props.selectedSportOrExercise.setState(null);
+													props.selectedCategory.setState(category);
+												}}
+											/>
+
+											{props.editing.state && category.orderNumber !== 0 && (
+												<MoveAndDeleteButtons
+													selectedCategoryId={category.categoryId}
+													selectedCategoryOrderNumber={category.orderNumber}
+												/>
+											)}
+										</Box>
+
+										<Box>
+											{category.show && (
+												<>
+													{category.exercises.length === 0 && !props.editing.state ? (
+														<Typography className="pl-6 font-light mt-3">Kategorie neobsahuje žádné cviky</Typography>
+													) : (
+														<Box className="space-y-3 mt-3">
+															{category.exercises.map((exercise, index) => (
+																<Box
+																	key={exercise.exerciseId}
+																	className={`flex  items-center pl-5 `}>
+																	<LabelAndValue
+																		mainStyle="w-full"
+																		noPaddingTop
+																		canWrap
+																		label={exercise.exerciseName}
+																		isSelected={isExercise(props.selectedSportOrExercise.state) && exercise.exerciseId === props.selectedSportOrExercise.state.exerciseId}
+																		onClick={() => {
+																			props.selectedCategory.setState(null);
+																			props.selectedSportOrExercise.setState(exercise);
+																		}}
 																	/>
-																)}
-															</Box>
-														))}
-													</>
-												)}
-												{props.selectedSport.state?.userEmail == userEmail && props.editing.state && (
-													<TextFieldWithIcon
-														style={category.exercises.length === 0 ? "pl-7" : "mt-1 pl-7"}
-														placeHolder="Název nového cviku"
-														onClick={(exerciseName) => handleCreateExercise(exerciseName, category.categoryId)}
-													/>
-												)}
-											</>
-										)}
+																	{props.editing.state && (
+																		<MoveAndDeleteButtons
+																			selectedExerciseId={exercise.exerciseId}
+																			selectedCategoryId={exercise.categoryId}
+																			selectedCategoryOrderNumber={category.orderNumber}
+																			selectedExerciseOrderNumber={exercise.orderNumber}
+																			selectedExerciseOrderNumberWithoutCategories={exercise.orderNumberWithoutCategories}
+																		/>
+																	)}
+																</Box>
+															))}
+														</Box>
+													)}
+													{props.selectedSport.state?.userId == props.userId && props.editing.state && (
+														<TextFieldWithIcon
+															style={category.exercises.length === 0 ? "pl-6  pt-1" : "pt-4  pl-6"}
+															placeHolder="Název nového cviku"
+															maxLength={75}
+															onClick={(exerciseName) => handleCreateExercise(exerciseName, category.categoryId)}
+														/>
+													)}
+												</>
+											)}
+										</Box>
 									</Box>
+								);
+							})}
+						</Box>
+					) : (
+						<Box className="space-y-3 mt-3">
+							{props.exercisesData.state.map((exercise) => (
+								<Box
+									key={exercise.exerciseId}
+									className={`flex  items-center  `}>
+									<LabelAndValue
+										mainStyle="w-full"
+										noPaddingTop
+										label={exercise.exerciseName}
+										isSelected={isExercise(props.selectedSportOrExercise.state) && exercise.exerciseId === props.selectedSportOrExercise.state.exerciseId}
+										onClick={() => {
+											props.selectedCategory.setState(null);
+											props.selectedSportOrExercise.setState(exercise);
+										}}
+									/>
+									{props.editing.state && (
+										<MoveAndDeleteButtons
+											selectedExerciseId={exercise.exerciseId}
+											selectedCategoryId={exercise.categoryId}
+											selectedExerciseOrderNumber={exercise.orderNumber}
+											selectedExerciseOrderNumberWithoutCategories={exercise.orderNumberWithoutCategories}
+										/>
+									)}
 								</Box>
 							))}
 						</Box>
-					) : (
-						props.exercisesData.state.map((exercise) => (
-							<Box
-								key={exercise.exerciseId}
-								className="flex items-end">
-								<LabelAndValue
-									key={exercise.exerciseId}
-									label={exercise.exerciseName}
-									isSelected={isExercise(props.selectedSportOrExercise.state) && exercise.exerciseId === props.selectedSportOrExercise.state.exerciseId}
-									onClick={() => {
-										props.selectedSportOrExercise.setState(exercise);
-									}}
-								/>
-								{props.editing.state && (
-									<MoveAndDeleteButtons
-										selectedExerciseId={exercise.exerciseId}
-										selectedCategoryId={exercise.categoryId}
-										selectedExerciseOrderNumber={exercise.orderNumber}
-										selectedExerciseOrderNumberWithoutCategories={exercise.orderNumberWithoutCategories}
-									/>
-								)}
-							</Box>
-						))
 					)}
 
-					{props.selectedSport.state?.userEmail == userEmail && props.editing.state && !props.selectedSport.state?.hasCategories && (
+					{props.selectedSport.state?.userId == props.userId && props.editing.state && !props.selectedSport.state?.hasCategories && (
 						<TextFieldWithIcon
-							style="ml-2 mt-1"
+							style={props.exercisesData.state.length === 0 ? "pl-1  pt-1" : "pt-4  pl-1"}
 							placeHolder="Název nového cviku"
 							onClick={(exerciseName) => handleCreateExercise(exerciseName, -1)}
 						/>
 					)}
 
-					{!props.editing.state && !props.selectedSport.state?.hasCategories && props.exercisesData.state.length === 0 && <Typography className="pl-2 font-light mt-4">Sport neobsahuje žádné cviky</Typography>}
+					{!props.editing.state && !props.selectedSport.state?.hasCategories && props.exercisesData.state.length === 0 && <Typography className="pl-1 font-light pt-1">Sport neobsahuje žádné cviky</Typography>}
 				</>
 			}></GeneralCard>
 	);

@@ -18,8 +18,8 @@ export const createCategoryMod = async (sportId: number, categoryName: string): 
 		}
 
 		const insertQuery = `
-            INSERT INTO categories (sport_id, category_name, order_number)
-            VALUES (?, ?, 1)
+            INSERT INTO categories (sport_id, category_name, order_number, description)
+            VALUES (?, ?, 1, "Zde je vhodné napsat popis kategorie.")
         `;
 
 		// Perform the insert

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
+import { createDefaultDetailLabelsMod } from "../../models/create/createDefaultDetailLabelsMod";
 import { createResidueCategoryMod } from "../../models/create/createResidueCategoryMod";
-import { createSportMod, SportCreationStatus } from "../../models/create/createSportMod";
+import { createSportMod } from "../../models/create/createSportMod";
 import { createDefaultDifficultiesMod } from "../../models/create/createUnassignedDifficultyMod";
 import { getUserAtrFromAuthTokenMod } from "../../models/get/getUserAtrFromAuthTokenMod";
 import { getUserNameFromIdMod } from "../../models/get/getUserNameFromIdMod";
@@ -14,7 +15,7 @@ export const createSportCont = async (req: Request, res: Response): Promise<void
 		return;
 	}
 
-	const dbUserAtr = await getUserAtrFromAuthTokenMod({req});
+	const dbUserAtr = await getUserAtrFromAuthTokenMod({ req });
 	if (dbUserAtr.status === GenEnum.FAILURE || !dbUserAtr.data) {
 		res.status(dbUserAtr.status).json({ message: dbUserAtr.message });
 		return;
@@ -23,32 +24,30 @@ export const createSportCont = async (req: Request, res: Response): Promise<void
 	try {
 		const dbRes = await createSportMod(dbUserAtr.data.userId, sportName);
 
-		switch (dbRes.status) {
-			case SportCreationStatus.SUCCESS:
-				dbRes.sportId && createResidueCategoryMod(dbRes.sportId);
+		if (dbRes.status === GenEnum.SUCCESS && dbRes.data?.sportId) {
+			createResidueCategoryMod(dbRes.data.sportId);
 
-				dbRes.sportId && createDefaultDifficultiesMod(dbRes.sportId);
+			createDefaultDetailLabelsMod(dbRes.data.sportId);
 
-				const userName = await getUserNameFromIdMod(dbUserAtr.data.userId);
+			createDefaultDifficultiesMod(dbRes.data.sportId);
 
-				res.status(201).json({
-					message: "Sport byl úspěšně vytvořen",
-					data: {
-						sportId: dbRes.sportId,
-						userName: userName,
-						userEmail: dbUserAtr.data.userEmail,
-						userId: dbUserAtr.data.userId,
-					},
-				});
+			const userName = await getUserNameFromIdMod(dbUserAtr.data.userId);
 
-				break;
-			case SportCreationStatus.ALREADY_EXISTS:
-				res.status(409).json({ message: "Sport s tímto názvem již existuje" });
-				break;
-			default:
-				res.status(500).json({ message: "Neznámá chyba při vytváření sportu" });
-				break;
+			res.status(dbRes.status).json({
+				message: dbRes.message,
+				data: {
+					sportId: dbRes.data.sportId,
+					userName: userName,
+					userEmail: dbUserAtr.data.userEmail,
+					userId: dbUserAtr.data.userId,
+				},
+			});
+			return;
 		}
+
+		res.status(dbRes.status).json({
+			message: dbRes.message,
+		});
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Došlo k serverové chybě. Zkuste to znovu." });

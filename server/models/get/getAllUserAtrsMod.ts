@@ -19,7 +19,6 @@ export interface Res {
 
 interface Props {
 	userId: number;
-	email: string;
 }
 
 export const getAllUserAtrsMod = async (props: Props): Promise<GenRes<Res>> => {
@@ -37,10 +36,10 @@ export const getAllUserAtrsMod = async (props: Props): Promise<GenRes<Res>> => {
 				weight,
 				health
 			FROM users
-			WHERE user_id = ? AND email = ?;
+			WHERE user_id = ?;
 		`;
 
-		const [rows] = await db.promise().query<RowDataPacket[]>(query, [props.userId, props.email]);
+		const [rows] = await db.promise().query<RowDataPacket[]>(query, [props.userId]);
 
 		if (rows.length === 0) {
 			return { status: GenEnum.FAILURE, message: "Uživatel nebyl nalezen" };

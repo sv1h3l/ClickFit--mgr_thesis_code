@@ -3,7 +3,6 @@ import { changeUserHealthReq } from "@/api/change/changeUserHealthReq";
 import { changeUserPswReq } from "@/api/change/changeUserPswReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { StateAndSet } from "@/utilities/generalInterfaces";
-import CheckIcon from "@mui/icons-material/Check";
 import { Box, Button, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -202,7 +201,7 @@ function PersonalAndHealthData(props: Props) {
 					<ButtonComp
 						key={"edit"}
 						size="large"
-						icon={IconEnum.EDIT}
+						content={IconEnum.EDIT}
 						onClick={() => {
 							props.editing.setState(!props.editing.state);
 						}}
@@ -250,12 +249,7 @@ function PersonalAndHealthData(props: Props) {
 											}
 										}}
 										helperText={helperTexts[ChangeUserAtrCodeEnum.FIRST_NAME]}
-										icon={
-											<CheckIcon
-												fontSize="small"
-												className="text-green-500"
-											/>
-										}
+										icon={IconEnum.CHECK}
 									/>
 								) : (
 									<LabelAndValue
@@ -294,12 +288,7 @@ function PersonalAndHealthData(props: Props) {
 											}
 										}}
 										helperText={helperTexts[ChangeUserAtrCodeEnum.LAST_NAME]}
-										icon={
-											<CheckIcon
-												fontSize="small"
-												className="text-green-500"
-											/>
-										}
+										icon={IconEnum.CHECK}
 									/>
 								) : (
 									<LabelAndValue
@@ -326,12 +315,7 @@ function PersonalAndHealthData(props: Props) {
 											changeUserAtr(value, ChangeUserAtrCodeEnum.HEIGHT);
 										}}
 										helperText={helperTexts[ChangeUserAtrCodeEnum.HEIGHT]}
-										icon={
-											<CheckIcon
-												fontSize="small"
-												className="text-green-500"
-											/>
-										}
+										icon={IconEnum.CHECK}
 									/>
 								) : (
 									<LabelAndValue
@@ -358,12 +342,7 @@ function PersonalAndHealthData(props: Props) {
 										}}
 										helperText={helperTexts[ChangeUserAtrCodeEnum.WEIGHT]}
 										unit="kg"
-										icon={
-											<CheckIcon
-												fontSize="small"
-												className="text-green-500"
-											/>
-										}
+										icon={IconEnum.CHECK}
 									/>
 								) : (
 									<LabelAndValue
@@ -392,12 +371,7 @@ function PersonalAndHealthData(props: Props) {
 											changeUserAtr(value, ChangeUserAtrCodeEnum.AGE);
 										}}
 										helperText={helperTexts[ChangeUserAtrCodeEnum.AGE]}
-										icon={
-											<CheckIcon
-												fontSize="small"
-												className="text-green-500"
-											/>
-										}
+										icon={IconEnum.CHECK}
 									/>
 								) : (
 									<LabelAndValue
@@ -439,12 +413,7 @@ function PersonalAndHealthData(props: Props) {
 										textFieldOnClick={(value) => {
 											setPassword(value);
 										}}
-										icon={
-											<CheckIcon
-												fontSize="small"
-												className="text-green-500"
-											/>
-										}
+										icon={IconEnum.CHECK}
 									/>
 								</Box>
 								<Box className="flex w-2/3">
@@ -461,12 +430,7 @@ function PersonalAndHealthData(props: Props) {
 										textFieldOnClick={(value) => {
 											setConfirmPassword(value);
 										}}
-										icon={
-											<CheckIcon
-												fontSize="small"
-												className="text-green-500"
-											/>
-										}
+										icon={IconEnum.CHECK}
 									/>
 								</Box>
 								<Button
@@ -503,15 +467,15 @@ function PersonalAndHealthData(props: Props) {
 							<ReactMarkdown
 								remarkPlugins={[remarkBreaks]}
 								components={{
-									p: ({ children }) => <p className="font-light">{children}</p>,
+									p: ({ children }) => <p className="font-light ml-4">{children}</p>,
 									ul: ({ children }) => <ul className="list-disc pl-8 mt-1 mb-0 space-y-1">{children}</ul>,
 									ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 mb-0 space-y-1">{children}</ol>,
-									li: ({ children }) => <li className="mb-0">{children}</li>,
+									li: ({ children }) => <li className="mb-0 ml-4">{children}</li>,
 									h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
 									h2: ({ children }) => <h2 className="text-2xl font-semibold">{children}</h2>,
 									h3: ({ children }) => <h3 className="text-xl font-medium">{children}</h3>,
 								}}>
-								{localHealth || ""}
+								{localHealth|| ""}
 							</ReactMarkdown>
 						</span>
 					)

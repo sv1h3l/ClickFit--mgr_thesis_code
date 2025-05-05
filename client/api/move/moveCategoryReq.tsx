@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -7,12 +7,13 @@ interface Props {
 
 	reorderCategories: { categoryId: number; orderNumber: number }[];
 }
-export const moveCategoryReq = async ({ props }: { props: Props }): Promise<GenericApiResponse<null>> => {
+export const moveCategoryReq = async ({ props }: { props: Props }): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
 	try {
 		const cookies = cookie.parse(document.cookie || "");
 		const userEmail = cookies.userEmail || null; // TODO autentizace emailu
 
-		const response = await fetch("http://localhost:5000/api/move-category", {
+		const response = await fetch(`http://${serverIp}/api/move-category`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

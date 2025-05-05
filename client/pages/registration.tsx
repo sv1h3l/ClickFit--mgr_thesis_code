@@ -1,8 +1,10 @@
-import { Button, TextField, Typography } from "@mui/material";
+import GeneralCard from "@/components/large/GeneralCard";
+import OneColumnPage from "@/components/large/OneColumnPage";
+import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
+import { Box, TextField } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
-import Card from "../components/small/Card";
 import { registerRequest } from "../api/residue/registerRequest";
 
 function Registration() {
@@ -92,146 +94,160 @@ function Registration() {
 				<title>Registrace - KlikFit</title>
 			</Head>
 
-			<Card>
-				<Typography
-					variant="h5"
-					component="div"
-					gutterBottom
-					style={{ textAlign: "center" }}
-					className="mb-0">
-					Registrace
-				</Typography>
+			<OneColumnPage
+				firstColumnWidth="w-7/24 "
+				firstColumnHeight="h-fit"
+				firstColumnChildren={
+					<GeneralCard
+						dontShowHr
+						prolog
+						centerFirstTitle
+						style={`relative `}
+						firstTitle="Registrace"
+						firstChildren={
+							<Box className="flex flex-col items-center gap-2 pr-3">
+								<div className="max-w-sm">
+									<div className="flex flex-no-wrap gap-10 mt-4">
+										<TextField
+											error={!!errorName}
+											helperText={errorName}
+											placeholder="Jméno"
+											type=""
+											variant="standard"
+											size="small"
+											fullWidth
+											inputRef={nameRef}
+											className="h-14 "
+											inputProps={{ maxLength: 20 }}
+											onKeyDown={(e) => {
+												if (e.key === " ") {
+													e.preventDefault(); // Zabránění vložení mezery
+												}
+											}}
+											onBlur={() => {
+												const name = nameRef.current?.value || "";
+												setErrorName(!name ? errorNameText : "");
+											}}
+										/>
 
-				<div className="max-w-sm">
-					<div className="flex flex-no-wrap gap-10 ">
-						<TextField
-							error={!!errorName}
-							helperText={errorName}
-							label="Jméno"
-							type=""
-							margin="normal"
-							variant="standard"
-							size="small"
-							fullWidth
-							inputRef={nameRef}
-							className="h-14"
-							inputProps={{ maxLength: 20 }}
-							onKeyDown={(e) => {
-								if (e.key === " ") {
-									e.preventDefault(); // Zabránění vložení mezery
-								}
-							}}
-							onBlur={() => {
-								const name = nameRef.current?.value || "";
-								setErrorName(!name ? errorNameText : "");
-							}}
-						/>
+										<TextField
+											error={!!errorSurname}
+											helperText={errorSurname}
+											placeholder="Přijmení"
+											type=""
+											variant="standard"
+											size="small"
+											fullWidth
+											inputRef={surnameRef}
+											className="h-14 mb-6"
+											inputProps={{ maxLength: 20 }}
+											onKeyDown={(e) => {
+												if (e.key === " ") {
+													e.preventDefault();
+												}
+											}}
+											onBlur={() => {
+												const surname = surnameRef.current?.value || "";
+												setErrorSurname(!surname ? errorSurnameText : "");
+											}}
+										/>
+									</div>
 
-						<TextField
-							error={!!errorSurname}
-							helperText={errorSurname}
-							label="Přijmení"
-							type=""
-							margin="normal"
-							variant="standard"
-							size="small"
-							fullWidth
-							inputRef={surnameRef}
-							className="h-14"
-							inputProps={{ maxLength: 20 }}
-							onKeyDown={(e) => {
-								if (e.key === " ") {
-									e.preventDefault();
-								}
-							}}
-							onBlur={() => {
-								const surname = surnameRef.current?.value || "";
-								setErrorSurname(!surname ? errorSurnameText : "");
-							}}
-						/>
-					</div>
+									<TextField
+										error={!!errorEmail}
+										helperText={errorEmail}
+										placeholder="Email"
+										type="email"
+										fullWidth
+										variant="standard"
+										size="small"
+										inputRef={emailRef}
+										className="h-14 mb-6"
+										inputProps={{ maxLength: 40 }}
+										onKeyDown={(e) => {
+											if (e.key === " ") {
+												e.preventDefault();
+											}
+										}}
+										onBlur={() => {
+											const email = emailRef.current?.value || "";
 
-					<TextField
-						error={!!errorEmail}
-						helperText={errorEmail}
-						label="Email"
-						type="email"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						size="small"
-						inputRef={emailRef}
-						className="h-14"
-						inputProps={{ maxLength: 40 }}
-						onKeyDown={(e) => {
-							if (e.key === " ") {
-								e.preventDefault();
-							}
-						}}
-						onBlur={() => {
-							const email = emailRef.current?.value || "";
+											if (!email) {
+												setErrorEmail(errorEmailText1);
+											} else {
+												const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+												if (!emailRegex.test(email)) {
+													setErrorEmail(errorEmailText2);
+												} else {
+													setErrorEmail("");
+												}
+											}
+										}}
+									/>
 
-							if (!email) {
-								setErrorEmail(errorEmailText1);
-							} else {
-								const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-								if (!emailRegex.test(email)) {
-									setErrorEmail(errorEmailText2);
-								} else {
-									setErrorEmail("");
-								}
-							}
-						}}
+									<TextField
+										error={!!errorPassword}
+										helperText={errorPassword}
+										placeholder="Heslo"
+										type="password"
+										fullWidth
+										variant="standard"
+										size="small"
+										inputRef={passwordRef}
+										className="h-14 mb-6"
+										inputProps={{ maxLength: 40 }}
+										onBlur={() => {
+											const password = passwordRef.current?.value || "";
+											setErrorPassword(password.length < 8 ? errorPasswordText : "");
+
+											const confirmPassword = confirmPasswordRef.current?.value || "";
+											setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
+										}}
+									/>
+
+									<TextField
+										error={!!errorConfirmPassword}
+										helperText={errorConfirmPassword}
+										placeholder="Potvrzení hesla"
+										type="password"
+										fullWidth
+										variant="standard"
+										size="small"
+										className="h-14 mb-8"
+										inputRef={confirmPasswordRef}
+										inputProps={{ maxLength: 40 }}
+										onBlur={() => {
+											const password = passwordRef.current?.value || "";
+											const confirmPassword = confirmPasswordRef.current?.value || "";
+											setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
+										}}
+									/>
+								</div>
+
+								<ButtonComp
+									style="mb-4"
+									dontChangeOutline
+									justClick
+									size="medium"
+									content="Registrovat se"
+									onClick={handleRegistration}
+								/>
+
+								<ButtonComp
+									content={IconEnum.BACK}
+									justClick
+									dontChangeOutline
+									size="small"
+									style="absolute left-3 top-3"
+									onClick={() => {
+										router.push("/");
+									}}
+								/>
+							</Box>
+						}
 					/>
-
-					<TextField
-						error={!!errorPassword}
-						helperText={errorPassword}
-						label="Heslo"
-						type="password"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						size="small"
-						inputRef={passwordRef}
-						className="h-14"
-						inputProps={{ maxLength: 40 }}
-						onBlur={() => {
-							const password = passwordRef.current?.value || "";
-							setErrorPassword(password.length < 8 ? errorPasswordText : "");
-
-							const confirmPassword = confirmPasswordRef.current?.value || "";
-							setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
-						}}
-					/>
-
-					<TextField
-						error={!!errorConfirmPassword}
-						helperText={errorConfirmPassword}
-						label="Potvrzení hesla"
-						type="password"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						size="small"
-						className="h-14 mb-8"
-						inputRef={confirmPasswordRef}
-						inputProps={{ maxLength: 40 }}
-						onBlur={() => {
-							const password = passwordRef.current?.value || "";
-							const confirmPassword = confirmPasswordRef.current?.value || "";
-							setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
-						}}
-					/>
-
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={handleRegistration}>
-						Registrovat se
-					</Button>
-				</div>
-			</Card>
+				}
+			/>
 		</>
 	);
 }

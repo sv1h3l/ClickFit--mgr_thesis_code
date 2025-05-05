@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -11,9 +11,11 @@ interface Props {
 	repetitions?: number;
 	burden?: number;
 }
-export const changeExerciseRecommendedValsReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const changeExerciseRecommendedValsReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/change-exercise-series-repetitions-or-burden", {
+		const response = await fetch(`http://${serverIp}/api/change-exercise-series-repetitions-or-burden`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

@@ -1,13 +1,15 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
 interface Props {
 	health: string;
 }
-export const changeUserHealthReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const changeUserHealthReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/change-user-health", {
+		const response = await fetch(`http://${serverIp}/api/change-user-health`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

@@ -1,14 +1,16 @@
 import { Diary } from "@/components/large/DiaryAndGraphs";
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 const cookie = require("cookie");
 
 interface Props {
 	sportId: number;
 }
 
-export const getDiaryReq = async (props: Props): Promise<GenericApiResponse<Diary>> => {
+export const getDiaryReq = async (props: Props): Promise<GenericResponse<Diary>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-diary?sportId=${props.sportId}`, {
+		const response = await fetch(`http://${serverIp}/api/get-diary?sportId=${props.sportId}`, {
 			method: "GET",
 			credentials: "include",
 			headers: {

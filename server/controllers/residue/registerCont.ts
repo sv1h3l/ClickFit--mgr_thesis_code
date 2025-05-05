@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
+import { createSharedSportMod } from "../../models/create/createSharedSportMod";
 import { checkEmailDuplicityMod } from "../../models/residue/checkEmailDuplicityMod";
 import { registrateUserMod } from "../../models/residue/registrateUserMod";
 import { sendVerificationEmail } from "../../services/verificationService";
 
 export const registerCont = async (req: Request, res: Response): Promise<void> => {
+	const defFitnessSportId = 156;
+
 	const { name, surname, email, password, confirmPassword } = req.body;
 
 	// Objekt do kterého se shromažďují chyby
@@ -31,10 +34,11 @@ export const registerCont = async (req: Request, res: Response): Promise<void> =
 
 	try {
 		// Uložení uživatele do databáze
-		const token = await registrateUserMod(email, password, name, surname);
-		sendVerificationEmail(email, token); // Odeslání emailu s potvrzovacím tokenem
+		const dbRes = await registrateUserMod(email, password, name, surname);
+		sendVerificationEmail(email, dbRes.token); // Odeslání emailu s potvrzovacím tokenem
 
-		// Úspěšná odpověď
+		const sc = createSharedSportMod({ userId: dbRes.userId, sportId: defFitnessSportId });
+
 		res.status(201).json({ message: "Registrace byla úspěšná." });
 	} catch (error) {
 		console.error(error);

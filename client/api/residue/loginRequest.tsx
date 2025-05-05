@@ -1,10 +1,15 @@
+import { useAppContext } from "@/utilities/Context";
+
 interface LoginError extends Error {
 	status: number;
 	message: string;
 }
 
 export const loginRequest = async (data: { email: string; password: string }) => {
-	const response = await fetch("http://localhost:5000/api/login", {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
+	
+	const response = await fetch(`http://${serverIp}/api/login`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

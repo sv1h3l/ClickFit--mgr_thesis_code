@@ -3,6 +3,7 @@ import { changeGraphMod } from "../../models/change/changeGraphMod";
 import { changeXAxisDateGraphValuesMod } from "../../models/change/changeXAxisDateGraphValuesMod";
 import { deleteIsGoalOfGraphValuesMod } from "../../models/delete/deleteIsGoalOfGraphValuesMod";
 import { GenEnum } from "../../utilities/GenResEnum";
+import { checkAuthorizationCont, CheckAuthorizationCodeEnum } from "../residue/checkAuthorizationCont";
 
 enum HelperTextCodeEnum {
 	GRAPH_LABEL = 1,
@@ -65,13 +66,13 @@ export const changeGraphCont = async (req: Request, res: Response): Promise<void
 		return;
 	}
 
+	const checkRes = await checkAuthorizationCont({ req, id: graphId, checkAuthorizationCode: CheckAuthorizationCodeEnum.GRAPH_EDIT });
+	if (checkRes.status !== GenEnum.SUCCESS) {
+		res.status(checkRes.status).json({ message: checkRes.message });
+		return;
+	}
+	
 	try {
-		/*const checkRes = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT });
-		if (checkRes.status !== GenEnum.SUCCESS) {
-			res.status(checkRes.status).json({ message: checkRes.message });
-			return;
-		}*/
-
 		let dbResult;
 
 		dbResult = await changeGraphMod({ graphId, graphLabel, hasDate, xAxisLabel, yAxisLabel, unit, hasGoals, isDefGraph });

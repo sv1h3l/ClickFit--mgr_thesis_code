@@ -1,5 +1,5 @@
 import { Diary, Graph, GraphValue } from "@/components/large/DiaryAndGraphs";
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 const cookie = require("cookie");
 
 interface Props {
@@ -7,9 +7,11 @@ interface Props {
 	defaultGraph: boolean
 }
 
-export const getGraphValuesReq = async (props: Props): Promise<GenericApiResponse<GraphValue[]>> => {
+export const getGraphValuesReq = async (props: Props): Promise<GenericResponse<GraphValue[]>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-graph-values?graphId=${props.graphId}&defaultGraph=${props.defaultGraph}`, {
+		const response = await fetch(`http://${serverIp}/api/get-graph-values?graphId=${props.graphId}&defaultGraph=${props.defaultGraph}`, {
 			method: "GET",
 			credentials: "include",
 			headers: {

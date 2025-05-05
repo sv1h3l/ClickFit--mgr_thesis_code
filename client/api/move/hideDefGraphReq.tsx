@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 interface Props {
 	defGraphId: number;
@@ -7,9 +7,10 @@ interface Props {
 	orderNumber: number;
 }
 
-export const hideDefGraphReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const hideDefGraphReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
 	try {
-		const response = await fetch("http://localhost:5000/api/hide-default-graph", {
+		const response = await fetch(`http://${serverIp}/api/hide-default-graph`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

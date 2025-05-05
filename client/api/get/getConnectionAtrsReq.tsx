@@ -1,5 +1,5 @@
 import { ConnectedUser } from "@/pages/connection";
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 
 interface Props {
 	authToken: string;
@@ -11,9 +11,11 @@ interface Res {
 	connectedUsers: ConnectedUser[];
 }
 
-export const getConnectionAtrsReq = async (props: Props): Promise<GenericApiResponse<Res>> => {
+export const getConnectionAtrsReq = async (props: Props): Promise<GenericResponse<Res>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-connection-attributes`, {
+		const response = await fetch(`http://${serverIp}/api/get-connection-attributes`, {
 			method: "GET",
 			credentials: "include",
 			headers: {

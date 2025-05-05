@@ -1,4 +1,4 @@
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 import { Exercise } from "./getExercisesReq";
 const cookie = require("cookie");
 
@@ -10,15 +10,33 @@ export interface Category {
 	show?: boolean;
 
 	exercises: Exercise[];
+
+	description: string;
+
+	hasRepeatability: boolean;
+	repeatabilityQuantity: number;
+	looseConnection: number[];
+	tightConnection: number | null;
+	priorityPoints: number[];
+	blacklist: number[];
+
+	shortMinQuantity: number;
+	shortMaxQuantity: number;
+	mediumMinQuantity: number;
+	mediumMaxQuantity: number;
+	longMinQuantity: number;
+	longMaxQuantity: number;
 }
 
 interface Props {
 	sportId: number;
 }
 
-export const getCategoriesWithExercisesReq = async ({ props }: { props: Props }): Promise<GenericApiResponse<Category[]>> => {
+export const getCategoriesWithExercisesReq = async ({ props }: { props: Props }): Promise<GenericResponse<Category[]>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-categories-and-exercises?sportId=${props.sportId}`, {
+		const response = await fetch(`http://${serverIp}/api/get-categories-and-exercises?sportId=${props.sportId}`, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",

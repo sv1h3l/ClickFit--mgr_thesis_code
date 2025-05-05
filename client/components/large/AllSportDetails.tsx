@@ -5,10 +5,10 @@ import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { moveSportDetailLabelReq } from "@/api/move/moveSportDetailLabelReq";
 import { StateAndSet } from "@/utilities/generalInterfaces";
 import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
-import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import { Box, Button } from "@mui/material";
 import { useState } from "react";
+import { IconEnum } from "../small/ButtonComp";
 import LabelAndValue from "../small/LabelAndValue";
 import TextFieldWithIcon from "../small/TextFieldWithIcon";
 import Title from "../small/Title";
@@ -236,12 +236,7 @@ const Sports = (props: Props) => {
 													fontLight
 													noPaddingTop={index === 0}
 													textFieldOnClick={(value) => handleChangeSportDetailVal(value, sportDetail.sportId, labAndVal.sportDetailValId)}
-													icon={
-														<CheckIcon
-															fontSize="small"
-															className="text-green-500"
-														/>
-													}
+													icon={IconEnum.CHECK}
 												/>
 
 												<MoveAndDeleteButtons
@@ -265,7 +260,7 @@ const Sports = (props: Props) => {
 
 									{props.editing.state && (
 										<TextFieldWithIcon
-										fontLight
+											fontLight
 											placeHolder="Přidat sportovní údaj"
 											style="w-2/5 ml-4 pt-3 "
 											onClick={(value) => handleCreateSportDetailLab(value, sportDetail.sportId)}

@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -8,9 +8,11 @@ interface Props {
 
 	reorderSportDetailLabs: { sportDetailLabId: number; orderNumber: number }[];
 }
-export const deleteSportDetailLabReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const deleteSportDetailLabReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/delete-sport-detail-label", {
+		const response = await fetch(`http://${serverIp}/api/delete-sport-detail-label`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

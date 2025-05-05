@@ -3,6 +3,9 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
 	components: {
 		MuiButton: {
+			defaultProps: {
+				disableRipple: true,
+			},
 			styleOverrides: {
 				root: {
 					borderRadius: 12,
@@ -38,6 +41,14 @@ const theme = createTheme({
 					"&.Mui-error": {
 						color: "#ff6565", // TODO barva při chybě, #ff8585 při červeném ražimu
 					},
+				},
+			},
+		},
+		MuiAutocomplete: {
+			styleOverrides: {
+				noOptions: {
+					color: "white", // barva textu
+					opacity: 0.6, // volitelně lehce zprůhlednit
 				},
 			},
 		},

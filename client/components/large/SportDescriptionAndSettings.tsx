@@ -1,4 +1,5 @@
 import { changeSportDescReq } from "@/api/change/changeSportDescReq";
+import { changeSportHasAutomaticPlanCreationReq } from "@/api/change/changeSportHasAutomaticPlanCreationReq";
 import { changeSportHasCategoriesReq } from "@/api/change/changeSportHasCategoriesReq";
 import { changeSportHasDifficultiesReq } from "@/api/change/changeSportHasDifficultiesReq";
 import { changeSportHasRecommendedDifficultyValsReq } from "@/api/change/changeSportHasRecommendedDifficultyValsReq";
@@ -33,6 +34,8 @@ interface SportDescriptionAndSettingsProps {
 	editing: StateAndSet<boolean>;
 
 	sportName: string;
+
+	isActiveFirstChildren: StateAndSet<boolean>;
 }
 
 export interface SportDifficulty {
@@ -49,6 +52,7 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 	const [hasDifficulties, setHasDifficulties] = useState(false);
 	const [hasRecommendedValues, setHasRecommendedValues] = useState(false);
 	const [hasRecommendedDifficultyValues, setHasRecommendedDifficultyValues] = useState(false);
+	const [hasAutomaticPlanCreation, setHasAutomaticPlanCreation] = useState(false);
 
 	//const [difficulties, setDifficulties] = useState<SportDifficulty[]>([]);
 	const [newDifficulty, setNewDifficulty] = useState("");
@@ -60,6 +64,7 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 		setHasDifficulties(props.selectedSport.state?.hasDifficulties || false);
 		setHasRecommendedValues(props.selectedSport.state?.hasRecommendedValues || false);
 		setHasRecommendedDifficultyValues(props.selectedSport.state?.hasRecommendedDifficultyValues || false);
+		setHasAutomaticPlanCreation(props.selectedSport.state?.hasAutomaticPlanCreation || false);
 
 		setUnitCodeValue(props.selectedSport.state?.unitCode || 0);
 
@@ -200,6 +205,38 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 				);
 
 				setHasRecommendedDifficultyValues(!hasRecommendedDifficultyValues);
+			}
+
+			consoleLogPrint(response);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	const handleChangeSportHasAutomaticPlanCreation = async () => {
+		try {
+			const response = await changeSportHasAutomaticPlanCreationReq({ sportId: props.selectedSport.state!.sportId, hasAutomaticPlanCreation: !hasAutomaticPlanCreation });
+
+			if (response.status === 200) {
+				const newSport = {
+					...props.selectedSport.state!,
+					hasAutomaticPlanCreation: !hasAutomaticPlanCreation,
+				};
+
+				props.selectedSport.setState(newSport);
+				props.selectedSportOrExercise.setState(newSport);
+
+				props.sportsData.setState((prevSportsData) =>
+					prevSportsData.map((sport) => {
+						if (sport.sportId === newSport.sportId) {
+							return newSport;
+						} else {
+							return sport;
+						}
+					})
+				);
+
+				setHasAutomaticPlanCreation(!hasAutomaticPlanCreation);
 			}
 
 			consoleLogPrint(response);
@@ -395,6 +432,7 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 		<>
 			<GeneralCard
 				height="h-full"
+				showFirstSection={{ state: props.isActiveFirstChildren.state, setState: props.isActiveFirstChildren.setState }}
 				firstTitle="Popis"
 				firstChildren={
 					props.selectedSport && (
@@ -415,14 +453,14 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 									/>
 								</>
 							) : (
-								<Typography className="react-markdown break-words font-light">
+								<Typography className="react-markdown break-words font-light mb-6">
 									<ReactMarkdown
 										remarkPlugins={[remarkBreaks]}
 										components={{
-											p: ({ children }) => <p className="font-light">{children}</p>,
+											p: ({ children }) => <p className="font-light ml-4">{children}</p>,
 											ul: ({ children }) => <ul className="list-disc pl-8 mt-1 mb-0 space-y-1">{children}</ul>,
 											ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 mb-0 space-y-1">{children}</ol>,
-											li: ({ children }) => <li className="mb-0">{children}</li>,
+											li: ({ children }) => <li className="mb-0 ml-4">{children}</li>,
 											h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
 											h2: ({ children }) => <h2 className="text-2xl font-semibold">{children}</h2>,
 											h3: ({ children }) => <h3 className="text-xl font-medium">{children}</h3>,
@@ -547,9 +585,13 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 												paddingLeft: 0.5,
 											},
 										}}>
-										<MenuItem value="0">Bez jednotky</MenuItem>
 										<MenuItem value="1">Kilogram</MenuItem>
 										<MenuItem value="2">Sekunda</MenuItem>
+										<MenuItem value="3">Minuta</MenuItem>
+										<MenuItem value="4">Hodina</MenuItem>
+										<MenuItem value="5">Metr</MenuItem>
+										<MenuItem value="6">Kilometr</MenuItem>
+										<MenuItem value="7">Bez jednotky</MenuItem>
 									</Select>
 								</FormControl>
 							</Box>
@@ -622,26 +664,91 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 								</Box>
 							</Box>
 
-							{hasCategories && (
-								<>
-									<Typography className="pt-12 text-lg">Prioritní úrovně kategorií</Typography>
-									<Box className="flex flex-col p-4 pt-2 pr-0 pb-2 gap-4">
-										<Typography className="font-light"></Typography>
-										<Box>
-											<Typography>Příklad</Typography>
-											<Typography className=" font-light"></Typography>
+							<Typography className="pt-12 text-lg">Automatická tvorba tréninku</Typography>
+							<Box className="flex flex-col p-4 pt-2 pr-0 pb-2 gap-4">
+								<Typography className="font-light">
+									Aktivací bude umožněno v sekci Tréninky → Nový trénink automaticky vygenerovat základní strukturu tréninku na základě zadaných sportovních údajů. Pro využití automatické tvorby je nutné, aby uživatel před
+									tvorbou tréninku vyplnil délku tréninku{props.selectedSport.state?.hasDifficulties ? ", obtížnost cviků" : ""} a počet tréninkových dní.
+								</Typography>
+								<Typography className="font-light">
+									Po aktivaci je doporučeno, aby autor upravil údaje {props.selectedSport.state?.hasCategories ? "kategorií a " : ""}cviků, které ovlivňují způsob automatické tvorby tréninku.
+								</Typography>
+
+								<Box>
+									<Typography>Údaje ovlivňující automatickou tvorbu:</Typography>
+									<Box className="space-y-6 mt-2 ml-6">
+										<Box className="flex">
+											<Typography className="mr-2 text-nowrap">Opakovatelnost</Typography>
+											<Typography className="mr-2 opacity-50 font-light">»</Typography>
+											<Typography className=" font-light">Určuje, zda a kolikrát se daný cvik může v rámci tréninku opakovat.</Typography>
+										</Box>
+
+										{/* TODO TF pro zadávání min a max hranic pro den*/}
+										<Box className="flex">
+											<Typography className="mr-2 text-nowrap">Minimální a maximální počet</Typography>
+											<Typography className="mr-2 opacity-50 font-light">»</Typography>
+											<Typography className=" font-light">Nastavení hranic pro počet cviků v jednotlivých {props.selectedSport.state?.hasCategories ? "kategoriích" : "dnechs"}.</Typography>
+										</Box>
+
+										<Box className="flex">
+											<Typography className="mr-2 text-nowrap">Volná návaznost</Typography>
+											<Typography className="mr-2 opacity-50 font-light">»</Typography>
+											<Typography className=" font-light">Zvyšuje pravděpodobnost, že po vybraném cviku budou následovat logicky navazující cviky.</Typography>
+										</Box>
+
+										<Box className="flex">
+											<Typography className="mr-2 text-nowrap">Pevná návaznost</Typography>
+											<Typography className="mr-2 opacity-50 font-light">»</Typography>
+											<Typography className=" font-light">
+												Zajišťuje, že po vybraném cviku bude vždy následovat konkrétní cvik. Jestliže je vybrán cvik pro pevnou návaznost, tak není možné přidat cviky do volné návaznosti. Pokud by přidání navazujícího
+												cviku bylo přes maximální hranici počtu cviků, tak se nepřidá.
+											</Typography>
+										</Box>
+
+										<Box className="flex">
+											<Typography className="mr-2 text-nowrap">Prioritní body</Typography>
+											<Typography className="mr-2 opacity-50 font-light">»</Typography>
+											<Box>
+												<Typography className=" font-light">
+													Každému cviku lze přiřadit prioritní bod 1, 2 a 3. Tyto body určují, do jaké třetiny {props.selectedSport.state?.hasCategories ? "dané kategorie" : "daného dne"} bude cvik přiřazen. Cvik může
+													obsahovat více piroritních bodů.
+												</Typography>
+												<Box className="flex mt-2">
+													<Typography className="mr-2 text-nowrap">Příklad</Typography>
+													<Typography className="mr-2 opacity-50 font-light">»</Typography>
+													<Typography className=" font-light">
+														Vybraný cvik má prioritní body 1 a 3. Maximální počet cviků {props.selectedSport.state?.hasCategories ? "kategorie" : "dne"} je 9. Vybraný cvik se tedy může nacházet buď na 1. až 3. nebo 7.
+														až 9. pozici {props.selectedSport.state?.hasCategories ? "kategorie" : "dne"}.
+													</Typography>
+												</Box>
+											</Box>
+										</Box>
+
+										<Box className="flex">
+											<Typography className="mr-2 text-nowrap">Blacklist</Typography>
+											<Typography className="mr-2 opacity-50 font-light">»</Typography>
+											<Typography className=" font-light">Zvolené cviky se nebudou v rámci {props.selectedSport.state?.hasCategories ? "dané kategorie" : "daného dne"} vyskytovat pospolu.</Typography>
 										</Box>
 									</Box>
-								</>
-							)}
-
-							<Typography className="pt-12 text-lg">Prioritní úrovně cviků</Typography>
-							<Box className="flex flex-col p-4 pt-2 pr-0 pb-2 gap-4">
-								<Typography className="font-light"></Typography>
-								<Box>
-									<Typography>Příklad</Typography>
-									<Typography className=" font-light"></Typography>
+									{props.selectedSport.state?.hasCategories ? <Typography className="mt-6">Totožná pravidla a možnosti nastavení platí nejen pro cviky, ale i pro jednotlivé kategorie sportu.</Typography> : null}
 								</Box>
+
+								{props.editing.state ? (
+									<FormControlLabel
+										className=""
+										control={
+											<Checkbox
+												checked={hasAutomaticPlanCreation}
+												onChange={handleChangeSportHasAutomaticPlanCreation}
+											/>
+										}
+										label={hasAutomaticPlanCreation ? "Sport má zaktivovanou automatickou tvorbu tréninku." : "Sport nemá zaktivovanou automatickou tvorbu tréninku."}
+									/>
+								) : hasAutomaticPlanCreation ? (
+									<Typography className=" py-2">Sport má zaktivovanou automatickou tvorbu tréninku.</Typography>
+								) : (
+									<Typography className="py-2">Sport nemá zaktivovanou automatickou tvorbu tréninku.</Typography>
+								)}
 							</Box>
 
 							<Typography className="pt-12 text-lg">Odstranění sportu</Typography>

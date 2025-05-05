@@ -2,7 +2,12 @@ import { Request } from "express";
 import { getUserAtrFromAuthTokenMod } from "../../models/get/getUserAtrFromAuthTokenMod";
 import { checkDiaryAuthorMod } from "../../models/residue/checkDiaryAuthorMod";
 import { checkExercisesInformationAuthorMod } from "../../models/residue/checkExercisesInformationAuthorMod";
+import { checkSharedSportMod } from "../../models/residue/checkSharedSportMod";
+import { checkGraphOwnerMod } from "../../models/residue/checkGraphOwnerMod";
+import { checkSportValOwnerMod } from "../../models/residue/checkSportValOwnerMod";
 import { checkSportAuthorMod } from "../../models/residue/checkSportAuthorMod";
+import { checkTrainingPlanViewMod } from "../../models/residue/checkTrainingPlanViewMod";
+import { checkUserVisitMod } from "../../models/residue/checkUserVisitMod";
 import { GenEnum, GenRes } from "../../utilities/GenResEnum";
 
 const cookie = require("cookie");
@@ -12,6 +17,11 @@ export enum CheckAuthorizationCodeEnum {
 	SPORT_VIEW = 2,
 	EXERCISE_INFORMATION_EDIT = 3,
 	DIARY_EDIT = 4,
+	USER_VISIT = 5,
+	VISIT_DIARY = 6,
+	TRAINING_PLAN_VIEW = 7,
+	GRAPH_EDIT = 8,
+	SPORT_VAL_EDIT = 9,
 }
 
 interface Props {
@@ -24,7 +34,7 @@ interface Props {
 export const checkAuthorizationCont = async (props: Props): Promise<GenRes<{ userId?: number; userEmail?: string }>> => {
 	let concreteAuthToken;
 
-	if (props.authToken) {
+	if (props.authToken && props.authToken !== "undefined") {
 		concreteAuthToken = props.authToken;
 	} else {
 		const cookies = cookie.parse(props.req.headers.cookie || "");
@@ -42,17 +52,39 @@ export const checkAuthorizationCont = async (props: Props): Promise<GenRes<{ use
 			return { status: GenEnum.UNAUTHORIZED, message: "Nastala chyba během získávání atributů uživatele" };
 		}
 
+		const userId = dbUserAtr.data.userId;
+
 		let dbRes;
 		switch (props.checkAuthorizationCode) {
 			case CheckAuthorizationCodeEnum.SPORT_EDIT:
-				dbRes = await checkSportAuthorMod(dbUserAtr.data.userId, props.id);
+				dbRes = await checkSportAuthorMod(userId, props.id);
 				break;
 			case CheckAuthorizationCodeEnum.EXERCISE_INFORMATION_EDIT:
-				dbRes = await checkExercisesInformationAuthorMod(dbUserAtr.data.userId, props.id);
+				dbRes = await checkExercisesInformationAuthorMod(userId, props.id);
 				break;
 			case CheckAuthorizationCodeEnum.DIARY_EDIT:
-				dbRes = await checkDiaryAuthorMod({ userId: dbUserAtr.data.userId, diaryId: props.id });
+				dbRes = await checkDiaryAuthorMod({ userId, diaryId: props.id });
 				break;
+			case CheckAuthorizationCodeEnum.USER_VISIT:
+				dbRes = await checkUserVisitMod({ userId, visitedUserId: props.id });
+				break;
+			case CheckAuthorizationCodeEnum.TRAINING_PLAN_VIEW:
+				dbRes = await checkTrainingPlanViewMod({ userId, trainingPlanId: props.id });
+				break;
+
+			case CheckAuthorizationCodeEnum.TRAINING_PLAN_VIEW:
+				dbRes = await checkTrainingPlanViewMod({ userId, trainingPlanId: props.id });
+				break;
+			case CheckAuthorizationCodeEnum.SPORT_VIEW:
+				dbRes = await checkSharedSportMod({ userId, sharedSportId: props.id });
+				break;
+			case CheckAuthorizationCodeEnum.GRAPH_EDIT:
+				dbRes = await checkGraphOwnerMod({ userId, graphId: props.id });
+				break;
+			case CheckAuthorizationCodeEnum.SPORT_VAL_EDIT:
+				dbRes = await checkSportValOwnerMod({ userId, valId: props.id });
+				break;
+
 			/* TODO
 			case CheckAuthorizationCodeEnum.EXERCISE_INFORMATION_EDIT:
 				

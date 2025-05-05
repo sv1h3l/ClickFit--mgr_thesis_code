@@ -1,15 +1,20 @@
+import { useAppContext } from "@/utilities/Context";
 import { StateAndSet } from "@/utilities/generalInterfaces";
-import { Box, CardContent, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { ReactNode, useState } from "react";
 
 interface GeneralCardProps {
 	firstTitle?: string;
+	centerFirstTitle?: boolean;
+	prolog?: boolean;
 
 	height?: string;
 	width?: string;
 	style?: string;
 	marginBottom?: boolean;
 	disabled?: boolean;
+	zeroYPadding?: boolean;
+	zeroXPadding?: boolean;
 
 	secondTitle?: string;
 
@@ -25,43 +30,76 @@ interface GeneralCardProps {
 	secondChildren?: ReactNode;
 
 	showFirstSection?: StateAndSet<boolean>;
+	showFirstSectionSignal?: StateAndSet<boolean>;
+
+	zeroChildrenPadding?: boolean;
+	dontShowHr?: boolean;
 }
 
 function GeneralCard({
 	firstTitle,
 	secondTitle,
+	centerFirstTitle,
+	prolog,
 	height,
 	width,
 	style,
 	marginBottom,
+	zeroYPadding,
+	zeroXPadding,
 	disabled,
 	secondGeneralCard,
 	firstChildren,
 	secondChildren,
 	firstSideContent,
 	secondSideContent,
+	zeroChildrenPadding,
 	onlyRightContent,
 	removeJustifyBetween,
 	showFirstSection,
+	showFirstSectionSignal,
+	dontShowHr,
 }: GeneralCardProps) {
 	const [localShowFirstSection, setLocalShowFirstSection] = useState<boolean>(true);
+	const [isVisible, setIsVisible] = useState<boolean>(true);
 
 	const isFirstSectionVisible = showFirstSection ? showFirstSection.state : localShowFirstSection;
 	const setSectionVisibility = showFirstSection ? showFirstSection.setState : setLocalShowFirstSection;
 
+	const context = useAppContext();
+
+	const handleSectionSwitch = (showFirst: boolean) => {
+		if (showFirst === isFirstSectionVisible) return;
+
+		setIsVisible(false);
+		showFirstSectionSignal?.setState(showFirst);
+
+		setTimeout(() => {
+			setSectionVisibility(showFirst);
+			setIsVisible(true);
+		}, 150);
+	};
 	return (
 		<Box
-			className={`flex flex-col bg-primary-color-neutral overflow-auto px-8 rounded-3xl border-[3px]  shadow-md
+			sx={{
+				overflowY: "auto",
+				scrollbarGutter: "stable",
+			}}
+			className={`flex flex-col bg-primary-color-neutral overflow-auto  rounded-3xl border-[3px]  shadow-md  overflow-x-hidden gutter
+						${context.bgPrimaryColor} ${context.borderPrimaryColor}
+						${!zeroXPadding && "px-5"}
+						${!zeroYPadding && "pb-6"}
 						${height} ${width} ${style} ${disabled && "opacity-50"} ${marginBottom && ""} `}>
 			{/* Header */}
 			<Box
-				className={`flex items-center pb-3 
-							${!removeJustifyBetween && "justify-between"} ${secondGeneralCard ? "pt-11" : "pt-6"}`}>
+				className={`flex items-center 
+							${!zeroYPadding && "pb-3 "}
+							${!removeJustifyBetween && "justify-between"} ${!zeroYPadding && (secondGeneralCard ? "pt-11" : prolog ? "pt-10" : "pt-3")}`}>
 				{/* První title */}
-				<Box className="flex">
+				<Box className={`flex items-center ${centerFirstTitle && "justify-center w-full"}`}>
 					<Typography
-						className={` text-[1.75rem] ${secondTitle && !disabled && "cursor-pointer"}  select-none transition-all ${!isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide `}
-						onClick={disabled ? () => {} : () => setSectionVisibility(true)}>
+						className={` text-[1.6rem] ${secondTitle && !disabled && "cursor-pointer"}  select-none transition-all ${!isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide `}
+						onClick={disabled ? () => {} : () => handleSectionSwitch(true)}>
 						{firstTitle}
 					</Typography>
 
@@ -94,8 +132,8 @@ function GeneralCard({
 						)}
 
 						<Typography
-							className={`text-[1.75rem] ${!disabled && "cursor-pointer"} transition-all select-none ${isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide  `}
-							onClick={disabled ? () => {} : () => setSectionVisibility(false)}>
+							className={`text-[1.6rem] ${!disabled && "cursor-pointer"} transition-all select-none ${isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide  `}
+							onClick={disabled ? () => {} : () => handleSectionSwitch(false)}>
 							{secondTitle}
 						</Typography>
 					</Box>
@@ -112,8 +150,22 @@ function GeneralCard({
 				{/* Doplňkový obsah */}
 			</Box>
 
+			{!dontShowHr ? (
+				<Box className="relative w-full ">
+					<Box
+						className={`w-[110%] absolute  border-t-[3px] -left-5 
+					 ${context.borderPrimaryColor}`}
+					/>
+				</Box>
+			) : null}
+
 			{/* Content */}
-			<CardContent className={`flex-grow pt-0 pl-3 pr-0 `}>{isFirstSectionVisible ? firstChildren : secondChildren}</CardContent>
+			<Box
+				className={`flex-grow  pr-0 transition-opacity duration-300 ease-in-out
+							${!zeroChildrenPadding && "pt-4"}
+							${isVisible ? "opacity-100" : "opacity-0"}`}>
+				{isFirstSectionVisible ? firstChildren : secondChildren}
+			</Box>
 		</Box>
 	);
 }

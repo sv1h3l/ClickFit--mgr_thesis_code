@@ -17,7 +17,7 @@ export const getAllUserAtrsCont = async (req: Request, res: Response): Promise<v
 			res.status(userAtrs.status).json({ message: userAtrs.message });
 			return;
 		}
-		const allUserAtrs = await getAllUserAtrsMod({ userId: userAtrs.data.userId, email: userAtrs.data.userEmail });
+		const allUserAtrs = await getAllUserAtrsMod({ userId: userAtrs.data.userId});
 
 		let formattedUser;
 		if (allUserAtrs.status === GenEnum.SUCCESS || allUserAtrs.data) {

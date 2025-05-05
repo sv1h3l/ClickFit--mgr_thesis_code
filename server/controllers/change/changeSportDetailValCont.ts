@@ -17,7 +17,7 @@ export const changeSportDetailValCont = async (req: Request, res: Response): Pro
 	}
 
 	try {
-		const checkRes = await checkAuthorizationCont({req, id:sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT});
+		const checkRes = await checkAuthorizationCont({req, id:sportDetailValId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VAL_EDIT});
 		if (checkRes.status !== GenEnum.SUCCESS) {
 			res.status(checkRes.status).json({ message: checkRes.message });
 			return;

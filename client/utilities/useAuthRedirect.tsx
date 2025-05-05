@@ -5,7 +5,7 @@ const cookie = require("cookie");
 
 const useAuthRedirect = () => {
 	const router = useRouter();
-	const pagesWithoutAuth = ["/", "/login", "/registration", "/forgotten-password"];
+	const pagesWithoutAuth = ["/", "/login", "/registration", "/forgotten-password", "/new-password"];
 
 	useEffect(() => {
 		const cookies = cookie.parse(document.cookie);

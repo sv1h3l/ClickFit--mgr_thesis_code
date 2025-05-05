@@ -8,7 +8,6 @@
         "**/CVS": true,
         "client/node_modules": true,
         "server/.env": true,
-        "server/tsconfig.json": true,
         "server/.gitignore": true,
         "server/package-lock.json": true,
         "server/node_modules": true,
@@ -18,12 +17,11 @@
         "client/.next": true,
         "client/.eslintrc.json": true,
         "client/next-env.d.ts": true,
-        "client/next.config.mjs": true,
-        "client/postcss.config.js": true,
-        "client/tsconfig.json": true
+        "client/package-lock.json": true,
+        "client/package.json": true,
+        "README.md": true
     },
     "hide-files.files": [
-        "server/tsconfig.json",
         "server/.gitignore",
         "server/package-lock.json",
         "server/node_modules",
@@ -33,8 +31,8 @@
         "client/.next",
         "client/.eslintrc.json",
         "client/next-env.d.ts",
-        "client/next.config.mjs",
-        "client/postcss.config.js",
-        "client/tsconfig.json"
+        "client/package-lock.json",
+        "client/package.json",
+        "README.md"
     ]
 }

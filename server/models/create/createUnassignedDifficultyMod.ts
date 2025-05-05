@@ -8,10 +8,10 @@ export const createDefaultDifficultiesMod = async (sportId: number): Promise<Gen
             VALUES
 				(?, "Lehká", 1),
 				(?, "Střední", 2),
-				(?, "Těžká", 3);
+				(?, "Těžká", 3)
         `;
 
-		await db.promise().query(insertQuery, [sportId]);
+		await db.promise().query(insertQuery, [sportId, sportId, sportId]);
 
 		return { status: GenEnum.SUCCESS };
 	} catch (error) {

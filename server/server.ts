@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import express from "express";
 import mysql from "mysql2";
 import { WebSocket, WebSocketServer } from "ws";
+import { changeUnreadMessagesMod } from "./models/change/changeUnreadMessagesMod";
 import routes from "./routes";
 
 dotenv.config();
@@ -31,24 +32,20 @@ db.getConnection((err, connection) => {
 
 // Nastavení Express serveru
 const app = express();
-const port = process.env.SERVER_PORT || 5000;
-
-app.get("/", (req, res) => {
-	res.send("Hello, world!");
-});
+const host = process.env.SERVER_HOST || "10.0.0.99";
+const port = parseInt(process.env.SERVER_PORT || "5000", 10);
 
 app.use(
 	cors({
-		origin: "http://localhost:3000",
+		origin: true, // nebo odpovídající front-end doména
 		credentials: true,
 	})
 );
 app.use(bodyParser.json());
 app.use("/api", routes);
 
-// HTTP server
-const server = app.listen(port, () => {
-	console.log(`Server běží na portu ${port}`);
+const server = app.listen(port, host, () => {
+	console.log(`Server běží na http://${host}:${port}`);
 });
 
 // Typ rozšířeného WebSocketu
@@ -63,7 +60,6 @@ const clients: ExtendedWebSocket[] = [];
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws: ExtendedWebSocket) => {
-	console.log("Nový WebSocket klient");
 	clients.push(ws);
 
 	ws.on("message", (raw) => {
@@ -73,7 +69,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 			switch (data.type) {
 				case "joinChat":
 					ws.connectionId = data.chatId;
-					console.log(`Klient se připojil k chatu ${ws.connectionId}`);
+					ws.userId = data.userId; // ← přidat tohle!
 					break;
 
 				case "sendMessage":
@@ -82,7 +78,7 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 					// Uložení zprávy do DB
 					db.query(
 						`INSERT INTO chats (connection_id, user_id, message, created_at)
-						 VALUES (?, ?, ?, NOW())`,
+							 VALUES (?, ?, ?, NOW())`,
 						[msg.chatId, msg.userId, msg.message],
 						(err, result) => {
 							if (err) {
@@ -90,26 +86,57 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 								return;
 							}
 
-							// Oprava: přetypování na ResultSetHeader pro získání insertId
 							const resultSet = result as mysql.ResultSetHeader;
 							const savedMessage = {
-								messageId: resultSet.insertId, // `insertId` je dostupné na ResultSetHeader
+								messageId: resultSet.insertId,
 								chatId: msg.chatId,
 								userId: msg.userId,
 								message: msg.message,
-								createdAt: new Date().toISOString(), // můžeš nahradit hodnotou z DB
+								createdAt: new Date().toISOString(),
 							};
 
-							// Rozeslání zprávy všem připojeným klientům ve stejném chatu
-							clients.forEach((client) => {
-								if (client.readyState === WebSocket.OPEN && client.connectionId === msg.chatId) {
-									client.send(
-										JSON.stringify({
-											type: "receiveMessage",
-											message: savedMessage,
-										})
-									);
+							// Získání dat o connection
+							db.query(`SELECT first_user_id, second_user_id FROM connections WHERE connection_id = ?`, [msg.chatId], (err, results) => {
+								if (err) {
+									console.error("Chyba při získávání uživatelů:", err);
+									return;
 								}
+
+								const rows = results as mysql.RowDataPacket[];
+								if (rows.length === 0) return;
+
+								const connection = rows[0] as {
+									first_user_id: number;
+									second_user_id: number;
+								};
+
+								// Určení příjemce
+								const receiverId = msg.userId === connection.first_user_id ? connection.second_user_id : connection.first_user_id;
+
+								// Zjisti, jestli je příjemce právě v chatu
+								const isReceiverInSameChat = clients.some((client) => client.readyState === WebSocket.OPEN && client.connectionId === msg.chatId && client.userId === receiverId);
+
+								if (!isReceiverInSameChat) {
+									const column = receiverId === connection.first_user_id ? "first_user_unread_messages" : "second_user_unread_messages";
+
+									db.query(`UPDATE connections SET ${column} = ${column} + 1 WHERE connection_id = ?`, [msg.chatId], (err) => {
+										if (err) {
+											console.error("Chyba při aktualizaci počtu nepřečtených zpráv:", err);
+										}
+									});
+								}
+
+								// Rozeslání zprávy klientům ve stejném chatu
+								clients.forEach((client) => {
+									if (client.readyState === WebSocket.OPEN && client.connectionId === msg.chatId) {
+										client.send(
+											JSON.stringify({
+												type: "receiveMessage",
+												message: savedMessage,
+											})
+										);
+									}
+								});
 							});
 						}
 					);
@@ -124,9 +151,19 @@ wss.on("connection", (ws: ExtendedWebSocket) => {
 	});
 
 	ws.on("close", () => {
-		console.log("WebSocket uzavřen");
 		const index = clients.indexOf(ws);
-		if (index !== -1) clients.splice(index, 1);
+		if (index !== -1) {
+			const userId = ws.userId;
+			const connectionId = ws.connectionId;
+
+			clients.splice(index, 1);
+
+			if (userId !== undefined && connectionId !== undefined) {
+				changeUnreadMessagesMod({ userId, connectionId }).catch((err) => {
+					console.error("Nastala chyba během označení zpráv jako přečtené");
+				});
+			}
+		}
 	});
 });
 

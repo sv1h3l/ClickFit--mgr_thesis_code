@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 interface Props {
 	primaryGraphValueId: number;
@@ -7,9 +7,10 @@ interface Props {
 	moveUp: boolean;
 }
 
-export const moveGraphValueReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const moveGraphValueReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
 	try {
-		const response = await fetch("http://localhost:5000/api/move-graph-value", {
+		const response = await fetch(`http://${serverIp}/api/move-graph-value`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

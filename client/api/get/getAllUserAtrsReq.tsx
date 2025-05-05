@@ -1,4 +1,4 @@
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 
 export interface User {
 	userId: number;
@@ -21,9 +21,11 @@ interface Props {
 	authToken: string;
 }
 
-export const getAllUserAtrsReq = async (props: Props): Promise<GenericApiResponse<User>> => {
+export const getAllUserAtrsReq = async (props: Props): Promise<GenericResponse<User>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-all-user-atrs`, {
+		const response = await fetch(`http://${serverIp}/api/get-all-user-atrs`, {
 			method: "GET",
 			credentials: "include",
 			headers: {

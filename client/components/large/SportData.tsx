@@ -7,7 +7,6 @@ function SportData({ fullHeight }: { fullHeight?: boolean }) {
 	return (
 		<GeneralCard
 			firstTitle="Sportovní údaje"
-			border={!fullHeight}
 			height={`${fullHeight ? "h-full" : "h-5/6"}`}
 			firstChildren={
 				<Box className="flex flex-col">

@@ -12,7 +12,7 @@ interface TwoColumnsPageProps {
 
 const TwoColumnsPage = ({ firstColumnWidth, secondColumnWidth, firstColumnHeight, secondColumnHeight, firstColumnChildren, secondColumnChildren }: TwoColumnsPageProps) => {
 	return (
-		<Box className="flex justify-center h-content pt-7 px-1 w-full">
+		<Box className="flex justify-center h-content pt-7  pb-1.5 px-1 w-full">
 			<Box
 				className={`${firstColumnWidth || "w-1/2"} ${firstColumnHeight || "h-full "} rounded-3xl pb-1  pr-2
 						 relative    `}>

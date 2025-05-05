@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -6,9 +6,11 @@ interface Props {
 	sportId: number;
 	hasRecommendedDifficultyValues: boolean;
 }
-export const changeSportHasRecommendedDifficultyValsReq = async (props: Props): Promise<GenericApiResponse<null>> => {
+export const changeSportHasRecommendedDifficultyValsReq = async (props: Props): Promise<GenericResponse<null>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/change-sport-has-recommended-difficulty-values", {
+		const response = await fetch(`http://${serverIp}/api/change-sport-has-recommended-difficulty-values`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

@@ -1,5 +1,5 @@
 import { ExerciseInformationLabel, ExerciseInformationValue } from "@/components/large/ExerciseInformations";
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 const cookie = require("cookie");
 
 interface Props {
@@ -7,9 +7,11 @@ interface Props {
 	exerciseId: number;
 }
 
-export const getExerciseInformationValsReq = async (props : Props): Promise<GenericApiResponse<ExerciseInformationValue[]>> => {
+export const getExerciseInformationValsReq = async (props : Props): Promise<GenericResponse<ExerciseInformationValue[]>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-exercise-information-values?sportId=${props.sportId}&exerciseId=${props.exerciseId}`, {
+		const response = await fetch(`http://${serverIp}/api/get-exercise-information-values?sportId=${props.sportId}&exerciseId=${props.exerciseId}`, {
 			method: "GET",
 			credentials: 'include',
 			headers: {

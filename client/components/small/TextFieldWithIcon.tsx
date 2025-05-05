@@ -1,8 +1,7 @@
 import { StateAndSetFunction } from "@/utilities/generalInterfaces";
-import AddIcon from "@mui/icons-material/Add";
-import SaveIcon from "@mui/icons-material/Save"; // Import ikony uložení
-import { Box, Button, InputAdornment, TextField, Typography } from "@mui/material";
+import { Box, InputAdornment, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import ButtonComp, { IconEnum } from "./ButtonComp";
 
 interface Props {
 	previousValue?: string;
@@ -14,8 +13,9 @@ interface Props {
 	onClickForBlur?: boolean;
 	onChangeCond?: (value: string) => boolean;
 	canBeEmptyValue?: boolean;
-	icon?: React.ReactNode;
+	icon?: string | number;
 	dontDeleteValue?: boolean;
+	cantBeZero?: boolean;
 	onlyNumbers?: boolean;
 	withoutIcon?: boolean;
 	fontSize?: string;
@@ -23,10 +23,12 @@ interface Props {
 	fontLight?: boolean;
 	unit?: string;
 	maxLength?: number;
+	maxValue?: number;
 	helperText?: string;
 	disabled?: boolean;
 	customMargin?: string;
 	tfCenterValueAndPlaceholder?: boolean;
+	disableSaveAnimation?: boolean;
 
 	border?: boolean;
 
@@ -54,6 +56,7 @@ const TextFieldWithIcon = ({
 	tfCenterValueAndPlaceholder,
 	unit,
 	maxLength,
+	maxValue,
 	helperText,
 	disabled,
 	externalValue,
@@ -64,8 +67,10 @@ const TextFieldWithIcon = ({
 	border,
 	titleBorderWidth,
 	isChecked,
+	cantBeZero,
 	onToggleChange,
 	style,
+	disableSaveAnimation,
 	noPaddingY,
 }: Props) => {
 	const [value, setValue] = useState<string>(previousValue || "");
@@ -84,8 +89,6 @@ const TextFieldWithIcon = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [previousValue]);
 
-	
-
 	const handleAction = () => {
 		if (!canBeEmptyValue && value.trim() === "") return;
 		if (savedValue === value) return;
@@ -94,7 +97,7 @@ const TextFieldWithIcon = ({
 			onClick(value);
 		}
 
-		setSavedValue(value);
+		disableSaveAnimation ? setSavedValue(value) : setTimeout(() => setSavedValue(value), 1200);
 
 		!dontDeleteValue && setValue("");
 		!dontDeleteValue && setSavedValue("");
@@ -117,12 +120,13 @@ const TextFieldWithIcon = ({
 	return (
 		<Box
 			className={`flex flex-shrink-0 relative
-						${customMargin ? customMargin : helperText && withoutIcon ? "mt-[1.25rem]" : helperText ? "mt-[1.2rem]" : withoutIcon ? "mt-0" : "mt-[0.42rem]"}
+						
 						${withoutIcon && "mr-8"}
 						${!noPaddingY && "py-2"}s
 						${border && "border-t-2 border-blue-300 "}
 						${onToggleChange && !isChecked && "opacity-50"}
 						${style}`}>
+							{/*${customMargin ? customMargin : helperText && withoutIcon ? "mt-[1.25rem]" : helperText ? "mt-[1.2rem]" : withoutIcon ? "mt-0" : "mt-[0.42rem]"}*/}
 			{titleBorderWidth && (
 				<Box
 					style={{ width: titleBorderWidth }}
@@ -143,6 +147,7 @@ const TextFieldWithIcon = ({
 						paddingBottom: 0.75,
 						fontSize: fontSize,
 						textAlign: tfCenterValueAndPlaceholder ? "center" : "left",
+						marginLeft: tfCenterValueAndPlaceholder ? "0.3rem" : "0",
 					},
 					maxLength: maxLength || 50,
 				}}
@@ -166,7 +171,7 @@ const TextFieldWithIcon = ({
 						</InputAdornment>
 					),
 				}}
-				onBlur={onClickForBlur ? handleAction : () => {}}
+				onBlur={onClickForBlur ? () => handleAction() : () => {}}
 				error={!!helperText}
 				onChange={(e) => {
 					const newValue = e.target.value;
@@ -178,17 +183,25 @@ const TextFieldWithIcon = ({
 					onChangeCond && setShowAnyIcon(onChangeCond(newValue));
 
 					if (onlyNumbers) {
-						if (/^\d*$/.test(newValue)) {
+						if (/^\d*$/.test(newValue) && (cantBeZero === false ? true : newValue === "0" ? false : true)) {
 							// Check if the value is a valid number or an empty string
 							if (newValue === "") {
 								setValue(""); // Allow empty string
 							} else {
 								let num = Number(newValue);
 
-								if (unit === "let" && num > 120) num = 120;
-								else if (unit === "kg" && num > 600) num = 600;
-								else if (unit === "cm" && num > 300) num = 300;
-								else if (num > 999) num = 999;
+								if (maxLength === 2) {
+									if (num > 9) num = 9;
+								} else if (maxLength === 3) {
+									if (num > 99) num = 99;
+								} else {
+									if (unit === "let" && num > 120) num = 120;
+									else if (unit === "kg" && num > 600) num = 600;
+									else if (unit === "cm" && num > 300) num = 300;
+									else if (num > 999) num = 999;
+								}
+
+								!!maxValue && num > maxValue && (num = maxValue);
 
 								setValue(num.toString());
 							}
@@ -213,27 +226,16 @@ const TextFieldWithIcon = ({
 			/>
 
 			{!withoutIcon ? (
-				<Button
-					disabled={(onToggleChange && !isChecked) || value === savedValue || showSaveIcon || !showAnyIcon}
-					onClick={handleAction}
+				<ButtonComp
+					saveIconStyle="ml-3"
+					style="ml-2.5"
+					disabled={(onToggleChange && !isChecked) || value === savedValue || showSaveIcon || !showAnyIcon || (cantBeZero && value === "")}
+					onClick={() => handleAction()}
 					size="small"
-					className={`min-h-8 max-h-8 max-w-8 min-w-8 p-1 ml-0 -mt-[0.1rem]
-								transition-all duration-300 ease-in-out 
-								${((!showSaveIcon && value === savedValue) || !showAnyIcon) && "opacity-0"}`}>
-					{!showDefaultIcon ? (
-						<SaveIcon
-							className="text-blue-500 "
-							fontSize="small"
-						/>
-					) : icon ? (
-						icon
-					) : (
-						<AddIcon
-							className="text-green-500"
-							fontSize="small"
-						/>
-					)}
-				</Button>
+					saveAnimation={!disableSaveAnimation}
+					justClick
+					content={icon ? icon : IconEnum.PLUS}
+				/>
 			) : null}
 		</Box>
 	);

@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -12,9 +12,11 @@ interface Props {
 	isDefaultGraphValue: boolean;
 }
 
-export const createGraphValueReq = async (props: Props): Promise<GenericApiResponse<{ graphValueId: number; orderNumber: number; }>> => {
+export const createGraphValueReq = async (props: Props): Promise<GenericResponse<{ graphValueId: number; orderNumber: number; }>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/create-graph-value", {
+		const response = await fetch(`http://${serverIp}/api/create-graph-value`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

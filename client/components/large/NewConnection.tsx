@@ -1,5 +1,7 @@
 import { createConnectionReq } from "@/api/create/createConnectionReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
+import { ConnectedUser } from "@/pages/connection";
+import { StateAndSetFunction } from "@/utilities/generalInterfaces";
 import { Box, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
@@ -8,6 +10,8 @@ import GeneralCard from "./GeneralCard";
 interface Props {
 	connectionCode: number;
 	qrCode: string;
+
+	connectedUsers: StateAndSetFunction<ConnectedUser[]>;
 }
 
 const NewConnection = (props: Props) => {
@@ -106,6 +110,9 @@ const NewConnection = (props: Props) => {
 			const res = await createConnectionReq({ connectionCode });
 
 			if (res.status === 200 && res.data) {
+				props.connectedUsers.setState((prev) => {
+					return [res.data!, ...prev];
+				});
 			}
 
 			consoleLogPrint(res);
@@ -217,8 +224,8 @@ const NewConnection = (props: Props) => {
 							disabled={code["part1"].length < 4 || code["part2"].length < 4 || code["part3"].length < 4}
 							dontChangeOutline
 							justClick
-							iconStyle="scale-[1.4]"
-							icon={IconEnum.PLUS}
+							contentStyle="scale-[1.4]"
+							content={IconEnum.PLUS}
 							onClick={() => {
 								handleCreateConnection(code["part1"] + code["part2"] + code["part3"]);
 							}}

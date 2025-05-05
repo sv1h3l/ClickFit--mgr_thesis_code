@@ -1,9 +1,11 @@
 // pages/login.tsx
-import { Button, TextField, Typography } from "@mui/material";
+import GeneralCard from "@/components/large/GeneralCard";
+import OneColumnPage from "@/components/large/OneColumnPage";
+import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import Card from "../components/small/Card";
 import { emailVerificationRequest } from "../api/residue/emailVerificationRequest";
 import { loginRequest } from "../api/residue/loginRequest";
 
@@ -80,62 +82,72 @@ function Login() {
 				<title>Přihlášení - KlikFit</title>
 			</Head>
 
-			<Card>
-				<Typography
-					variant="h5"
-					component="h2"
-					gutterBottom
-					className="mb-0">
-					Přihlášení
-				</Typography>
+			<OneColumnPage
+				firstColumnWidth="w-7/24 "
+				firstColumnHeight="h-fit"
+				firstColumnChildren={
+					<GeneralCard
+						centerFirstTitle
+						style="relative"
+						prolog
+						dontShowHr
+						firstTitle="Přihlášení"
+						firstChildren={
+							<Box className="flex flex-col items-center gap-2 pr-3">
+								<TextField
+									className="w-full mb-8 mt-4"
+									placeholder="Email"
+									variant="standard"
+									value={email}
+									size="small"
+									onChange={(e) => setEmail(e.target.value)}
+								/>
 
-				<TextField
-					label="Email"
-					fullWidth
-					margin="normal"
-					variant="standard"
-					value={email}
-					size="small"
-					onChange={(e) => setEmail(e.target.value)}
-				/>
+								<TextField
+									className="w-full "
+									placeholder="Heslo"
+									type="password"
+									variant="standard"
+									value={password}
+									size="small"
+									disabled={isAccountConfirmed}
+									onChange={(e) => setPassword(e.target.value)}
+								/>
 
-				<TextField
-					label="Heslo"
-					type="password"
-					fullWidth
-					margin="normal"
-					variant="standard"
-					value={password}
-					size="small"
-					disabled={isAccountConfirmed}
-					onChange={(e) => setPassword(e.target.value)}
-				/>
+								<Button
+									disableRipple
+									onClick={handleForgotPassword}
+									className=" bottom-1 ml-auto py-0 px-1 mb-4 text-[#dCdCdC] normal-case"
+									disabled={isAccountConfirmed}>
+									Zapomenuté heslo
+								</Button>
 
-				<div className="flex justify-end mt-1">
-					<Button
-						variant="text"
-						color="secondary"
-						onClick={handleForgotPassword}
-						className="relative bottom-3 ml-auto py-0 px-1 mb-1"
-						disabled={isAccountConfirmed}>
-						Zapomenuté heslo
-					</Button>
-				</div>
+								<Typography className="h-6 text-red-icon">{errorEmailAndPassword}</Typography>
 
-				<Typography
-					variant="body2"
-					component="p"
-					className="h-6 text-red-600">
-					{errorEmailAndPassword}
-				</Typography>
+								<ButtonComp
+									style="mb-4"
+									dontChangeOutline
+									justClick
+									size="medium"
+									content={isAccountConfirmed ? "Zaslat potvrzovací email" : "Přihlásit se"}
+									onClick={isAccountConfirmed ? sendConfirmationEmail : handleLogin}
+								/>
 
-				<Button
-					variant="contained"
-					color="primary"
-					onClick={isAccountConfirmed ? sendConfirmationEmail : handleLogin}>
-					{isAccountConfirmed ? "Zaslat potvrzovací email" : "Přihlásit"}
-				</Button>
-			</Card>
+								<ButtonComp
+									content={IconEnum.BACK}
+									justClick
+									dontChangeOutline
+									size="small"
+									style="absolute left-3 top-3"
+									onClick={() => {
+										router.push("/");
+									}}
+								/>
+							</Box>
+						}
+					/>
+				}
+			/>
 		</>
 	);
 }

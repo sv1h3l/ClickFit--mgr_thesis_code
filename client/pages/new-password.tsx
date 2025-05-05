@@ -1,10 +1,12 @@
-import { Button, TextField, Typography } from "@mui/material";
+import { consoleLogPrint } from "@/api/GenericApiResponse";
+import { newPasswordReq } from "@/api/residue/newPasswordReq";
+import GeneralCard from "@/components/large/GeneralCard";
+import OneColumnPage from "@/components/large/OneColumnPage";
+import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
+import { Box, TextField } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import Card from "../components/small/Card";
-import GenericApiResponse from "../api/GenericApiResponse";
-import { newPasswordRequest } from "../api/residue/newPasswordRequest";
 
 const NewPassword = () => {
 	const router = useRouter();
@@ -32,23 +34,22 @@ const NewPassword = () => {
 		if (dontFetch) return;
 		else {
 			try {
-				const response: GenericApiResponse<null> = await newPasswordRequest({ token, password, confirmPassword });
+				const response = await newPasswordReq({ token, password, confirmPassword });
 
 				if (response.status === 200) {
-					alert("Heslo bylo úspěšně změněno.");
 					router.push("/login");
+				} else {
+					if (response.data?.tokenHelperText !== "") {
+						setErrorPassword(response.data?.tokenHelperText || "");
+					} else {
+						setErrorPassword(response.data?.passwordHelperText || "");
+						setErrorConfirmPassword(response.data?.confirmPasswordHelperText || "");
+					}
 				}
-			} catch (error: any) {
-				console.error("Error:", error.message, "\nStatus code:", error.statusCode);
 
-				if (error.statusCode === 400) {
-					const { errors } = error;
-
-					setErrorPassword(errors.password || "");
-					setErrorConfirmPassword(errors.confirmPassword || "");
-				} else if (error.statusCode === 500) {
-					alert("Došlo k serverové chybě. Zkuste to znovu.");
-				}
+				consoleLogPrint(response);
+			} catch (error) {
+				console.error("Error: ", error);
 			}
 		}
 	};
@@ -69,65 +70,78 @@ const NewPassword = () => {
 				<title>Nové heslo - KlikFit</title>
 			</Head>
 
-			<Card>
-				<Typography
-					variant="h5"
-					component="div"
-					gutterBottom
-					style={{ textAlign: "center" }}
-					className="mb-4">
-					Změna hesla
-				</Typography>
+			<OneColumnPage
+				firstColumnWidth="w-7/24 "
+				firstColumnHeight="h-fit"
+				firstColumnChildren={
+					<GeneralCard
+						dontShowHr
+						prolog
+						centerFirstTitle
+						style="relative "
+						firstTitle="Změna hesla"
+						firstChildren={
+							<Box className="flex flex-col items-center gap-2 pr-3">
+								<TextField
+									className="h-14 w-full mt-4 mb-1"
+									error={!!errorPassword}
+									helperText={errorPassword}
+									placeholder="Nové heslo"
+									type="password"
+									variant="standard"
+									size="small"
+									inputRef={passwordRef}
+									inputProps={{ maxLength: 40 }}
+									onBlur={() => {
+										const password = passwordRef.current?.value || "";
+										setErrorPassword(password.length < 8 ? errorPasswordText : "");
 
-				<div className="max-w-sm">
-					<TextField
-						error={!!errorPassword}
-						helperText={errorPassword}
-						label="Nové heslo"
-						type="password"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						size="small"
-						inputRef={passwordRef}
-						className="h-14"
-						inputProps={{ maxLength: 40 }}
-						onBlur={() => {
-							const password = passwordRef.current?.value || "";
-							setErrorPassword(password.length < 8 ? errorPasswordText : "");
+										const confirmPassword = confirmPasswordRef.current?.value || "";
+										setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
+									}}
+								/>
 
-							const confirmPassword = confirmPasswordRef.current?.value || "";
-							setErrorConfirmPassword(confirmPassword !== "" && password !== confirmPassword ? errorConfirmPasswordText : "");
-						}}
+								<TextField
+									error={!!errorConfirmPassword}
+									helperText={errorConfirmPassword}
+									placeholder="Potvrzení nového hesla"
+									type="password"
+									variant="standard"
+									size="small"
+									className="h-14 mb-8 w-full"
+									inputRef={confirmPasswordRef}
+									inputProps={{ maxLength: 40 }}
+									onBlur={() => {
+										const password = passwordRef.current?.value || "";
+										const confirmPassword = confirmPasswordRef.current?.value || "";
+										setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
+									}}
+								/>
+
+								<ButtonComp
+									style="mb-4"
+									dontChangeOutline
+									justClick
+									size="medium"
+									content="Změnit heslo"
+									onClick={newPassword}
+								/>
+
+								<ButtonComp
+									content={IconEnum.BACK}
+									justClick
+									dontChangeOutline
+									size="small"
+									style="absolute left-3 top-3"
+									onClick={() => {
+										router.push("/");
+									}}
+								/>
+							</Box>
+						}
 					/>
-
-					<TextField
-						error={!!errorConfirmPassword}
-						helperText={errorConfirmPassword}
-						label="Potvrzení nového hesla"
-						type="password"
-						fullWidth
-						margin="normal"
-						variant="standard"
-						size="small"
-						className="h-14 mb-8"
-						inputRef={confirmPasswordRef}
-						inputProps={{ maxLength: 40 }}
-						onBlur={() => {
-							const password = passwordRef.current?.value || "";
-							const confirmPassword = confirmPasswordRef.current?.value || "";
-							setErrorConfirmPassword(password !== confirmPassword ? errorConfirmPasswordText : "");
-						}}
-					/>
-
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={newPassword}>
-						Změnit heslo
-					</Button>
-				</div>
-			</Card>
+				}
+			/>
 		</>
 	);
 };

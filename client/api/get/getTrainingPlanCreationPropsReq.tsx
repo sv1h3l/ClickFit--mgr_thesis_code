@@ -1,18 +1,10 @@
 import { ExerciseDifficulty } from "@/components/large/ExerciseInformations";
-import { GenericApiResponse } from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 import { Exercise } from "./getExercisesReq";
 import { Sport } from "./getSportsReq";
+import { Category } from "./getCategoriesWithExercisesReq";
 const cookie = require("cookie");
 
-export interface Category {
-	categoryId: number;
-	categoryName: string;
-	orderNumber: number;
-
-	show?: boolean;
-
-	exercises: Exercise[];
-}
 
 interface Props {
 	sportId: number;
@@ -26,9 +18,11 @@ interface Res {
 	recommendedDifficultyVals?: ExerciseDifficulty[];
 }
 
-export const getTrainingPlanCreationPropsReq = async (props: Props): Promise<GenericApiResponse<Res>> => {
+export const getTrainingPlanCreationPropsReq = async (props: Props): Promise<GenericResponse<Res>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch(`http://localhost:5000/api/get-training-plan-creation-props?sportId=${props.sportId}`, {
+		const response = await fetch(`http://${serverIp}/api/get-training-plan-creation-props?sportId=${props.sportId}`, {
 			method: "GET",
 			headers: {
 				Authorization: `Bearer ${props.authToken}`,

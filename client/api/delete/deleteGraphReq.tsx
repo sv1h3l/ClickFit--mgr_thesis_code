@@ -1,4 +1,4 @@
-import GenericApiResponse from "../GenericApiResponse";
+import GenericResponse from "../GenericApiResponse";
 
 const cookie = require("cookie");
 
@@ -11,9 +11,11 @@ interface Props {
 	isDefGraph: boolean;
 }
 
-export const deleteGraphReq = async (props: Props): Promise<GenericApiResponse<{ helperTexts: { [key: string]: string } }>> => {
+export const deleteGraphReq = async (props: Props): Promise<GenericResponse<{ helperTexts: { [key: string]: string } }>> => {
+	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+
 	try {
-		const response = await fetch("http://localhost:5000/api/delete-graph", {
+		const response = await fetch(`http://${serverIp}/api/delete-graph`, {
 			method: "POST",
 			credentials: "include",
 			headers: {
