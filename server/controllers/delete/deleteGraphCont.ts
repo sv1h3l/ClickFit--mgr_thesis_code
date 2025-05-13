@@ -21,7 +21,7 @@ export const deleteGraphCont = async (req: Request, res: Response): Promise<void
 	}
 
 	const checkRes = await checkAuthorizationCont({ req, id: graphId, checkAuthorizationCode: CheckAuthorizationCodeEnum.GRAPH_EDIT });
-	if (checkRes.status !== GenEnum.SUCCESS && checkRes.data) {
+	if (checkRes.status !== GenEnum.SUCCESS) {
 		res.status(checkRes.status).json({ message: checkRes.message });
 		return;
 	}

@@ -49,7 +49,7 @@ export const createTrainingPlanCont = async (req: Request, res: Response): Promi
 
 		const dbResult = await createTrainingPlanMod({
 			authorId: userAtrs.data.userId,
-			ownerId: props.ownerId,
+			ownerId: props.ownerId === -1 ? userAtrs.data.userId : props.ownerId,
 			sportId: props.sportId,
 			trainingPlanName: props.trainingPlanName,
 			canOwnerEdit: props.canOwnerEdit,

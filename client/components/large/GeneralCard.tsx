@@ -2,6 +2,7 @@ import { useAppContext } from "@/utilities/Context";
 import { StateAndSet } from "@/utilities/generalInterfaces";
 import { Box, Typography } from "@mui/material";
 import { ReactNode, useState } from "react";
+import ButtonComp, { IconEnum } from "../small/ButtonComp";
 
 interface GeneralCardProps {
 	firstTitle?: string;
@@ -34,6 +35,8 @@ interface GeneralCardProps {
 
 	zeroChildrenPadding?: boolean;
 	dontShowHr?: boolean;
+	showBackButton?: boolean;
+	backButtonClick?: () => void;
 }
 
 function GeneralCard({
@@ -59,6 +62,8 @@ function GeneralCard({
 	showFirstSection,
 	showFirstSectionSignal,
 	dontShowHr,
+	showBackButton,
+	backButtonClick,
 }: GeneralCardProps) {
 	const [localShowFirstSection, setLocalShowFirstSection] = useState<boolean>(true);
 	const [isVisible, setIsVisible] = useState<boolean>(true);
@@ -85,7 +90,7 @@ function GeneralCard({
 				overflowY: "auto",
 				scrollbarGutter: "stable",
 			}}
-			className={`flex flex-col bg-primary-color-neutral overflow-auto  rounded-3xl border-[3px]  shadow-md  overflow-x-hidden gutter
+			className={`flex flex-col bg-primary-color-neutral overflow-auto  rounded-3xl border-[3px]  overflow-x-hidden gutter shadow-black shadow-md
 						${context.bgPrimaryColor} ${context.borderPrimaryColor}
 						${!zeroXPadding && "px-5"}
 						${!zeroYPadding && "pb-6"}
@@ -97,6 +102,19 @@ function GeneralCard({
 							${!removeJustifyBetween && "justify-between"} ${!zeroYPadding && (secondGeneralCard ? "pt-11" : prolog ? "pt-10" : "pt-3")}`}>
 				{/* První title */}
 				<Box className={`flex items-center ${centerFirstTitle && "justify-center w-full"}`}>
+					{showBackButton ? (
+						<ButtonComp
+							content={IconEnum.ARROW}
+							color="text-white"
+							style="mr-4"
+							onClick={backButtonClick}
+							contentStyle="rotate-180"
+							size="small"
+							justClick
+							dontChangeOutline
+						/>
+					) : null}
+
 					<Typography
 						className={` text-[1.6rem] ${secondTitle && !disabled && "cursor-pointer"}  select-none transition-all ${!isFirstSectionVisible && "opacity-40"} font-audiowide tracking-wide `}
 						onClick={disabled ? () => {} : () => handleSectionSwitch(true)}>

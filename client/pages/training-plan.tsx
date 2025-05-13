@@ -1,12 +1,31 @@
+import { Category, getCategoriesWithExercisesReq } from "@/api/get/getCategoriesWithExercisesReq";
+import { getConcreteTrainingPlanDayReq } from "@/api/get/getConcreteTrainingPlanDayReq";
+import { getDifficultiesReq } from "@/api/get/getDifficultiesReq";
+import { getExerciseInformationLabsReq } from "@/api/get/getExerciseInformationLabsReq";
+import { Exercise, getExercisesReq } from "@/api/get/getExercisesReq";
+import { getSportReq } from "@/api/get/getSportReq";
+import { Sport } from "@/api/get/getSportsReq";
+import { getVisitedUserCategoriesWithExercisesReq } from "@/api/get/getVisitedUserCategoriesWithExercisesReq";
+import { getVisitedUserConcreteTrainingPlanDayReq } from "@/api/get/getVisitedUserConcreteTrainingPlanDayReq";
+import { getVisitedUserDifficultiesReq } from "@/api/get/getVisitedUserDifficultiesReq";
+import { getVisitedUserExerciseInformationLabsReq } from "@/api/get/getVisitedUserExerciseInformationLabsReq";
+import { getVisitedUserExercisesReq } from "@/api/get/getVisitedUserExercisesReq";
+import { getVisitedUserSportReq } from "@/api/get/getVisitedUserSportReq";
+import ExerciseInformations, { ExerciseInformationLabel } from "@/components/large/ExerciseInformations";
 import GeneralCard from "@/components/large/GeneralCard";
+import { SportDifficulty } from "@/components/large/SportDescriptionAndSettings";
+import { TrainingPlan as TrainingPlanInterface } from "@/components/large/TrainingPlansAndCreation";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
+import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
 import { useAppContext } from "@/utilities/Context";
 import { Box, Typography } from "@mui/material";
+import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import router from "next/router";
-
 import { useEffect, useState } from "react";
+
+const cookie = require("cookie");
 
 export interface TrainingPlanExercise {
 	exerciseId: number;
@@ -46,7 +65,21 @@ export const UnitShortcuts: Record<number, string> = {
 	[Unit.KILOMETER]: "km",
 };
 
-const TrainingPlan = () => {
+interface Props {
+	trainingPlanExercises: TrainingPlanExercise[];
+	trainingPlan: TrainingPlanInterface | null;
+
+	selectedSport: Sport;
+	selectedExercise: Exercise;
+	exercisesData: Exercise[];
+	categoriesData: Category[];
+	sportDifficultiesData: SportDifficulty[];
+	exerciseInformationLabelsData: ExerciseInformationLabel[];
+
+	concreteExerciseExists: boolean;
+}
+
+const TrainingPlan = (props: Props) => {
 	interface TrainingCategory {
 		nthCategory: number;
 		categoryName: string;
@@ -58,13 +91,18 @@ const TrainingPlan = () => {
 	const [trainingCategories, setTrainingCategories] = useState<TrainingCategory[]>([]);
 
 	const [clickedExercise, setClickedExercise] = useState<string>("1-1");
+	const [concreteExerciseExists, setConcreteExerciseExists] = useState<boolean>(props.concreteExerciseExists);
+	const [showDescription, setShowDescription] = useState<boolean>(false);
 
 	useEffect(() => {
-		if (!context.trainingPlanExercises || !context.trainingPlan) router.push("/training-plans");
+		if (!props.trainingPlan || props.trainingPlanExercises.length === 0) {
+			router.push("/training-plans");
+			return;
+		}
 
 		const categoryMap = new Map<number, TrainingCategory>();
 
-		context.trainingPlanExercises.forEach((exercise) => {
+		props.trainingPlanExercises.forEach((exercise) => {
 			if (!categoryMap.has(exercise.nthCategory)) {
 				categoryMap.set(exercise.nthCategory, {
 					nthCategory: exercise.nthCategory,
@@ -77,7 +115,22 @@ const TrainingPlan = () => {
 		});
 
 		setTrainingCategories(Array.from(categoryMap.values()));
-	}, [context.trainingPlanExercises, context.trainingPlan]);
+	}, [props.trainingPlanExercises, props.trainingPlan]);
+
+	const [selectedExerciseCategoryName, setSelectedExerciseCategoryName] = useState<string>("");
+
+	const [selectedSport, setSelectedSport] = useState<Sport | null>(props.selectedSport);
+	const [selectedExercise, setSelectedExercise] = useState<Exercise>(props.selectedExercise);
+
+	const [exercisesData, setExercisesData] = useState<Exercise[]>(props.exercisesData);
+	const [categoriesData, setCategoriesData] = useState<Category[]>(props.categoriesData);
+	const [sportDifficultiesData, setSportDifficultiesData] = useState<SportDifficulty[]>(props.sportDifficultiesData);
+
+	const [exerciseInformationLabelsData, setExerciseInformationLabelsData] = useState<ExerciseInformationLabel[]>(props.exerciseInformationLabelsData);
+
+	const [editing, setEditing] = useState<boolean>(false);
+
+	const [isActiveFirstChildren, setIsActiveFirstChildren] = useState<boolean>(true);
 
 	return (
 		<>
@@ -86,12 +139,23 @@ const TrainingPlan = () => {
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth="w-1/2"
-				secondColumnWidth="w-1/2"
+				firstColumnWidth={showDescription ? "w-1/2" : "max-w-[60rem] w-full"}
+				secondColumnWidth={showDescription ? "w-1/2" : "w-0"}
 				firstColumnChildren={
 					<GeneralCard
+						showBackButton
+						backButtonClick={() => router.push("/training-plans")}
 						height="h-full"
-						firstTitle={context.trainingPlan?.name}
+						firstTitle={props.trainingPlan?.name}
+						onlyRightContent={[
+							<ButtonComp
+								key={0}
+								content={showDescription ? IconEnum.EYE : IconEnum.EYE_HIDDEN}
+								size="medium"
+								externalClicked={{ state: showDescription, setState: setShowDescription }}
+								onClick={() => setShowDescription(!showDescription)}
+							/>,
+						]}
 						firstChildren={
 							<Box className="h-full space-y-4">
 								{trainingCategories.map((category) => (
@@ -106,7 +170,7 @@ const TrainingPlan = () => {
 															${context.bgTertiaryColor}
 															${clickedExercise === category.nthCategory + "-1" ? context.borderPrimaryColor : context.borderTertiaryColor}`}>
 												<Box className="w-full h-full items-center flex">
-													<Typography className="text-lg ">{category.categoryName}</Typography>
+													<Typography className="text-lg ">{category.categoryName.length > 0 ? category.categoryName : "Cviky"}</Typography>
 												</Box>
 
 												<Box className="flex items-center ">
@@ -127,7 +191,7 @@ const TrainingPlan = () => {
 														<Typography className="w-6  text-center font-light">x</Typography>
 													</Box>
 
-													<Box className={`flex  ${context.trainingPlan?.hasBurdenAndUnit ? "w-16" : "w-14"}`}>
+													<Box className={`flex  ${props.trainingPlan?.hasBurdenAndUnit ? "w-16" : "w-14"}`}>
 														<Image
 															className="size-6 "
 															src="/icons/cycle.svg"
@@ -139,9 +203,9 @@ const TrainingPlan = () => {
 															}}
 														/>
 													</Box>
-													{context.trainingPlan?.hasBurdenAndUnit ? (
+													{props.trainingPlan?.hasBurdenAndUnit ? (
 														<Box className=" w-[6.25rem] flex justify-center    ">
-															{context.trainingPlan?.unitCode === 1 ? (
+															{props.trainingPlan.unitCode === 1 ? (
 																<Image
 																	className="size-6 ml-3"
 																	src="/icons/weight.svg"
@@ -152,7 +216,7 @@ const TrainingPlan = () => {
 																		filter: "drop-shadow(3px 3px 3px #00000060)",
 																	}}
 																/>
-															) : context.trainingPlan?.unitCode === 2 ? (
+															) : props.trainingPlan.unitCode === 2 ? (
 																<Image
 																	className="size-6 ml-3"
 																	src="/icons/time.svg"
@@ -163,7 +227,7 @@ const TrainingPlan = () => {
 																		filter: "drop-shadow(3px 3px 3px #00000060)",
 																	}}
 																/>
-															) : context.trainingPlan?.unitCode === 3 ? (
+															) : props.trainingPlan.unitCode === 3 ? (
 																<Image
 																	className="size-6 ml-3"
 																	src="/icons/meter.svg"
@@ -199,7 +263,30 @@ const TrainingPlan = () => {
 																	} 
 																	${exercise.nthExercise % 2 === 0 && clickedExercise !== exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString() && context.bgSecondaryColor}
 																	`}
-														onClick={() => setClickedExercise(exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString())}>
+														onClick={() => {
+															setClickedExercise(exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString());
+
+															if (props.selectedSport?.hasCategories) {
+																const concreteCategory = categoriesData.find((cat) => cat.categoryName === exercise.categoryName);
+
+																if (concreteCategory) {
+																	const concreteExercise = concreteCategory.exercises.find((ex) => ex.exerciseId === exercise.exerciseId);
+
+																	if (concreteExercise) {
+																		setSelectedExercise(concreteExercise);
+																		setSelectedExerciseCategoryName(concreteCategory.categoryName);
+																		setConcreteExerciseExists(true);
+																	} else setConcreteExerciseExists(false);
+																} else setConcreteExerciseExists(false);
+															} else {
+																const concreteExercise = exercisesData.find((ex) => ex.exerciseId === exercise.exerciseId);
+
+																if (concreteExercise) {
+																	setSelectedExercise(concreteExercise);
+																	setConcreteExerciseExists(true);
+																} else setConcreteExerciseExists(false);
+															}
+														}}>
 														<Box className="flex w-full items-center h-full">
 															<Typography
 																className={`transition-all duration-300    font-light
@@ -219,7 +306,7 @@ const TrainingPlan = () => {
 																<Typography className="text-center w-6 font-light">x</Typography>
 																<Typography className="w-12">{exercise.repetitions}</Typography>
 
-																{context.trainingPlan?.hasBurdenAndUnit ? (
+																{props.trainingPlan?.hasBurdenAndUnit ? (
 																	<>
 																		<Typography className="text-right w-16">{exercise.burden}</Typography>
 																		<Typography className="ml-2 w-9 font-light">{UnitShortcuts[exercise.unitCode]}</Typography>{" "}
@@ -243,10 +330,184 @@ const TrainingPlan = () => {
 						}
 					/>
 				}
-				secondColumnChildren={<></>}
+				secondColumnChildren={
+					showDescription ? (
+						concreteExerciseExists ? (
+							<ExerciseInformations
+								props={{
+									sportId: props.trainingPlan?.sportId || -1,
+									exerciseId: selectedExercise?.exerciseId || -1,
+
+									exerciseName: selectedExercise?.exerciseName || "",
+									exerciseDescription: selectedExercise?.exerciseName || "",
+									exerciseYoutubeLink: selectedExercise?.exerciseName || "",
+									exerciseOrderNumber: 0,
+									exerciseOrderNumberWithoutCategories: 0,
+									exerciseCategory: selectedExerciseCategoryName,
+
+									selectedSport: { state: selectedSport, setState: setSelectedSport },
+									selectedExercise: { state: selectedExercise, setState: setSelectedExercise },
+
+									exercisesData: {
+										state: exercisesData,
+										setState: setExercisesData,
+									},
+									categoriesData: {
+										state: categoriesData,
+										setState: setCategoriesData,
+									},
+									sportDifficultiesData: {
+										state: sportDifficultiesData,
+										setState: setSportDifficultiesData,
+									},
+									exerciseInformationLabelsData: {
+										state: exerciseInformationLabelsData,
+										setState: setExerciseInformationLabelsData,
+									},
+
+									editing: { state: editing, setState: setEditing },
+									isActiveFirstChildren: { state: isActiveFirstChildren, setState: setIsActiveFirstChildren },
+
+									categoryId: selectedExercise.categoryId,
+									difficultyId: selectedExercise.sportDifficultyId,
+								}}
+							/>
+						) : (
+							<GeneralCard
+								dontShowHr
+								height="h-full"
+								firstChildren={
+									<Box className="h-1/3 w-full flex items-center justify-center">
+										<Typography className=" text-xl font-light">Pro vybraný cvik neexistují podrobnosti ani popis.</Typography>
+									</Box>
+								}
+							/>
+						)
+					) : null
+				}
 			/>
 		</>
 	);
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+	const handleError = (error: any) => {
+		console.error("Error fetching sport plan:", error);
+
+		return { props: { trainingPlan: null, trainingPlanExercises: [] } };
+	};
+
+	try {
+		const cookies = cookie.parse(context.req.headers.cookie || "");
+
+		const authToken = cookies.authToken || null;
+		const trainingPlanId = cookies.tp_i || null;
+		const dayOrderNumber = cookies.d_on || null;
+
+		if ([authToken, trainingPlanId, dayOrderNumber].includes(null)) {
+			return handleError("Missing required cookies");
+		}
+
+		const visitedUserId = cookies.view_tmp ? Number(atob(cookies.view_tmp)) : -1;
+
+		if (visitedUserId > 0) {
+			const resConcreteTrainingPlanDay = await getVisitedUserConcreteTrainingPlanDayReq({ authToken, trainingPlanId, dayOrderNumber, visitedUserId });
+
+			if (resConcreteTrainingPlanDay.status === 200 && resConcreteTrainingPlanDay.data) {
+				const sportId = resConcreteTrainingPlanDay.data.trainingPlan.sportId;
+
+				const resSport = await getVisitedUserSportReq({ authToken, sportId, visitedUserId });
+
+				const resSportData = resSport.data?.hasCategories
+					? await getVisitedUserCategoriesWithExercisesReq({ props: { sportId, authToken, visitedUserId } })
+					: await getVisitedUserExercisesReq({ props: { sportId, authToken, visitedUserId } });
+
+				const resLabsAndVals = await getVisitedUserExerciseInformationLabsReq({ sportId, authToken, visitedUserId });
+
+				const resDifficulties = await getVisitedUserDifficultiesReq({ sportId, authToken, visitedUserId });
+
+				const firstTrainingPlanExercise = resConcreteTrainingPlanDay.data.trainingPlanExercises.find((exercise) => exercise.nthExercise === 1 && exercise.nthCategory === 1) || null;
+				let firstExercise;
+
+				if (resSport.data?.hasCategories) {
+					const categories = resSportData.data as Category[];
+
+					firstExercise = categories.find((category) => category.categoryName === firstTrainingPlanExercise?.categoryName)?.exercises.find((exercise) => exercise.exerciseId === firstTrainingPlanExercise?.exerciseId) || null;
+				} else {
+					const exercises = resSportData.data as Exercise[];
+
+					firstExercise = exercises.find((exercise) => exercise.exerciseId === firstTrainingPlanExercise?.exerciseId) || null;
+				}
+
+				return {
+					props: {
+						trainingPlan: resConcreteTrainingPlanDay.data?.trainingPlan || null,
+						trainingPlanExercises: resConcreteTrainingPlanDay.data?.trainingPlanExercises || [],
+
+						selectedSport: resSport.data,
+						selectedExercise: firstExercise || null,
+						exercisesData: resSport.data?.hasCategories ? [] : resSportData.data,
+						categoriesData: resSport.data?.hasCategories ? resSportData.data : [],
+						sportDifficultiesData: resDifficulties.data,
+						exerciseInformationLabelsData: resLabsAndVals.data,
+
+						concreteExerciseExists: firstExercise !== null,
+					},
+				};
+			}
+		}
+
+		//
+		//
+		//
+
+		const resConcreteTrainingPlanDay = await getConcreteTrainingPlanDayReq({ authToken, trainingPlanId, dayOrderNumber });
+
+		if (resConcreteTrainingPlanDay.status === 200 && resConcreteTrainingPlanDay.data) {
+			const sportId = resConcreteTrainingPlanDay.data.trainingPlan.sportId;
+
+			const resSport = await getSportReq({ authToken, sportId });
+
+			const resSportData = resSport.data?.hasCategories ? await getCategoriesWithExercisesReq({ props: { sportId, authToken } }) : await getExercisesReq({ props: { sportId, authToken } });
+
+			const resLabsAndVals = await getExerciseInformationLabsReq({ sportId, authToken });
+
+			const resDifficulties = await getDifficultiesReq({ sportId, authToken });
+
+			const firstTrainingPlanExercise = resConcreteTrainingPlanDay.data.trainingPlanExercises.find((exercise) => exercise.nthExercise === 1 && exercise.nthCategory === 1) || null;
+			let firstExercise;
+
+			if (resSport.data?.hasCategories) {
+				const categories = resSportData.data as Category[];
+
+				firstExercise = categories.find((category) => category.categoryName === firstTrainingPlanExercise?.categoryName)?.exercises.find((exercise) => exercise.exerciseId === firstTrainingPlanExercise?.exerciseId) || null;
+			} else {
+				const exercises = resSportData.data as Exercise[];
+
+				firstExercise = exercises.find((exercise) => exercise.exerciseId === firstTrainingPlanExercise?.exerciseId) || null;
+			}
+
+			return {
+				props: {
+					trainingPlan: resConcreteTrainingPlanDay.data?.trainingPlan || null,
+					trainingPlanExercises: resConcreteTrainingPlanDay.data?.trainingPlanExercises || [],
+
+					selectedSport: resSport.data,
+					selectedExercise: firstExercise || null,
+					exercisesData: resSport.data?.hasCategories ? [] : resSportData.data,
+					categoriesData: resSport.data?.hasCategories ? resSportData.data : [],
+					sportDifficultiesData: resDifficulties.data,
+					exerciseInformationLabelsData: resLabsAndVals.data,
+
+					concreteExerciseExists: firstExercise !== null,
+				},
+			};
+		} else {
+			return handleError(resConcreteTrainingPlanDay.message);
+		}
+	} catch (error) {
+		return handleError(error);
+	}
 };
 
 export default TrainingPlan;

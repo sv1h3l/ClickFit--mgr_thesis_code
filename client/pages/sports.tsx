@@ -31,6 +31,7 @@ const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[];
 	const [editing, setEditing] = useState<boolean>(false);
 
 	const [isActiveFirstChildren, setIsActiveFirstChildren] = useState<boolean>(true);
+	const [showFirstSection, setShowFirstSection] = useState<boolean>(true);
 
 	return (
 		<>
@@ -87,6 +88,10 @@ const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[];
 								setState: setEditing,
 							},
 							dontShow: true,
+							showFirstSection: {
+								state: showFirstSection,
+								setState: setShowFirstSection,
+							},
 						}}
 					/>
 				}
@@ -146,6 +151,11 @@ const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[];
 									state: isActiveFirstChildren,
 									setState: setIsActiveFirstChildren,
 								}}
+								showFirstSection={{
+									state: showFirstSection,
+									setState: setShowFirstSection,
+								}}
+
 								sportName={selectedSport?.sportName || ""}
 							/>
 						) : isExercise(selectedSportOrExercise) ? (

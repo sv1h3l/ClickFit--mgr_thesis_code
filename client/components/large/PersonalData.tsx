@@ -1,42 +1,32 @@
 import { changeUserAtrReq } from "@/api/change/changeUserAtrReq";
 import { changeUserHealthReq } from "@/api/change/changeUserHealthReq";
 import { changeUserPswReq } from "@/api/change/changeUserPswReq";
+import { changeUserSexReq } from "@/api/change/changeUserSexReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
+import { User } from "@/api/get/getAllUserAtrsReq";
+import { useAppContext } from "@/utilities/Context";
 import { StateAndSet } from "@/utilities/generalInterfaces";
-import { Box, Button, TextField } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
+import { Box, FormControl, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
+import router from "next/router";
 import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkBreaks from "remark-breaks";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import LabelAndValue from "../small/LabelAndValue";
 import Title from "../small/Title";
 import GeneralCard from "./GeneralCard";
 
-export interface User {
-	userId: number;
-	subscriptionId: number;
-
-	email: string;
-
-	firstName: string;
-	lastName: string;
-
-	height: number | null;
-	weight: number | null;
-	age: number | null;
-	sex: "muž" | "žena" | "neuvedeno";
-
-	health: string | null;
-}
-
 interface Props {
 	user: User;
 
 	editing: StateAndSet<boolean>;
+
+	cannotEdit?: boolean;
 }
 
-function PersonalAndHealthData(props: Props) {
+function PersonalData(props: Props) {
 	const [user, setUser] = useState<User>(props.user);
+
+	const context = useAppContext();
 
 	const [localHealth, setLocalHealth] = useState<string>(props.user.health || "");
 
@@ -182,7 +172,12 @@ function PersonalAndHealthData(props: Props) {
 			if (response.status === 400) {
 				setPasswordHelperTexts({ password: response.data?.passwordHelperText!, confirmPassword: response.data?.confirmPasswordHelperText! });
 			} else if (response.status === 200) {
+				setPassword("");
+				setConfirmPassword("");
 				setPasswordHelperTexts({ password: "", confirmPassword: "" });
+				setShowSaveIcon(true);
+
+				setTimeout(() => setShowSaveIcon(false), 1000);
 			}
 
 			consoleLogPrint(response);
@@ -191,33 +186,172 @@ function PersonalAndHealthData(props: Props) {
 		}
 	};
 
+	//
+	//	#region Select Comp
+	//
+	const [userSex, setUserSex] = useState(props.user.sex);
+
+	const handleChangeUserSex = async (value: "muž" | "žena" | "neuvedeno") => {
+		try {
+			const response = await changeUserSexReq({ value });
+
+			if (response.status === 200) {
+				setUserSex(value);
+			}
+
+			consoleLogPrint(response);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	const SelectComp = () => {
+		const [open, setOpen] = useState(false);
+
+		const handleOpen = () => {
+			setOpen(true);
+		};
+
+		const handleClose = () => {
+			setOpen(false);
+		};
+
+		const handleChange = (event: SelectChangeEvent<string>) => {
+			const value = event.target.value;
+
+			if (value === "muž" || value === "žena" || value === "neuvedeno") {
+				handleChangeUserSex(value);
+				setUserSex(value);
+			}
+
+			handleClose();
+		};
+
+		const selectItems = ["muž", "žena", "neuvedeno"];
+
+		return (
+			<FormControl
+				className=" -mt-1 ml-2"
+				variant="standard"
+				sx={{
+					"& .MuiSelect-select": {
+						backgroundColor: "transparent !important",
+					},
+				}}>
+				<Select
+					open={open}
+					onClose={handleClose}
+					onOpen={handleOpen}
+					value={userSex || ""}
+					onChange={handleChange}
+					className=" h-[2rem]  "
+					disableUnderline
+					sx={{
+						"& .MuiSelect-select": {
+							display: "flex",
+							alignItems: "center",
+
+							backgroundColor: "transparent !important",
+						},
+					}}
+					IconComponent={() => null}
+					renderValue={(value) => (
+						<Box className="flex items-center gap-2 ml-0.5 -mr-5 ">
+							<ButtonComp
+								content={open ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
+								style="-mt-0.5  mr-1 "
+								color="text-[#fff]"
+								onClick={handleOpen}
+								externalClicked={{ state: open, setState: setOpen }}
+							/>
+							<Typography sx={{ opacity: 0.95 }}>{value}</Typography>
+						</Box>
+					)}
+					MenuProps={{
+						PaperProps: {
+							sx: {
+								marginTop: "-0.15rem",
+								marginLeft: "0.3rem",
+								backgroundColor: "#1E1E1E",
+								borderRadius: "0.75rem",
+								borderTopLeftRadius: "0.25rem",
+								fontWeight: 300,
+							},
+						},
+						anchorOrigin: {
+							vertical: "bottom",
+							horizontal: "left",
+						},
+						transformOrigin: {
+							vertical: "top",
+							horizontal: "left",
+						},
+					}}>
+					{selectItems.map((item, index) => (
+						<MenuItem
+							key={item}
+							value={item}
+							sx={{
+								opacity: 1,
+								"&.Mui-selected": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+								"&.Mui-selected:hover": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+							}}
+							className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+								${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+							<Typography sx={{ opacity: 0.95 }}>{item}</Typography>
+						</MenuItem>
+					))}
+				</Select>
+			</FormControl>
+		);
+	};
+	//	#endregion
+	//
+
+	const [showSaveIcon, setShowSaveIcon] = useState(false);
+
 	return (
 		<Box className="h-full flex flex-col gap-4 ">
 			<GeneralCard
 				marginBottom
 				firstTitle="Osobní údaje"
-				height="h-1/2"
-				onlyRightContent={[
-					<ButtonComp
-						key={"edit"}
-						size="large"
-						content={IconEnum.EDIT}
-						onClick={() => {
-							props.editing.setState(!props.editing.state);
-						}}
-					/>,
-				]}
+				height="h-full"
+				showBackButton={props.cannotEdit}
+				backButtonClick={() => {
+					router.push(`/chat`);
+				}}
+				onlyRightContent={
+					props.cannotEdit
+						? []
+						: [
+								<ButtonComp
+									key={"edit"}
+									size="large"
+									content={IconEnum.EDIT}
+									onClick={() => {
+										props.editing.setState(!props.editing.state);
+									}}
+								/>,
+						  ]
+				}
 				firstChildren={
-					<Box className="flex flex-col gap-4 w-full ">
-						<Box className="flex w-1/2">
-							<LabelAndValue
-								mainStyle=" mt-2"
-								noPaddingTop
-								label="Email"
-								middleArrowStyle="ml-[0.65rem]"
-								value={user.email}
-							/>
-						</Box>
+					<Box className="flex flex-col gap-6 w-full mt-2">
+						{props.cannotEdit ? null : (
+							<Box className="flex w-1/2">
+								<LabelAndValue
+									mainStyle=" "
+									noPaddingTop
+									label="Email"
+									middleArrowStyle="ml-[0.65rem]"
+									value={user.email}
+								/>
+							</Box>
+						)}
+
 						<Box className="flex ">
 							<Box className="flex w-1/2 ">
 								{props.editing.state ? (
@@ -261,7 +395,7 @@ function PersonalAndHealthData(props: Props) {
 							<Box className="flex w-1/2">
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6"
+										mainStyle=""
 										label="Příjmení"
 										fontLight
 										maxLength={20}
@@ -383,26 +517,35 @@ function PersonalAndHealthData(props: Props) {
 								)}
 							</Box>
 							<Box className="flex w-1/2">
-								<LabelAndValue
-									middleArrowStyle="ml-[0.4rem]"
-									label="Pohlaví"
-									value={user.sex}
-								/>
+								{props.editing.state ? (
+									<Box className="ml-[0.5rem] flex  mt-4">
+										<Typography className="font-light text-nowrap mr-[1.15rem]">Pohlaví</Typography>
+										<Typography className="font-light opacity-50 text-nowrap">»</Typography>
+										<SelectComp />
+									</Box>
+								) : (
+									<LabelAndValue
+										middleArrowStyle="ml-[0.4rem]"
+										label="Pohlaví"
+										value={userSex}
+									/>
+								)}
 							</Box>
 						</Box>
 
 						{props.editing.state && (
-							<Box className="mt-4">
+							<Box className="mt-6 w-full">
 								<Title
 									title="Nové heslo"
 									smallPaddingTop
 								/>
-								<Box className="flex w-2/3 h-12">
+								<Box className="flex  w-full h-12 mt-4">
 									<LabelAndValue
 										label="Heslo"
 										placeHolder="Zadejte nové heslo"
 										textFieldValue={password}
-										mainStyle="ml-[4.2rem] mt-2"
+										firstTypographyStyle="ml-[4.2rem]"
+										mainStyle=" max-w-[30rem] w-full"
 										noPaddingTop
 										withoutIcon
 										psw
@@ -410,19 +553,23 @@ function PersonalAndHealthData(props: Props) {
 										fontLight
 										helperText={passwordHelperTexts.password}
 										maxLength={40}
+										onClickForBlur
 										textFieldOnClick={(value) => {
 											setPassword(value);
 										}}
 										icon={IconEnum.CHECK}
 									/>
 								</Box>
-								<Box className="flex w-2/3">
+								<Box className="flex h-12 w-full pt-3">
 									<LabelAndValue
+										noPaddingTop
 										label="Potvrzení hesla"
 										placeHolder="Zadejte heslo znovu"
 										textFieldValue={confirmPassword}
 										withoutIcon
+										mainStyle="w-full max-w-[30rem]"
 										psw
+										onClickForBlur
 										textFieldStyle={passwordHelperTexts.confirmPassword ? "" : "mb-[0.45rem]"}
 										fontLight
 										helperText={passwordHelperTexts.confirmPassword}
@@ -433,56 +580,28 @@ function PersonalAndHealthData(props: Props) {
 										icon={IconEnum.CHECK}
 									/>
 								</Box>
-								<Button
-									variant="outlined"
-									size="small"
-									className="ml-36 mt-8"
-									onClick={changePassword}>
-									Změnit heslo
-								</Button>
+								<Box className={`flex items-end gap-3`}>
+									<ButtonComp
+										justClick
+										dontChangeOutline
+										size="small"
+										style="ml-36 mt-6"
+										onClick={changePassword}
+										content={"Změnit heslo"}
+									/>
+
+									<SaveIcon
+										className={`mb-0.5 text-blue-icon duration-300 transition-all
+												${showSaveIcon ? "opacity-100" : "opacity-0"}`}
+									/>
+								</Box>
 							</Box>
 						)}
 					</Box>
-				}
-			/>
-
-			<GeneralCard
-				firstTitle="Zdravotní údaje"
-				height=" h-1/2"
-				firstChildren={
-					props.editing.state ? (
-						<TextField
-							className="w-full"
-							placeholder="Popis sportu"
-							multiline
-							value={localHealth}
-							onChange={(e) => setLocalHealth(e.target.value)}
-							onBlur={() => handleChangeUserHealth()}
-							InputProps={{
-								className: "font-light",
-							}}
-						/>
-					) : (
-						<span className="react-markdown break-words font-light">
-							<ReactMarkdown
-								remarkPlugins={[remarkBreaks]}
-								components={{
-									p: ({ children }) => <p className="font-light ml-4">{children}</p>,
-									ul: ({ children }) => <ul className="list-disc pl-8 mt-1 mb-0 space-y-1">{children}</ul>,
-									ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 mb-0 space-y-1">{children}</ol>,
-									li: ({ children }) => <li className="mb-0 ml-4">{children}</li>,
-									h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
-									h2: ({ children }) => <h2 className="text-2xl font-semibold">{children}</h2>,
-									h3: ({ children }) => <h3 className="text-xl font-medium">{children}</h3>,
-								}}>
-								{localHealth|| ""}
-							</ReactMarkdown>
-						</span>
-					)
 				}
 			/>
 		</Box>
 	);
 }
 
-export default PersonalAndHealthData;
+export default PersonalData;

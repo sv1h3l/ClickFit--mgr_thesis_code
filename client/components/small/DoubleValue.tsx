@@ -8,6 +8,7 @@ import csLocale from "date-fns/locale/cs";
 import { useEffect, useState } from "react";
 
 import ButtonComp, { IconEnum } from "./ButtonComp";
+import { useAppContext } from "@/utilities/Context";
 
 interface Props {
 	firstValue?: string;
@@ -46,6 +47,8 @@ interface Props {
 }
 
 const DoubleValue = (props: Props) => {
+	const context = useAppContext();
+
 	const [hasValueChanged, setHasValueChanged] = useState(false);
 	const [firstValueDate, setFirstValueDate] = useState<Date | null>(props.firstValue ? new Date(props.firstValue.split(".").reverse().join("-")) : null);
 	const [firstValue, setFirstValue] = useState<string>(props.firstValue || "");
@@ -153,7 +156,7 @@ const DoubleValue = (props: Props) => {
 										popper: {
 											sx: {
 												"& .MuiPickersPopper-paper": {
-													backgroundColor: "#383838",
+													backgroundColor: context.colorSchemeCode === "red" ? "#442f2f" : context.colorSchemeCode === "blue" ? "#27323f" : context.colorSchemeCode === "green" ? "#1e3a2d" : "#373737" ,
 													borderRadius: "1.25rem",
 													borderTopLeftRadius: "0.25rem",
 													marginTop: "0.25rem",
@@ -162,24 +165,24 @@ const DoubleValue = (props: Props) => {
 													color: "#ffffff80",
 												},
 												"& .MuiPickersCalendarHeader-root": {
-													color: "#D9D9D9",
+													color: "#ededed",
 												},
 												"& .MuiPickersDay-root": {
-													color: "#D9D9D9",
+													color: "#ededed",
 												},
 												"& .MuiPickersDay-today": {
 													borderColor: "#ffffff68", // Barva pozadí pro aktuální den
-													color: "#D9D9D9", // Barva textu pro aktuální den
+													color: "#ededed", // Barva textu pro aktuální den
 												},
 												"& .MuiIconButton-root": {
-													color: "#D9D9D9", // Ikony na bílo (šipky)
+													color: "#ededed", // Ikony na bílo (šipky)
 												},
 												"& .MuiPickersYear-root": {
-													color: "#D9D9D9", // Default color for year
+													color: "#ededed", // Default color for year
 												},
 												"& .MuiPickersYear-yearButton.Mui-selected": {
 													color: "#000", // Default color for year
-													backgroundColor: "#D9D9D8",
+													backgroundColor: "#ededed",
 												},
 											},
 										},
@@ -187,7 +190,7 @@ const DoubleValue = (props: Props) => {
 										day: {
 											sx: {
 												"&.MuiPickersDay-root.Mui-selected": {
-													backgroundColor: "#D9D9D9", // Nastavte požadovanou barvu pozadí
+													backgroundColor: "#ededed", // Nastavte požadovanou barvu pozadí
 													color: "#000", // Nastavte požadovanou barvu textu
 												},
 											},

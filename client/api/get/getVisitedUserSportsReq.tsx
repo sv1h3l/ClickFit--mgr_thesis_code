@@ -1,8 +1,5 @@
 import { GenericResponse } from "../GenericApiResponse";
-import { User } from "./getAllUserAtrsReq";
 import { Sport } from "./getSportsReq";
-
-
 
 interface Props {
 	authToken: string;

@@ -21,10 +21,20 @@ export const getSportDetailLabsAndValsCont = async (req: Request, res: Response)
 
 	const authToken = req.headers["authorization"]?.split(" ")[1];
 
-	const checkRes = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW, authToken }); // TODO předělat na SPORT_VIEW
-	if (checkRes.status !== GenEnum.SUCCESS || !checkRes.data?.userId) {
-		res.status(checkRes.status).json({ message: checkRes.message });
+	const checkSportView = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW, authToken }); // TODO předělat na SPORT_VIEW
+	const checkSportEdit = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT, authToken }); // TODO předělat na SPORT_VIEW
+
+	if (checkSportView.status !== GenEnum.SUCCESS && checkSportEdit.status !== GenEnum.SUCCESS) {
+		res.status(checkSportView.status).json({ message: checkSportView.message });
 		return;
+	}
+
+	let userId = -1;
+
+	if (checkSportView.status === GenEnum.SUCCESS) {
+		userId = checkSportView.data?.userId || -1;
+	} else {
+		userId = checkSportEdit.data?.userId || -1;
 	}
 
 	try {
@@ -35,7 +45,7 @@ export const getSportDetailLabsAndValsCont = async (req: Request, res: Response)
 			return;
 		}
 
-		let resVals = await getSportDetailValsMod({ sportId: sportIdNumber, userId: checkRes.data.userId });
+		let resVals = await getSportDetailValsMod({ sportId: sportIdNumber, userId });
 
 		if (resVals.status === GenEnum.FAILURE) {
 			res.status(resVals.status).json({ message: resVals.message, data: [] });
@@ -56,14 +66,14 @@ export const getSportDetailLabsAndValsCont = async (req: Request, res: Response)
 				return { sportDetailLabelId: lab.sport_detail_label_id, orderNumber: lab.order_number };
 			});
 
-			const resCreateVals = await createMissingSportDetailValsMod({ sportId: sportIdNumber, missingSportDetailIds, userId: checkRes.data.userId });
+			const resCreateVals = await createMissingSportDetailValsMod({ sportId: sportIdNumber, missingSportDetailIds, userId });
 
 			if (resCreateVals.status === GenEnum.FAILURE) {
 				res.status(resCreateVals.status).json({ message: resCreateVals.message, data: [] });
 				return;
 			}
 
-			resVals = await getSportDetailValsMod({ sportId: sportIdNumber, userId: checkRes.data.userId });
+			resVals = await getSportDetailValsMod({ sportId: sportIdNumber, userId });
 		}
 
 		const labsAndVals = resLabs.data

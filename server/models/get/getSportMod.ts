@@ -16,6 +16,7 @@ export interface Res {
 	has_difficulties: boolean;
 	has_recommended_values: boolean;
 	has_recommended_difficulty_values: boolean;
+	has_automatic_plan_creation: boolean;
 
 	unit_code: number;
 

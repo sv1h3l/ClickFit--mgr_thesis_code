@@ -1,11 +1,12 @@
-import { TrainingPlan } from "@/components/large/TrainingPlansAndCreation";
-import { TrainingPlanExercise } from "@/pages/training-plan";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 type ThemeColor = "gray" | "red" | "green" | "blue";
 export type TextSize = "text_size-small" | "text_size-medium" | "text_size-large";
 
 interface AppContextInterface {
+
+	colorSchemeCode: string;
+
 	outerContentColor: string;
 
 	bgPrimaryColor: string;
@@ -27,15 +28,11 @@ interface AppContextInterface {
 
 	textSize: TextSize;
 	setTextSize: (size: TextSize) => void;
-
-	trainingPlan: TrainingPlan | undefined;
-	setTrainingPlan: (trainingPlan: TrainingPlan | undefined) => void;
-
-	trainingPlanExercises: TrainingPlanExercise[];
-	setTrainingPlanExercises: (exercises: TrainingPlanExercise[]) => void;
 }
 
 const defaultColors = {
+	colorSchemeCode: "gray",
+
 	outerContentColor: " outer_content-color-gray ",
 
 	bgPrimaryColor: " bg-primary_color-gray ",
@@ -59,12 +56,6 @@ const AppContext = createContext<AppContextInterface>({
 	textSize: "text_size-medium",
 	setColors: () => {},
 	setTextSize: () => {},
-
-	trainingPlan: undefined,
-	setTrainingPlan: () => {},
-
-	trainingPlanExercises: [],
-	setTrainingPlanExercises: () => {},
 });
 
 export const useAppContext = () => useContext(AppContext);
@@ -75,6 +66,8 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
 
 	const setColor = (color: ThemeColor) => {
 		const newColors = {
+			colorSchemeCode: color,
+
 			outerContentColor: "outer_content-color-" + color,
 
 			bgPrimaryColor: " bg-primary_color-" + color + " ",
@@ -106,11 +99,5 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
 
 	// #endregion
 
-	// #region Training Plan
-	const [trainingPlanExercises, setTrainingPlanExercises] = useState<TrainingPlanExercise[]>([]);
-	const [trainingPlan, setTrainingPlan] = useState<TrainingPlan | undefined>();
-
-	// #endregion
-
-	return <AppContext.Provider value={{ ...colors, textSize, setColors: setColor, setTextSize, trainingPlanExercises, setTrainingPlanExercises, trainingPlan, setTrainingPlan }}>{children}</AppContext.Provider>;
+	return <AppContext.Provider value={{ ...colors, textSize, setColors: setColor, setTextSize }}>{children}</AppContext.Provider>;
 };

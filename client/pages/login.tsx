@@ -1,15 +1,22 @@
 // pages/login.tsx
+import { getUserSettingsReq } from "@/api/get/getUserSettingsReq";
 import GeneralCard from "@/components/large/GeneralCard";
 import OneColumnPage from "@/components/large/OneColumnPage";
 import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
+import CustomModal from "@/components/small/CustomModal";
+import { useAppContext } from "@/utilities/Context";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { emailVerificationRequest } from "../api/residue/emailVerificationRequest";
 import { loginRequest } from "../api/residue/loginRequest";
 
+const cookie = require("cookie");
+
 function Login() {
+	const context = useAppContext();
+
 	const router = useRouter();
 
 	const [email, setEmail] = useState("");
@@ -37,7 +44,24 @@ function Login() {
 				password,
 			});
 
-			router.push("/training-plans");
+			const cookies = cookie.parse(document.cookie);
+			const authToken = cookies.authToken || null;
+
+			const settings = await getUserSettingsReq({ authToken });
+
+			if (settings.status === 200 && settings.data) {
+				const textSizeCode = settings.data.textSizeCode;
+				const colorSchemeCode = settings.data.colorSchemeCode;
+
+				document.cookie = `text_size=${textSizeCode}; path=/; max-age=${60 * 60 * 24 * 90};`;
+				document.cookie = `color_scheme=${colorSchemeCode}; path=/; max-age=${60 * 60 * 24 * 90};`;
+
+				context.setTextSize(textSizeCode === 2 ? "text_size-small" : textSizeCode === 4 ? "text_size-large" : "text_size-medium");
+				context.setColors(colorSchemeCode === 2 ? "red" : colorSchemeCode === 3 ? "blue" : colorSchemeCode === 4 ? "green" : "gray");
+			}
+
+			if (cookies.cc) router.push("/connection?cc=" + cookies.cc);
+			else router.push("/training-plans");
 		} catch (error: any) {
 			console.error("Error:", error.message, "\nStatus code:", error.status);
 
@@ -66,7 +90,7 @@ function Login() {
 				email,
 			});
 
-			console.log("Sending confirmation email to:", email);
+			setIsModalOpen(true);
 		} catch (error) {
 			console.error("Error sending confirmation email:", error);
 		}
@@ -75,6 +99,24 @@ function Login() {
 	const handleForgotPassword = () => {
 		router.push("/forgotten-password");
 	};
+
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
+
+	useEffect(() => {
+		const cookies = cookie.parse(document.cookie);
+
+		const ccModOpened = cookies["cc-mod-opened"];
+
+		if (cookies.cc && !ccModOpened) {
+			document.cookie = cookie.serialize("cc-mod-opened", "1", {
+				path: "/",
+				maxAge: 60 * 60 * 24,
+			});
+
+			setIsConnectionModalOpen(true);
+		}
+	}, [router.query.cc]);
 
 	return (
 		<>
@@ -86,66 +128,110 @@ function Login() {
 				firstColumnWidth="w-7/24 "
 				firstColumnHeight="h-fit"
 				firstColumnChildren={
-					<GeneralCard
-						centerFirstTitle
-						style="relative"
-						prolog
-						dontShowHr
-						firstTitle="Přihlášení"
-						firstChildren={
-							<Box className="flex flex-col items-center gap-2 pr-3">
-								<TextField
-									className="w-full mb-8 mt-4"
-									placeholder="Email"
-									variant="standard"
-									value={email}
-									size="small"
-									onChange={(e) => setEmail(e.target.value)}
-								/>
+					<>
+						<GeneralCard
+							centerFirstTitle
+							style="relative"
+							prolog
+							dontShowHr
+							firstTitle="Přihlášení"
+							firstChildren={
+								<Box className="flex flex-col items-center gap-1 pr-3">
+									<TextField
+										className="w-full mb-8 "
+										label="E-mail"
+										variant="standard"
+										value={email}
+										size="small"
+										onChange={(e) => setEmail(e.target.value)}
+									/>
 
-								<TextField
-									className="w-full "
-									placeholder="Heslo"
-									type="password"
-									variant="standard"
-									value={password}
-									size="small"
-									disabled={isAccountConfirmed}
-									onChange={(e) => setPassword(e.target.value)}
-								/>
+									<TextField
+										className="w-full "
+										label="Heslo"
+										type="password"
+										variant="standard"
+										value={password}
+										size="small"
+										disabled={isAccountConfirmed}
+										onChange={(e) => setPassword(e.target.value)}
+									/>
 
-								<Button
-									disableRipple
-									onClick={handleForgotPassword}
-									className=" bottom-1 ml-auto py-0 px-1 mb-4 text-[#dCdCdC] normal-case"
-									disabled={isAccountConfirmed}>
-									Zapomenuté heslo
-								</Button>
+									<Button
+										disableRipple
+										onClick={handleForgotPassword}
+										className=" bottom-1 ml-auto py-0 px-1 mb-4 text-[#dCdCdC] normal-case"
+										disabled={isAccountConfirmed}>
+										Zapomenuté heslo
+									</Button>
 
-								<Typography className="h-6 text-red-icon">{errorEmailAndPassword}</Typography>
+									<Typography className="h-6 mt-2 text-red-icon">{errorEmailAndPassword}</Typography>
 
-								<ButtonComp
-									style="mb-4"
-									dontChangeOutline
-									justClick
-									size="medium"
-									content={isAccountConfirmed ? "Zaslat potvrzovací email" : "Přihlásit se"}
-									onClick={isAccountConfirmed ? sendConfirmationEmail : handleLogin}
-								/>
+									<ButtonComp
+										style="mb-4"
+										dontChangeOutline
+										justClick
+										size="medium"
+										content={isAccountConfirmed ? "Zaslat potvrzovací email" : "Přihlásit se"}
+										onClick={isAccountConfirmed ? sendConfirmationEmail : handleLogin}
+									/>
 
-								<ButtonComp
-									content={IconEnum.BACK}
-									justClick
-									dontChangeOutline
-									size="small"
-									style="absolute left-3 top-3"
-									onClick={() => {
-										router.push("/");
-									}}
-								/>
-							</Box>
-						}
-					/>
+									<ButtonComp
+										content={IconEnum.BACK}
+										justClick
+										dontChangeOutline
+										size="small"
+										style="absolute left-3 top-3"
+										onClick={() => {
+											router.push("/");
+										}}
+									/>
+								</Box>
+							}
+						/>
+
+						<CustomModal
+							isOpen={isModalOpen}
+							title="Potvrzovací e-mail odeslán"
+							hideBackButton
+							children={
+								<Box className=" mb-4 max-w-md">
+									<Typography className="">Na zadaný e-mail byl odeslán potvrzovací odkaz.</Typography>
+									<Typography className="mt-3">Pro vstup do aplikace KlikFit je potřeba registraci potvrdit.</Typography>
+
+									<ButtonComp
+										style="mx-auto mt-9"
+										size="medium"
+										content={"Návrat na hlavní stránku"}
+										onClick={() => {
+											setIsModalOpen(false);
+											router.push("/");
+										}}
+									/>
+								</Box>
+							}
+						/>
+
+						<CustomModal
+							isOpen={isConnectionModalOpen}
+							title="Navázání spojení"
+							hideBackButton
+							children={
+								<Box className=" mb-4 max-w-md">
+									<Typography className="">Pro navázání nového spojení je nutné se přihlásit.</Typography>
+
+									<ButtonComp
+										style="mx-auto mt-9"
+										size="medium"
+										content={"Pokračovat"}
+										onClick={() => {
+											setIsConnectionModalOpen(false);
+										}}
+									/>
+								</Box>
+							}
+						/>
+					</>
 				}
 			/>
 		</>

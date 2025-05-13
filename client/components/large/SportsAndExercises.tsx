@@ -16,7 +16,6 @@ import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import LabelAndValue from "../small/LabelAndValue";
 import TextFieldWithIcon from "../small/TextFieldWithIcon";
-import Title from "../small/Title";
 import { ExerciseInformationLabel } from "./ExerciseInformations";
 import GeneralCard from "./GeneralCard";
 import { SportDifficulty } from "./SportDescriptionAndSettings";
@@ -40,6 +39,7 @@ interface SportsProps {
 	exerciseInformationLabelsData: StateAndSetFunction<ExerciseInformationLabel[]>;
 
 	editing: StateAndSet<boolean>;
+	showFirstSection: StateAndSet<boolean>;
 	dontShow?: boolean;
 }
 
@@ -60,12 +60,10 @@ export function isExercise(obj: Sport | Exercise | null): obj is Exercise {
 }
 
 const SportsAndExercises = ({ props }: { props: SportsProps }) => {
-	const [showFirstSection, setShowFirstSection] = useState(true);
-
 	useEffect(() => {
 		props.editing.setState(false);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [showFirstSection]);
+	}, [props.showFirstSection.state]);
 
 	useEffect(() => {
 		{
@@ -106,9 +104,9 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 					hasRecommendedDifficultyValues: false,
 					hasAutomaticPlanCreation: false,
 
-					unitCode: 0,
+					unitCode: 7,
 
-					description: "Zde je vhodné napsat obecný popis sportu.",
+					description: "",
 				};
 
 				props.sportsData.setState((prevSportsData) => [...prevSportsData, newSport]);
@@ -356,6 +354,14 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 
 		try {
 			const response = await deleteExerciseReq({ props: { sportId, categoryId, exerciseId, orderNumber, orderNumberWithoutCategories } });
+
+			if (response.status === 201) {
+				
+				if(isExercise(props.selectedSportOrExercise.state) && exerciseId === props.selectedSportOrExercise.state.exerciseId)
+				{
+					props.selectedSportOrExercise.setState(props.selectedSport.state);
+				}
+			}
 
 			if (response.status) {
 				consoleLogPrint(response);
@@ -737,19 +743,33 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 
 	// #endregion
 
+	//
+	//	#region Show second title
+	//
+	const [showSecondTitle, setShowSecondTitle] = useState(false);
+	useEffect(() => {
+		if (props.selectedSport.state) {
+			setShowSecondTitle(true);
+		} else {
+			setShowSecondTitle(false);
+		}
+	}, [props.selectedSport.state]);
+
+	//	#endregion
+	//
+
 	return (
 		<GeneralCard
 			height="h-full max-h-full"
-			showFirstSection={{ state: showFirstSection, setState: setShowFirstSection }}
+			showFirstSection={{ state: props.showFirstSection.state, setState: props.showFirstSection.setState }}
 			firstTitle="Sporty"
-			secondTitle={props.exercisesDatabase ? "Přehled" : undefined}
+			secondTitle={showSecondTitle ? "Přehled" : undefined}
 			firstChildren={
 				<Box className=" h-full ">
-					<Title
-						title="Sport"
-						secondTitle="Autor"
-						smallPaddingTop
-					/>
+					<Box className="flex rounded-xl  overflow-hidden pt-1.5 px-2.5 ">
+						<Typography className="w-1/2 font-light italic text-[0.9rem]">Sport</Typography>
+						<Typography className="w-1/2 font-light italic text-[0.9rem] pl-2">Autor</Typography>
+					</Box>
 
 					{props.sportsData.state.map((sport) => (
 						<LabelAndValue
@@ -775,7 +795,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 											getExerciseInformationLabels(sport.sportId);
 
 											{
-												props.dontShow && setShowFirstSection(false); // XXX potom smazat!
+												props.dontShow && props.showFirstSection.setState(false); // XXX potom smazat!
 											}
 									  }
 									: () => {}
@@ -787,6 +807,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 						<TextFieldWithIcon
 							style="pt-4 ml-1"
 							placeHolder="Název nového sportu"
+							maxLength={25}
 							onClick={handleCreateSport}
 						/>
 					)}
@@ -800,9 +821,10 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 						smallPaddingTop
 					/>*/}
 
-					<Box className="flex items-center mb-4 mt-2 justify-center">
+					<Box className="flex items-center mb-4 mt-2 justify-center ">
 						<LabelAndValue
 							noPaddingTop
+							canWrap
 							firstTypographyStyle=" text-2xl"
 							isSelected={isSport(props.selectedSportOrExercise.state) && props.selectedSportOrExercise.state === props.selectedSport.state}
 							onClick={() => {
@@ -840,6 +862,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 									<TextFieldWithIcon
 										style="   w-full  "
 										placeHolder="Název nové kategorie"
+										maxLength={40}
 										onClick={handleCreateCategory}
 									/>
 								</Box>
@@ -966,6 +989,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 						<TextFieldWithIcon
 							style={props.exercisesData.state.length === 0 ? "pl-1  pt-1" : "pt-4  pl-1"}
 							placeHolder="Název nového cviku"
+							maxLength={75}
 							onClick={(exerciseName) => handleCreateExercise(exerciseName, -1)}
 						/>
 					)}

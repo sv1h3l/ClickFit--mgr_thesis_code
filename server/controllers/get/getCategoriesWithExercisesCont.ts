@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { getCategoriesAndExercisesMod } from "../../models/get/getCategoriesAndExercisesMod";
 import { getExercisesMod } from "../../models/get/getExercisesMod";
+import { GenEnum } from "../../utilities/GenResEnum";
+import { CheckAuthorizationCodeEnum, checkAuthorizationCont } from "../residue/checkAuthorizationCont";
 
 export const getCategoriesWithExercisesCont = async (req: Request, res: Response): Promise<void> => {
 	const { sportId } = req.query as { sportId: string };
@@ -15,6 +17,15 @@ export const getCategoriesWithExercisesCont = async (req: Request, res: Response
 	if (isNaN(sportIdNumber)) {
 		// Kontrola, jestli to je validní číslo
 		res.status(400).json({ message: "ID sportu musí být číslo", data: [] });
+		return;
+	}
+
+	const authToken = req.headers["authorization"]?.split(" ")[1];
+
+	const checkResView = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW, authToken: authToken ? authToken : undefined });
+	const checkResEdit = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT, authToken: authToken ? authToken : undefined });
+	if (checkResView.status !== GenEnum.SUCCESS && checkResEdit.status !== GenEnum.SUCCESS) {
+		res.status(checkResView.status).json({ message: checkResView.message });
 		return;
 	}
 

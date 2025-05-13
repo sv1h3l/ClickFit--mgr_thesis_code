@@ -7,17 +7,17 @@ interface Props {
 	secondUserId: number;
 }
 
-export const checkExistingConnectionMod = async (props: Props): Promise<GenRes<null>> => {
+export const checkExistingConnectionMod = async (props: Props): Promise<GenRes<{ connectionId: number }>> => {
 	const checkQuery = `
-					SELECT * FROM connections
+					SELECT connection_id FROM connections
 					WHERE (first_user_id = ? AND second_user_id = ?) OR (first_user_id = ? AND second_user_id = ?) LIMIT 1
 				`;
 
 	try {
-		const [connection] = await db.promise().query<RowDataPacket[]>(checkQuery, [props.firstUserId, props.secondUserId, props.secondUserId, props.firstUserId]);
+		const [rows] = await db.promise().query<RowDataPacket[]>(checkQuery, [props.firstUserId, props.secondUserId, props.secondUserId, props.firstUserId]);
 
-		if (connection.length > 0) {
-			return { status: GenEnum.ALREADY_EXISTS, message: "Spojení je již navázáno" };
+		if (rows.length > 0) {
+			return { status: GenEnum.ALREADY_EXISTS, message: "Spojení je již navázáno", data: { connectionId: rows[0].connection_id } };
 		}
 
 		return { status: GenEnum.SUCCESS, message: "Spojení ještě není navázáno" };

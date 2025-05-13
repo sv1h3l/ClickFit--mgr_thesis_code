@@ -9,6 +9,9 @@ const theme = createTheme({
 			styleOverrides: {
 				root: {
 					borderRadius: 12,
+					"&.Mui-disabled": {
+						color: "rgba(255, 255, 255, 0.3)", // změna barvy textu při disabled
+					},
 				},
 			},
 		},
@@ -35,8 +38,9 @@ const theme = createTheme({
 			styleOverrides: {
 				root: {
 					color: "rgba(255, 255, 255, 0.7)", // barva helper textu
+					paddingLeft: "0.2rem",
 					"&.Mui-disabled": {
-						color: "rgba(255, 255, 255, 0.4)", // když je disabled
+						color: "rgba(255, 255, 255, 0.3)", // když je disabled
 					},
 					"&.Mui-error": {
 						color: "#ff6565", // TODO barva při chybě, #ff8585 při červeném ražimu
@@ -58,12 +62,14 @@ const theme = createTheme({
 					color: "white",
 					opacity: 0.88,
 				},
+
 				underline: {
 					"&:before": {
 						borderBottomColor: "#808080",
 						opacity: 0.88,
 						borderBottomWidth: 1,
 					},
+
 					"&:hover:not(.Mui-disabled):before": {
 						borderBottomColor: "#B4B4B4",
 						opacity: 0.88,
@@ -74,6 +80,26 @@ const theme = createTheme({
 						opacity: 0.88,
 						borderBottomWidth: 1,
 					},
+					"&.Mui-disabled:before": {
+						borderBottomStyle: "solid", // změna z dotted na solid
+						opacity: 0.5, // volitelné, mírné zeslabení
+					},
+				},
+
+				input: {
+					paddingLeft: "0.2rem",
+					paddingRight: "0.2rem",
+					paddingBottom: "0.15rem",
+					caretColor: "white",
+					"&:-webkit-autofill": {
+						boxShadow: "0 0 0 1000px #2f2f2f inset", // musí být dostatečně velký a tmavý
+						WebkitTextFillColor: "white",
+						transition: "background-color 5000s ease-in-out 0s",
+					},
+					"&.Mui-disabled": {
+						color: "rgba(255, 255, 255, 0.3)",
+						WebkitTextFillColor: "rgba(255, 255, 255, 0.3)",
+					},
 				},
 			},
 		},
@@ -81,8 +107,14 @@ const theme = createTheme({
 			styleOverrides: {
 				input: {
 					color: "white",
+					caretColor: "white",
 					"&::placeholder": {
 						opacity: 0.6,
+					},
+					"&:-webkit-autofill": {
+						boxShadow: "0 0 0 1000px #2f2f2f inset", // musí být dostatečně velký a tmavý
+						WebkitTextFillColor: "white",
+						transition: "background-color 5000s ease-in-out 0s",
 					},
 				},
 				notchedOutline: {
@@ -91,6 +123,7 @@ const theme = createTheme({
 					transition: "border-color 0.3s ease, border-width 0.3s ease",
 				},
 				root: {
+					borderRadius: 12,
 					"&:hover .MuiOutlinedInput-notchedOutline": {
 						borderColor: "#939393",
 						borderWidth: 1.2,
@@ -107,9 +140,15 @@ const theme = createTheme({
 			styleOverrides: {
 				input: {
 					color: "white",
+					caretColor: "white",
 					"&::placeholder": {
 						color: "rgba(255, 255, 255, 0.7)",
 						opacity: 1,
+					},
+					"&:-webkit-autofill": {
+						boxShadow: "0 0 0 1000px #2f2f2f inset", // musí být dostatečně velký a tmavý
+						WebkitTextFillColor: "white",
+						transition: "background-color 5000s ease-in-out 0s",
 					},
 				},
 			},
@@ -117,7 +156,19 @@ const theme = createTheme({
 		MuiInputLabel: {
 			styleOverrides: {
 				root: {
-					color: "white",
+					color: "rgba(255, 255, 255, 0.6)",
+					"&.Mui-focused": {
+						color: "white",
+					},
+					"&.Mui-error": {
+						color: "#ff6565",
+					},
+					"&.Mui-disabled": {
+						color: "rgba(255, 255, 255, 0.3)",
+					},
+				},
+				standard: {
+					left: "0.2rem",
 				},
 			},
 		},

@@ -1,7 +1,11 @@
 import { consoleLogPrint } from "@/api/GenericApiResponse";
+import { getAllUserAtrsReq, User } from "@/api/get/getAllUserAtrsReq";
 import { getSportsReq, Sport } from "@/api/get/getSportsReq";
 import { getTrainingPlanExercisesReq } from "@/api/get/getTrainingPlanExercisesReq";
 import { getTrainingPlansReq } from "@/api/get/getTrainingPlansReq";
+import { getVisitedUserSportsReq } from "@/api/get/getVisitedUserSportsReq";
+import { getVisitedUserTrainingPlanExercisesReq } from "@/api/get/getVisitedUserTrainingPlanExercisesReq";
+import { getVisitedUserTrainingPlansReq } from "@/api/get/getVisitedUserTrainingPlansReq";
 import SportDetails from "@/components/large/SportDetails";
 import TrainingPlanDaySelection from "@/components/large/TrainingPlanDaySelection";
 import TrainingPlansAndCreation, { TrainingPlan } from "@/components/large/TrainingPlansAndCreation";
@@ -23,6 +27,10 @@ interface Props {
 	selectedSport: Sport;
 
 	initialSportsData: Sport[];
+
+	cannotEdit?: boolean;
+
+	user: User | null;
 }
 
 function TrainingPlans(props: Props) {
@@ -39,10 +47,11 @@ function TrainingPlans(props: Props) {
 	const [clickedTrainingPlanId, setClickedTrainingPlanId] = useState(props.clickedTrainingPlanId);
 	const [trainingPlanExercises, setTrainingPlanExercises] = useState(props.trainingPlanExercises);
 
-	const [selectedTrainingPlan, setSelectedTrainingPlan] = useState<TrainingPlan>();
+	const [selectedTrainingPlan, setSelectedTrainingPlan] = useState<TrainingPlan | null>(null);
+	const [trainingPlans, setTrainingPlans] = useState<TrainingPlan[]>(props.trainingPlans);
 
 	useEffect(() => {
-		setSelectedTrainingPlan(props.trainingPlans.find((trainingPlan) => trainingPlan.trainingPlanId === clickedTrainingPlanId));
+		setSelectedTrainingPlan(trainingPlans?.find((trainingPlan) => trainingPlan.trainingPlanId === clickedTrainingPlanId) || null);
 
 		if (!hasMounted) return;
 
@@ -54,7 +63,9 @@ function TrainingPlans(props: Props) {
 		const authToken = cookies.authToken || null;
 
 		try {
-			const res = await getTrainingPlanExercisesReq({ authToken, trainingPlanId: clickedTrainingPlanId });
+			const res = props.cannotEdit
+				? await getVisitedUserTrainingPlanExercisesReq({ authToken, trainingPlanId: clickedTrainingPlanId, visitedUserId: cookies.view_tmp ? Number(atob(cookies.view_tmp)) : -1 })
+				: await getTrainingPlanExercisesReq({ authToken, trainingPlanId: clickedTrainingPlanId });
 
 			if (res.status === 200) {
 				setTrainingPlanExercises(res.data?.trainingPlanExercises || []);
@@ -99,7 +110,8 @@ function TrainingPlans(props: Props) {
 				secondColumnWidth="w-15/24"
 				firstColumnChildren={
 					<TrainingPlansAndCreation
-						trainingPlans={props.trainingPlans}
+						cannotEdit={props.cannotEdit}
+						trainingPlans={trainingPlans}
 						selectedSport={{
 							state: selectedSport,
 							setState: setSelectedSport,
@@ -126,8 +138,10 @@ function TrainingPlans(props: Props) {
 					<Box className={`h-full transition-opacity duration-200 ease-in-out ${showContent ? "opacity-100" : "opacity-0"}`}>
 						{showFirstSectionTimeout ? (
 							<TrainingPlanDaySelection
+								user={props.user}
 								trainingPlanExercises={trainingPlanExercises}
-								selectedTrainingPlan={selectedTrainingPlan}
+								selectedTrainingPlan={{ state: selectedTrainingPlan, setState: setSelectedTrainingPlan }}
+								trainingPlans={{ state: trainingPlans, setState: setTrainingPlans }}
 							/>
 						) : (
 							<>
@@ -136,6 +150,7 @@ function TrainingPlans(props: Props) {
 										state: selectedSport,
 										setState: setSelectedSport,
 									}}
+									cannotEdit={props.cannotEdit}
 								/>
 							</>
 						)}
@@ -149,12 +164,44 @@ function TrainingPlans(props: Props) {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
 	const handleError = (error: any) => {
 		console.error("Error fetching sport plans data:", error);
-		return { props: { trainingPlans: [], userId: -1, initialSportsData: [], clickedTrainingPlanId: -1, trainingPlanExercises: [], selectedSport: null } };
+		return { props: { trainingPlans: [], userId: -1, initialSportsData: [], clickedTrainingPlanId: -1, trainingPlanExercises: [], selectedSport: null, user: null } };
 	};
 
 	try {
 		const cookies = cookie.parse(context.req.headers.cookie || "");
+		const visitedUserId = cookies.view_tmp ? Number(atob(cookies.view_tmp)) : -1;
 		const authToken = cookies.authToken || null;
+
+		if (visitedUserId > 0) {
+			//const resUser = await getAllVisitedUserAtrsReq({ authToken, visitedUserId });
+			const resUser = await getAllUserAtrsReq({ authToken });
+
+			const resTrainingPlans = await getVisitedUserTrainingPlansReq({ authToken, visitedUserId });
+
+			const trainingPlans = resTrainingPlans.data?.trainingPlans || [];
+			const clickedTrainingPlanId = trainingPlans.length > 0 ? trainingPlans[0].trainingPlanId : -1;
+
+			let resTrainingPlanExercises;
+			if (clickedTrainingPlanId !== -1) resTrainingPlanExercises = await getVisitedUserTrainingPlanExercisesReq({ authToken, trainingPlanId: clickedTrainingPlanId, visitedUserId });
+
+			const resSports = await getVisitedUserSportsReq({ authToken, visitedUserId });
+
+			const selectedSport = Array.isArray(resSports.data) && resSports.data.length > 0 ? resSports.data[0] : null;
+
+			return {
+				props: {
+					trainingPlans: resTrainingPlans.data?.trainingPlans || [],
+					userId: resTrainingPlans.data?.userId || -1,
+					initialSportsData: resSports.data || [],
+					clickedTrainingPlanId,
+					selectedSport,
+					trainingPlanExercises: resTrainingPlanExercises?.data?.trainingPlanExercises || [],
+
+					user: resUser.data,
+					cannotEdit: true,
+				},
+			};
+		}
 
 		const resTrainingPlans = await getTrainingPlansReq({ authToken });
 
@@ -168,6 +215,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
 		const selectedSport = Array.isArray(resSports.data) && resSports.data.length > 0 ? resSports.data[0] : null;
 
+		const resUser = await getAllUserAtrsReq({ authToken });
+
+		context.res.setHeader("Set-Cookie", ["tp_tmp=; path=/; max-age=0;", "tpc_edit=; path=/; max-age=0;", "tpac_tmp=; path=/; max-age=0;"]);
+
 		if (resTrainingPlans.status !== 200 || resSports.status !== 200) {
 			return handleError(resTrainingPlans.message);
 		} else {
@@ -179,6 +230,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 					clickedTrainingPlanId,
 					selectedSport,
 					trainingPlanExercises: resTrainingPlanExercises?.data?.trainingPlanExercises || [],
+					user: resUser.data,
 				},
 			};
 		}

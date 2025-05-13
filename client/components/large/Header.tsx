@@ -1,3 +1,6 @@
+import { changeUserSettingsReq } from "@/api/change/changeUserSettingsReq";
+import { consoleLogPrint } from "@/api/GenericApiResponse";
+import { getUserSettingsReq } from "@/api/get/getUserSettingsReq";
 import { TextSize, useAppContext } from "@/utilities/Context";
 import { AppBar, Box, FormControl, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
 import Image from "next/image";
@@ -20,29 +23,42 @@ function Header() {
 	const context = useAppContext();
 
 	useEffect(() => {
-		// Tato funkce se zavolá při každé změně cookies
 		const checkUserCookie = () => {
 			const cookies = cookie.parse(document.cookie);
-			const authToken = cookies.authToken || null; // Retrieve the userEmail cookie if available
+			const authToken = cookies.authToken || null;
 
 			if (authToken) {
 				setUser(authToken);
 			}
 		};
 
-		checkUserCookie(); // Zavoláme ihned po mountu
+		checkUserCookie();
 
-		// Sledování změn cookies každých 10ms
 		const interval = setInterval(checkUserCookie, 10);
-		return () => clearInterval(interval); // Po odpojení komponenty zastavíme interval
+		return () => clearInterval(interval);
 	}, []);
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setCurrentTime(new Date().toLocaleTimeString("cs-CZ"));
-		}, 1000);
+		router.pathname === "/profile" ? setExternalClicked(true) : setExternalClicked(false);
+	}, [router.pathname]);
 
-		return () => clearInterval(interval);
+	useEffect(() => {
+		const fetchSettings = async () => {
+			const cookies = cookie.parse(document.cookie);
+			const authToken = cookies.authToken || null;
+
+			const settings = await getUserSettingsReq({ authToken });
+
+			if (settings.status === 200 && settings.data) {
+				const textSizeCode = settings.data.textSizeCode;
+				const colorSchemeCode = settings.data.colorSchemeCode;
+
+				setSelectedColorScheme(colorSchemeCode === 2 ? "red" : colorSchemeCode === 3 ? "blue" : colorSchemeCode === 4 ? "green" : "gray");
+				setSelectedTextSize(textSizeCode === 2 ? "text_size-small" : textSizeCode === 4 ? "text_size-large" : "text_size-medium");
+			}
+		};
+
+		fetchSettings();
 	});
 
 	const handleLogout = () => {
@@ -75,12 +91,23 @@ function Header() {
 		setOpenColorScheme(false);
 	};
 
-	const handleChangeColorScheme = (event: SelectChangeEvent<string>) => {
+	const handleChangeColorScheme = async (event: SelectChangeEvent<string>) => {
 		const colorScheme = event.target.value as ColorScheme;
 
 		if (["gray", "red", "green", "blue"].includes(colorScheme)) {
 			setSelectedColorScheme(colorScheme);
 			context.setColors(colorScheme);
+
+			const colorSchemeCode = colorScheme === "red" ? 2 : colorScheme === "blue" ? 3 : colorScheme === "green" ? 4 : 1;
+			document.cookie = `color_scheme=${colorSchemeCode}; path=/; max-age=${60 * 60 * 24 * 90};`;
+
+			try {
+				const response = await changeUserSettingsReq({ code: colorSchemeCode, isTextSize: false });
+
+				consoleLogPrint(response);
+			} catch (error) {
+				console.error("Error: ", error);
+			}
 		}
 
 		handleCloseColorScheme();
@@ -97,21 +124,34 @@ function Header() {
 		setOpenTextSize(false);
 	};
 
-	const handleChangeTextSize = (event: SelectChangeEvent<string>) => {
+	const handleChangeTextSize = async (event: SelectChangeEvent<string>) => {
 		const textSize = event.target.value as TextSize;
 
 		if (["text_size-small", "text_size-medium", "text_size-large"].includes(textSize)) {
 			setSelectedTextSize(textSize);
 			context.setTextSize(textSize);
+
+			const textSizeCode = textSize === "text_size-small" ? 2 : textSize === "text_size-large" ? 4 : 3;
+			document.cookie = `text_size=${textSizeCode}; path=/; max-age=${60 * 60 * 24 * 90};`;
+
+			try {
+				const response = await changeUserSettingsReq({ code: textSizeCode, isTextSize: true });
+
+				consoleLogPrint(response);
+			} catch (error) {
+				console.error("Error: ", error);
+			}
 		}
 
 		handleCloseTextSize();
 	};
 
 	return user ? (
-		<AppBar className="bg-transparent shadow-none text-center relative">
+
+		
+		<AppBar className="bg-transparent shadow-none text-center relative ">
 			<Box className="justify-center px-1">
-				<Box className="flex w-full max-w-content">
+				<Box className="flex w-full max-w-content shadow-black shadow-md rounded-3xl">
 					<Box className={`w-1/6 justify-center items-center flex border-l-[3px] border-b-[3px] rounded-bl-3xl h-28 ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
 						<Image
 							className="w-auto h-[5.2rem]"
@@ -130,13 +170,17 @@ function Header() {
 								{user && (
 									<Box className="flex w-full justify-end px-6 gap-6 ">
 										<ButtonComp
-											style=""
+											style="cursor-pointer"
 											size="medium"
 											content={IconEnum.PROFILE}
 											externalClicked={{ state: externalClicked, setState: setExternalClicked }}
-											onClick={() => {
-												router.push(`/profile`);
-											}}
+											onClick={
+												!externalClicked
+													? () => {
+															if (!externalClicked) router.push(`/profile`);
+													  }
+													: undefined
+											}
 										/>
 
 										<ButtonComp
@@ -203,7 +247,9 @@ function Header() {
 											onClick={handleOpenTextSize}
 											externalClicked={{ state: openTextSize, setState: setOpenTextSize }}
 										/>
-										<Typography className="text-lg" sx={{ opacity: 0.95 }}>
+										<Typography
+											className="text-lg"
+											sx={{ opacity: 0.95 }}>
 											{value === "text_size-small" && "Malá"}
 											{value === "text_size-medium" && "Střední"}
 											{value === "text_size-large" && "Velká"}
@@ -213,6 +259,8 @@ function Header() {
 								MenuProps={{
 									PaperProps: {
 										sx: {
+											marginTop: "-0.15rem",
+											marginLeft: "0.3rem",
 											backgroundColor: "#1E1E1E",
 											borderRadius: "0.75rem",
 											borderTopLeftRadius: "0.25rem",
@@ -234,10 +282,20 @@ function Header() {
 									{ value: "text_size-large", label: "Velká" },
 								].map((item) => (
 									<MenuItem
+										sx={{
+											opacity: 1,
+											"&.Mui-selected": {
+												backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+											},
+											"&.Mui-selected:hover": {
+												backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+											},
+										}}
 										key={item.value}
 										value={item.value}
-										className="px-3 py-1.5 hover:bg-[#2a2a2a] hover:cursor-pointer transition-colors duration-150">
-										{item.label}
+										className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+													${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+										<Typography sx={{ opacity: 0.95 }}>{item.label}</Typography>
 									</MenuItem>
 								))}
 							</Select>
@@ -278,7 +336,9 @@ function Header() {
 											onClick={handleOpenColorScheme}
 											externalClicked={{ state: openColorScheme, setState: setOpenColorScheme }}
 										/>
-										<Typography  className="text-lg" sx={{ opacity: 0.95 }}>
+										<Typography
+											className="text-lg"
+											sx={{ opacity: 0.95 }}>
 											{value === "gray" && "Šedé"}
 											{value === "red" && "Červené"}
 											{value === "blue" && "Modré"}
@@ -289,8 +349,10 @@ function Header() {
 								MenuProps={{
 									PaperProps: {
 										sx: {
-											backgroundColor: "#1E1E1E", // stejné jako bg-secondary_color-neutral
+											marginTop: "-0.15rem",
+											marginLeft: "0.3rem",
 											borderRadius: "0.75rem",
+											backgroundColor: "#1E1E1E",
 											borderTopLeftRadius: "0.25rem",
 											fontWeight: 300,
 										},
@@ -311,10 +373,20 @@ function Header() {
 									{ value: "green", label: "Zelené" },
 								].map((item) => (
 									<MenuItem
+										sx={{
+											opacity: 1,
+											"&.Mui-selected": {
+												backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+											},
+											"&.Mui-selected:hover": {
+												backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+											},
+										}}
 										key={item.value}
 										value={item.value}
-										className="px-3 py-1.5 hover:bg-[#2a2a2a] hover:cursor-pointer transition-colors duration-150">
-										{item.label}
+										className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+													${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+										<Typography sx={{ opacity: 0.95 }}>{item.label}</Typography>
 									</MenuItem>
 								))}
 							</Select>

@@ -1,6 +1,8 @@
 import QRCode from "qrcode";
 
-const url = "http://192.168.0.138:3000/connection?cc=";
+const ip = process.env.NEXT_PUBLIC_IP || "10.0.0.99";
+
+const url = `http://${ip}:3000/connection?cc=`;
 
 export const generateQRCode = async (connectionCode: string) => {
 	try {

@@ -42,7 +42,7 @@ function Index() {
 
 								<Typography className="font-light text-center">Aplikace je vhodná pro trenéry i samostatné sportovce.</Typography>
 
-								<Box className="mt-10 flex gap-10">
+								<Box className="mt-10 flex gap-10 mb-4">
 									<ButtonComp
 										dontChangeOutline
 										justClick

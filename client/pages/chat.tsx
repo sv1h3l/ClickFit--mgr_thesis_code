@@ -1,8 +1,15 @@
+import { changeSharedSportReq } from "@/api/change/changeSharedSportReq";
+import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { getAllUserAtrsReq } from "@/api/get/getAllUserAtrsReq";
 import { getConnectedUserAndMessagesReq } from "@/api/get/getConnectedUserAndMessagesReq";
+import { getOwnedSportsReq } from "@/api/get/getOwnedSportsReq";
+import { getSharedSportsReq, SharedSport } from "@/api/get/getSharedSportsReq";
+import { Sport } from "@/api/get/getSportsReq";
 import GeneralCard from "@/components/large/GeneralCard";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
 import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
+import CustomModal from "@/components/small/CustomModal";
+import LabelAndValue from "@/components/small/LabelAndValue";
 import { useAppContext } from "@/utilities/Context";
 import { Box, TextField, Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next";
@@ -10,6 +17,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { ConnectedUser } from "./connection";
+
 const cookie = require("cookie");
 
 interface Props {
@@ -19,6 +27,9 @@ interface Props {
 	connectedUser: ConnectedUser;
 
 	messages: Message[];
+
+	ownedSports: Sport[];
+	sharedSports: SharedSport[];
 }
 
 export interface Message {
@@ -33,13 +44,24 @@ export interface Message {
 
 const Chat = (props: Props) => {
 	const router = useRouter();
-	const connectionId = Number(router.query.connectionId);
 	const [messages, setMessages] = useState<Message[]>(props.messages);
 	const [newMessage, setNewMessage] = useState("");
 	const wsRef = useRef<WebSocket | null>(null);
 
+	const [sharedSport, setSharedSport] = useState<SharedSport[]>(props.sharedSports);
+
+	const [connectionId, setConnectionId] = useState<number | null>(null);
+
 	useEffect(() => {
-		const ws = new WebSocket("ws://localhost:5000");
+		const cookies = cookie.parse(document.cookie || "");
+		const connId = Number(cookies.chat_ci);
+		if (!isNaN(connId)) {
+			setConnectionId(connId);
+		}
+	}, []);
+
+	useEffect(() => {
+		const ws = new WebSocket("ws://10.0.0.99:5000");
 		wsRef.current = ws;
 
 		ws.onopen = () => {
@@ -104,6 +126,37 @@ const Chat = (props: Props) => {
 		}
 	}, []);
 
+	const handleShareSport = async (sportIsShared: boolean, sportId: number) => {
+		try {
+			const response = await changeSharedSportReq({
+				sportId,
+				sportIsShared,
+				userId: props.connectedUser.connectedUserId,
+			});
+
+			if (response.status === 200) {
+				if (sportIsShared) {
+					setSharedSport((prev) => prev.filter((sport) => sport.sportId !== sportId));
+				} else {
+					const newSharedSport: SharedSport = {
+						sharedSportId: response.data?.sharedSportId!,
+						sportId: sportId,
+						userId: props.connectedUser.connectionId,
+						authorId: props.userId,
+					};
+
+					setSharedSport((prev) => [...prev, newSharedSport]);
+				}
+			}
+
+			consoleLogPrint(response);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	const [isModalOpened, setIsModalOpened] = useState(false);
+
 	return (
 		<>
 			<Head>
@@ -139,6 +192,30 @@ const Chat = (props: Props) => {
 									</Box>
 									<Typography className="ml-10 text-xl font-audiowide">{props.connectedUser.connectedUserFirstName + " " + props.connectedUser.connectedUserLastName}</Typography>
 									<Box className="mr-5 ml-auto flex gap-4">
+										{props.ownedSports.length > 0 ? (
+											<ButtonComp
+												size="small"
+												justClick
+												dontChangeOutline
+												contentStyle="scale-[1.1]"
+												content={IconEnum.SHARE}
+												onClick={() => {
+													setIsModalOpened(true);
+												}}
+											/>
+										) : null}
+
+										<ButtonComp
+											size="small"
+											justClick
+											dontChangeOutline
+											contentStyle="scale-[1.1]"
+											content={IconEnum.TRAININGS}
+											onClick={() => {
+												document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+												router.push("/training-plans");
+											}}
+										/>
 										<ButtonComp
 											size="small"
 											justClick
@@ -146,7 +223,7 @@ const Chat = (props: Props) => {
 											contentStyle="scale-[1.1]"
 											content={IconEnum.CHART}
 											onClick={() => {
-												document.cookie = `dr_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+												document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
 												router.push("/diary");
 											}}
 										/>
@@ -157,7 +234,7 @@ const Chat = (props: Props) => {
 											contentStyle="scale-[1.1]"
 											content={IconEnum.PROFILE}
 											onClick={() => {
-												document.cookie = `prf_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+												document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
 												router.push("/profile");
 											}}
 										/>
@@ -167,7 +244,7 @@ const Chat = (props: Props) => {
 						/>
 
 						<GeneralCard
-							style="h-[calc(100%-9.75rem)] mb-[0.5rem] w-full overflow-x-hidden py-2 px-1"
+							style="h-[calc(100%-11.25rem)] mb-[0.5rem] w-full overflow-x-hidden py-2 px-1"
 							zeroYPadding
 							zeroXPadding
 							zeroChildrenPadding
@@ -256,7 +333,7 @@ const Chat = (props: Props) => {
 						</Box>*/}
 
 						<GeneralCard
-							style="h-[5.75rem] w-full overflow-x-hidden py-2 px-2"
+							style="h-[7.25rem] w-full overflow-x-hidden py-2 px-2"
 							zeroYPadding
 							zeroXPadding
 							dontShowHr
@@ -266,8 +343,8 @@ const Chat = (props: Props) => {
 									<TextField
 										variant="standard"
 										multiline
-										minRows={2}
-										maxRows={2}
+										minRows={3}
+										maxRows={3}
 										value={newMessage}
 										onChange={(e) => setNewMessage(e.target.value)}
 										className="flex-1 border px-2 py-1 mr-2"
@@ -285,6 +362,41 @@ const Chat = (props: Props) => {
 								</Box>
 							}
 						/>
+
+						<CustomModal
+							isOpen={isModalOpened}
+							title="Sdílení sportu"
+							paddingTop
+							onClose={() => setIsModalOpened(false)}
+							children={
+								<Box className=" mb-4 max-w-md">
+									<Typography className="mb-6">{`S uživatelem ${props.connectedUser.connectedUserFirstName + " " + props.connectedUser.connectedUserLastName} je možné sdílet následující sporty.`}</Typography>
+
+									{props.ownedSports.map((sport) => {
+										const sportIsShared = sharedSport.filter((filterSport) => filterSport.sportId === sport.sportId).length > 0;
+
+										return (
+											<Box className="flex items-center gap-3 mt-3">
+												<ButtonComp
+													content={sportIsShared ? IconEnum.CHECK : IconEnum.CROSS}
+													externalClickedVal={sportIsShared}
+													onClick={() => handleShareSport(sportIsShared, sport.sportId)}
+													style="-mt-1"
+												/>
+
+												<LabelAndValue
+													noPaddingTop
+													reverse
+													key={sport.sportId}
+													spaceBetween
+													label={sport.sportName}
+												/>
+											</Box>
+										);
+									})}
+								</Box>
+							}
+						/>
 					</Box>
 				}
 				secondColumnChildren={<></>}
@@ -297,10 +409,10 @@ export default Chat;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
 	try {
-		const connectionId = Number(context.query.connectionId);
-
 		const cookies = cookie.parse(context.req.headers.cookie || "");
 		const authToken = cookies.authToken || null;
+
+		const connectionId = Number(cookies.chat_ci) || 0;
 
 		const resUser = await getAllUserAtrsReq({ authToken });
 
@@ -308,8 +420,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 		const messages = resConnectedUser.data?.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
 		if (resConnectedUser.status === 200) {
+			const ownedSports = await getOwnedSportsReq({ authToken });
+			const sharedSports = await getSharedSportsReq({ authToken, userId: resConnectedUser.data?.userId! });
+
 			return {
 				props: {
+					ownedSports: ownedSports.data,
+					sharedSports: sharedSports.data,
 					connectedUser: resConnectedUser.data?.connectedUser,
 					userId: resConnectedUser.data?.userId,
 					userName: resUser.data?.firstName + " " + resUser.data?.lastName,
@@ -319,6 +436,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 		} else {
 			return {
 				props: {
+					ownedSports: [],
 					connectedUser: null,
 					userId: -1,
 					userName: "",
@@ -329,6 +447,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 	} catch (error) {
 		return {
 			props: {
+				ownedSports: [],
 				connectedUser: null,
 				userId: -1,
 				userName: "",

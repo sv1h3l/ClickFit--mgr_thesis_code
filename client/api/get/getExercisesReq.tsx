@@ -28,6 +28,7 @@ export interface Exercise {
 
 interface Props {
 	sportId: number;
+	authToken?: string;
 }
 
 export const getExercisesReq = async ({ props }: { props: Props }): Promise<GenericResponse<Exercise[]>> => {
@@ -36,7 +37,9 @@ export const getExercisesReq = async ({ props }: { props: Props }): Promise<Gene
 	try {
 		const response = await fetch(`http://${serverIp}/api/get-exercises?sportId=${props.sportId}`, {
 			method: "GET",
+			credentials: "include",
 			headers: {
+				Authorization: `Bearer ${props.authToken}`,
 				"Content-Type": "application/json",
 			},
 		});

@@ -29,6 +29,7 @@ export interface Category {
 }
 
 interface Props {
+	authToken?: string;
 	sportId: number;
 }
 
@@ -38,7 +39,9 @@ export const getCategoriesWithExercisesReq = async ({ props }: { props: Props })
 	try {
 		const response = await fetch(`http://${serverIp}/api/get-categories-and-exercises?sportId=${props.sportId}`, {
 			method: "GET",
+			credentials: "include",
 			headers: {
+				Authorization: `Bearer ${props.authToken}`,
 				"Content-Type": "application/json",
 			},
 		});

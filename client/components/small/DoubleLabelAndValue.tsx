@@ -1,3 +1,4 @@
+import { useAppContext } from "@/utilities/Context";
 import { Box, Typography } from "@mui/material";
 
 interface Props {
@@ -9,31 +10,28 @@ interface Props {
 
 	goal?: string;
 	style?: string;
+	size?: string;
 }
 
 const DoubleLabelAndValue = (props: Props) => {
+	const context = useAppContext();
+
 	return (
-		<Box
-			className={`flex flex-col w-full  px-1
-						${props.style}`}>
-			<Typography className={`font-bold`}>{props.goal}</Typography>
-			<Box className="flex gap-3">
-				<Box className="text-right">
-					<Typography className={`font-light `}>{props.firstLabel}</Typography>
-					<Typography className={`font-light `}>{props.secondLabel}</Typography>
-				</Box>
+		<>
+			{props.goal ? <Typography className="w-full text-center text-lg">{props.goal}</Typography> : null}
 
-				<Box>
-					<Typography className={`text-gray-400 font-light text-nowrap`}>»</Typography>
-					<Typography className={`text-gray-400 font-light text-nowrap`}>»</Typography>
-				</Box>
+			<Box
+				className={`grid w-full px-1`}
+				style={{ gridTemplateColumns: "fit-content(100%) min-content 1fr" }}>
+				<Typography className={`font-light text-right ${props.size}`}>{props.firstLabel}</Typography>
+				<Typography className={`text-gray-400 font-light text-center mx-3${props.size}`}>»</Typography>
+				<Typography className={`text-left ${props.size}`}>{props.firstValue}</Typography>
 
-				<Box>
-					<Typography>{props.firstValue}</Typography>
-					<Typography>{props.secondValue}</Typography>
-				</Box>
+				<Typography className={`font-light text-right ${props.size}`}>{props.secondLabel}</Typography>
+				<Typography className={`text-gray-400 font-light text-center mx-3 ${props.size}`}>»</Typography>
+				<Typography className={`text-left ${props.size}`}>{props.secondValue}</Typography>
 			</Box>
-		</Box>
+		</>
 	);
 };
 

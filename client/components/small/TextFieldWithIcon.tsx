@@ -121,7 +121,7 @@ const TextFieldWithIcon = ({
 		<Box
 			className={`flex flex-shrink-0 relative
 						
-						${withoutIcon && "mr-8"}
+						${withoutIcon && "mr-4"}
 						${!noPaddingY && "py-2"}s
 						${border && "border-t-2 border-blue-300 "}
 						${onToggleChange && !isChecked && "opacity-50"}
@@ -136,27 +136,23 @@ const TextFieldWithIcon = ({
 
 			<TextField
 				disabled={disabled || (onToggleChange && !isChecked)}
-				className={`w-full  `}
+				className={`${unit ? "w-[calc(100%-4rem)]" : "w-full"}  -ml-[0.2rem] `}
 				placeholder={placeHolder}
 				variant="standard"
 				type={psw ? "password" : ""}
 				label={label}
 				inputProps={{
 					style: {
-						padding: 0,
+						paddingTop: 0,
+						paddingRight: 0,
 						paddingBottom: 0.75,
 						fontSize: fontSize,
 						textAlign: tfCenterValueAndPlaceholder ? "center" : "left",
-						marginLeft: tfCenterValueAndPlaceholder ? "0.3rem" : "0",
 					},
 					maxLength: maxLength || 50,
 				}}
 				helperText={helperText}
-				FormHelperTextProps={{
-					sx: {
-						margin: 0,
-					},
-				}}
+
 				value={value}
 				InputProps={{
 					sx: {
@@ -166,7 +162,7 @@ const TextFieldWithIcon = ({
 						},
 					},
 					endAdornment: (
-						<InputAdornment position="end">
+						<InputAdornment position="end" className={`${unit ? "w-8" : ""}`}>
 							<Typography>{unit === "let" && value === "1" ? "rok" : unit === "let" && (value === "2" || value === "3" || value === "4") ? "roky" : unit}</Typography>
 						</InputAdornment>
 					),

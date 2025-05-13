@@ -29,6 +29,6 @@ export const createGraphValueMod = async (props: Props): Promise<GenRes<{ graphV
 		return { status: GenEnum.SUCCESS, message: "Záznam grafu úspěšně vytvořen", data: { graphValueId: result.insertId } };
 	} catch (error) {
 		console.error("Database error: " + error);
-		return { status: GenEnum.FAILURE, message: "Nastala chyba během vytváření uživatelského grafu" };
+		return { status: GenEnum.FAILURE, message: "Nastala chyba během vytváření záznam grafu" };
 	}
 };

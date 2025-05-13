@@ -13,6 +13,8 @@ interface Props {
 	sports: Sport[];
 
 	selectedSport: Sport | null;
+
+	cannotEdit?: boolean;
 }
 
 const Diary = (props: Props) => {
@@ -35,6 +37,7 @@ const Diary = (props: Props) => {
 				secondColumnWidth="w-15/24"
 				firstColumnChildren={
 					<SportsAndValues
+						cannotEdit={props.cannotEdit}
 						isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
 						isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
 						selectedSport={{
@@ -53,6 +56,7 @@ const Diary = (props: Props) => {
 				}
 				secondColumnChildren={
 					<DiaryAndGraphs
+						cannotEdit={props.cannotEdit}
 						isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
 						isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
 						selectedSport={{
@@ -81,15 +85,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 	try {
 		const cookies = cookie.parse(context.req.headers.cookie || "");
 
-		const visitedUserId = cookies.dr_tmp ? Number(atob(cookies.dr_tmp)) : -1;
+		const visitedUserId = cookies.view_tmp ? Number(atob(cookies.view_tmp)) : -1;
 		const authToken = cookies.authToken || null;
 
 		if (visitedUserId > 0) {
 			const resVisitedUser = await getVisitedUserSportsReq({ authToken, visitedUserId });
+			const sports = resVisitedUser.data || [];
 
-			context.res.setHeader("Set-Cookie", "dr_tmp=; path=/; max-age=0;");
+			const firstSport = sports.length > 0 ? sports[0] : null;
 
-			return { props: { sports: resVisitedUser.data } };
+
+			return { props: { sports: resVisitedUser.data, selectedSport: firstSport, cannotEdit: true } };
 		}
 
 		const response = await getSportsReq({ authToken });

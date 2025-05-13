@@ -3,6 +3,7 @@ import GenericResponse from "../GenericApiResponse";
 
 interface Props {
 	connectionCode: number;
+	authToken?: string;
 }
 
 export const createConnectionReq = async (props: Props): Promise<GenericResponse<ConnectedUser>> => {
@@ -13,6 +14,7 @@ export const createConnectionReq = async (props: Props): Promise<GenericResponse
 			method: "POST",
 			credentials: "include",
 			headers: {
+				Authorization: `Bearer ${props.authToken}`,
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(props),

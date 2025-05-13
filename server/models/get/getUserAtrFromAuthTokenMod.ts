@@ -12,7 +12,7 @@ interface Props {
 export const getUserAtrFromAuthTokenMod = async (props: Props): Promise<GenRes<{ userId: number; userEmail: string }>> => {
 	let concreteAuthToken;
 
-	if (props.authToken) {
+	if (props.authToken && props.authToken !== "undefined") {
 		concreteAuthToken = props.authToken;
 	} else {
 		const cookies = cookie.parse(props.req.headers.cookie || "");

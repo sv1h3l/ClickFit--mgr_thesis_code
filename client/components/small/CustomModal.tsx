@@ -5,12 +5,12 @@ import ButtonComp, { IconEnum } from "./ButtonComp";
 // Vlastní modal komponenta
 interface Props {
 	isOpen: boolean;
-	onClose: () => void;
+	onClose?: () => void;
 
-	title: string;
+	title?: string;
 	children: React.ReactNode;
 	hideBackButton?: boolean;
-  paddingTop?: boolean;
+	paddingTop?: boolean;
 
 	style?: string;
 }
@@ -20,12 +20,11 @@ const CustomModal = (props: Props) => {
 		<Modal
 			open={props.isOpen}
 			onClose={(event, reason) => {
-				if (reason !== "backdropClick") {
+				if (reason !== "backdropClick" && props.onClose) {
 					props.onClose();
 				}
 			}}
 			closeAfterTransition
-			
 			BackdropComponent={Backdrop} // Přidání ztmavení pozadí
 			BackdropProps={{
 				timeout: 200,
@@ -35,11 +34,19 @@ const CustomModal = (props: Props) => {
 			}}>
 			<Fade in={props.isOpen}>
 				<Box
-					className={`absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2  shadow-xl max-h-svh rounded-lg max-w-content
+					sx={{
+						outline: "none",
+						border: "none",
+					}}
+					className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2    rounded-lg max-w-content h-full  flex items-center justify-center
                         ${props.style}`}>
 					<GeneralCard
 						prolog={props.paddingTop}
 						centerFirstTitle
+						
+						height="max-h-[98%]"
+						style="mt-1 relative w-full max-w-4xl"
+						dontShowHr
 						firstTitle={props.title}
 						firstChildren={
 							<Box>
@@ -53,7 +60,7 @@ const CustomModal = (props: Props) => {
 										size="small"
 										style="absolute left-3 top-3"
 										onClick={() => {
-											props.onClose();
+											if (props.onClose) props.onClose();
 										}}
 									/>
 								)}

@@ -4,6 +4,7 @@ const cookie = require("cookie");
 
 interface Props {
 	sportId: number;
+	authToken?: string;
 }
 
 export const getDifficultiesReq = async (props: Props): Promise<GenericResponse<SportDifficulty[]>> => {
@@ -14,6 +15,7 @@ export const getDifficultiesReq = async (props: Props): Promise<GenericResponse<
 			method: "GET",
 			credentials: "include",
 			headers: {
+				Authorization: `Bearer ${props.authToken}`,
 				"Content-Type": "application/json",
 			},
 		});

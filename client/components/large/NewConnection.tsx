@@ -3,8 +3,9 @@ import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { ConnectedUser } from "@/pages/connection";
 import { StateAndSetFunction } from "@/utilities/generalInterfaces";
 import { Box, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
+import CustomModal from "../small/CustomModal";
 import GeneralCard from "./GeneralCard";
 
 interface Props {
@@ -12,6 +13,9 @@ interface Props {
 	qrCode: string;
 
 	connectedUsers: StateAndSetFunction<ConnectedUser[]>;
+
+	modalCode?: number | null;
+	connectionString?: string | null;
 }
 
 const NewConnection = (props: Props) => {
@@ -109,10 +113,34 @@ const NewConnection = (props: Props) => {
 		try {
 			const res = await createConnectionReq({ connectionCode });
 
-			if (res.status === 200 && res.data) {
+			if (res.status === 404) {
+				const formattedCode = connectionCodeString.replace(/(\d{4})(?=\d)/g, "$1 - ");
+				setModalCode(2);
+				setConnectionString(formattedCode);
+				setIsModalOpen(true);
+			} else if (res.status === 400) {
+				setModalCode(3);
+				setIsModalOpen(true);
+			} else if (res.status === 409 && res.data) {
+				setModalCode(4);
+				setConnectionString(res.data.connectedUserFirstName + " " + res.data.connectedUserLastName);
+				setIsModalOpen(true);
+			} else if (res.status === 422) {
+				setModalCode(5);
+				setIsModalOpen(true);
+			} else if (res.status === 200 && res.data) {
 				props.connectedUsers.setState((prev) => {
 					return [res.data!, ...prev];
 				});
+				setCode({
+					part1: "",
+					part2: "",
+					part3: "",
+				});
+
+				setModalCode(1);
+				setConnectionString(res.data.connectedUserFirstName + " " + res.data.connectedUserLastName);
+				setIsModalOpen(true);
 			}
 
 			consoleLogPrint(res);
@@ -121,119 +149,171 @@ const NewConnection = (props: Props) => {
 		}
 	};
 
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [modalCode, setModalCode] = useState(0);
+	const [connectionString, setConnectionString] = useState("");
+
+	useEffect(() => {
+		if (props.modalCode) {
+			setModalCode(props.modalCode || 0);
+
+			if (props.modalCode === 2 && props.connectionString) {
+				const formattedCode = props.connectionString.replace(/(\d{4})(?=\d)/g, "$1 - ");
+				setConnectionString(formattedCode);
+			} else setConnectionString(props.connectionString || "");
+
+			setIsModalOpen(true);
+
+			document.cookie = "cc=; path=/; max-age=0;";
+			document.cookie = "cc-mod-opened=; path=/; max-age=0;";
+		}
+	}, []);
+
 	return (
-		<GeneralCard
-			firstTitle="Nová spojení"
-			height="h-full"
-			firstChildren={
-				<Box className="flex flex-col items-center gap-2 ">
-					<Typography className="font-light">Se svými sparingy, trenéry nebo klienty se můžete snadno spojit. Stačí naskenovat QR kód pomocí telefonu nebo ručně zadat 12ciferný kód do vyhledávače.</Typography>
+		<>
+			<GeneralCard
+				firstTitle="Nová spojení"
+				height="h-full"
+				firstChildren={
+					<Box className="flex flex-col items-center gap-2 ">
+						<Typography className="font-light text-lg">Se svými sparingy, trenéry nebo klienty se můžete snadno spojit. Stačí naskenovat QR kód pomocí telefonu nebo ručně zadat 12ciferný kód do vyhledávače.</Typography>
 
-					{props.qrCode && (
-						<Box className="w-44 h-auto mr-4 mt-8">
-							{props.qrCode ? (
-								<img
-									src={props.qrCode}
-									alt="QR kód pro nová spojení"
-								/>
-							) : null}
+						{props.qrCode && (
+							<Box className="w-44 h-auto mr-4 mt-8">
+								{props.qrCode ? (
+									<img
+										src={props.qrCode}
+										alt="QR kód pro nová spojení"
+									/>
+								) : null}
+							</Box>
+						)}
+
+						<Typography className="text-lg mr-4">{formatConnectionCode(props.connectionCode)}</Typography>
+
+						<Typography className="text-xl font-light mt-6 mr-4 mb-1">Vyhledávač</Typography>
+
+						<Box className="flex gap-0.5 ml-4 mb-2">
+							<TextField
+								className="w-12"
+								id="part1"
+								value={code.part1}
+								onChange={(e) => handleChange(e, "part1")}
+								onKeyDown={(e) => handleKeyDown(e, "part1")}
+								variant="standard"
+								InputProps={{
+									sx: {
+										"& input::placeholder": {
+											fontWeight: "300",
+											textAlign: "center",
+										},
+									},
+								}}
+								inputProps={{
+									style: {
+										padding: 0,
+										paddingInline: 5,
+										paddingBottom: 0.75,
+									},
+									maxLength: 4,
+								}}
+							/>
+							<Typography>-</Typography>
+							<TextField
+								className="w-12"
+								id="part2"
+								value={code.part2}
+								onChange={(e) => handleChange(e, "part2")}
+								onKeyDown={(e) => handleKeyDown(e, "part2")}
+								variant="standard"
+								InputProps={{
+									sx: {
+										"& input::placeholder": {
+											fontWeight: "300",
+											textAlign: "center",
+										},
+									},
+								}}
+								inputProps={{
+									style: {
+										padding: 0,
+										paddingInline: 5,
+										paddingBottom: 0.75,
+									},
+									maxLength: 4,
+								}}
+							/>
+							<Typography>-</Typography>
+							<TextField
+								className="w-12"
+								id="part3"
+								value={code.part3}
+								onChange={(e) => handleChange(e, "part3")}
+								onKeyDown={(e) => handleKeyDown(e, "part3")}
+								variant="standard"
+								InputProps={{
+									sx: {
+										"& input::placeholder": {
+											fontWeight: "300",
+										},
+									},
+								}}
+								inputProps={{
+									style: {
+										padding: 0,
+										paddingInline: 5,
+										paddingBottom: 0.75,
+									},
+									maxLength: 4,
+								}}
+							/>
+
+							<ButtonComp
+								style="mt-0.5 ml-3"
+								disabled={code["part1"].length < 4 || code["part2"].length < 4 || code["part3"].length < 4}
+								dontChangeOutline
+								justClick
+								contentStyle="scale-[1.4]"
+								content={IconEnum.PLUS}
+								onClick={() => {
+									handleCreateConnection(code["part1"] + code["part2"] + code["part3"]);
+								}}
+							/>
 						</Box>
-					)}
+					</Box>
+				}
+			/>
 
-					<Typography className="text-lg mr-4">{formatConnectionCode(props.connectionCode)}</Typography>
-
-					<Typography className="text-xl font-light mt-8 mr-4 mb-1">Vyhledávač</Typography>
-
-					<Box className="flex gap-0.5 ml-4">
-						<TextField
-							className="w-12"
-							id="part1"
-							value={code.part1}
-							onChange={(e) => handleChange(e, "part1")}
-							onKeyDown={(e) => handleKeyDown(e, "part1")}
-							variant="standard"
-							InputProps={{
-								sx: {
-									"& input::placeholder": {
-										fontWeight: "300",
-										textAlign: "center",
-									},
-								},
-							}}
-							inputProps={{
-								style: {
-									padding: 0,
-									paddingInline: 5,
-									paddingBottom: 0.75,
-								},
-								maxLength: 4,
-							}}
-						/>
-						<Typography>-</Typography>
-						<TextField
-							className="w-12"
-							id="part2"
-							value={code.part2}
-							onChange={(e) => handleChange(e, "part2")}
-							onKeyDown={(e) => handleKeyDown(e, "part2")}
-							variant="standard"
-							InputProps={{
-								sx: {
-									"& input::placeholder": {
-										fontWeight: "300",
-										textAlign: "center",
-									},
-								},
-							}}
-							inputProps={{
-								style: {
-									padding: 0,
-									paddingInline: 5,
-									paddingBottom: 0.75,
-								},
-								maxLength: 4,
-							}}
-						/>
-						<Typography>-</Typography>
-						<TextField
-							className="w-12"
-							id="part3"
-							value={code.part3}
-							onChange={(e) => handleChange(e, "part3")}
-							onKeyDown={(e) => handleKeyDown(e, "part3")}
-							variant="standard"
-							InputProps={{
-								sx: {
-									"& input::placeholder": {
-										fontWeight: "300",
-									},
-								},
-							}}
-							inputProps={{
-								style: {
-									padding: 0,
-									paddingInline: 5,
-									paddingBottom: 0.75,
-								},
-								maxLength: 4,
-							}}
-						/>
+			<CustomModal
+				isOpen={isModalOpen}
+				title={modalCode < 2 ? "Nové spojení navázáno" : "Nové spojení nenavázáno"}
+				hideBackButton
+				children={
+					<Box className=" mb-4 max-w-md">
+						<Typography className="">
+							{modalCode === 1
+								? `Spojení s uživatelem ${connectionString} je úspěšně navázáno.`
+								: modalCode === 2
+								? `Uživatel s kódem ${connectionString} neexistuje.`
+								: modalCode === 3
+								? "Nelze navázat spojení sám se sebou."
+								: modalCode === 4
+								? `Spojení s uživatelem ${connectionString} je již navázáno.`
+								: `Kód musí být 12ciferné číslo.`}
+						</Typography>
 
 						<ButtonComp
-							style="mt-0.5 ml-3"
-							disabled={code["part1"].length < 4 || code["part2"].length < 4 || code["part3"].length < 4}
-							dontChangeOutline
-							justClick
-							contentStyle="scale-[1.4]"
-							content={IconEnum.PLUS}
+							style="mx-auto mt-9"
+							size="medium"
+							content={"Pokračovat"}
 							onClick={() => {
-								handleCreateConnection(code["part1"] + code["part2"] + code["part3"]);
+								setIsModalOpen(false);
 							}}
 						/>
 					</Box>
-				</Box>
-			}
-		/>
+				}
+			/>
+		</>
 	);
 };
 

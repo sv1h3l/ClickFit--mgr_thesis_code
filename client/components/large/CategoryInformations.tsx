@@ -19,7 +19,10 @@ import LabelAndValue from "../small/LabelAndValue";
 import TextFieldWithIcon from "../small/TextFieldWithIcon";
 import Title from "../small/Title";
 
+import { changeCategoryNameReq } from "@/api/change/changeCategoryNameReq";
 import GeneralCard from "./GeneralCard";
+import CustomModal from "../small/CustomModal";
+import { RemarkEntitiesDescription } from "./DiaryAndGraphs";
 
 interface Props {
 	selectedSport: StateAndSet<Sport | null>;
@@ -338,7 +341,7 @@ const CategoryInformations = (props: Props) => {
 				? "bod 2"
 				: "bod 3";
 
-				const secondPoints = [1, 2].every((point) => priorityPoints.includes(point))
+			const secondPoints = [1, 2].every((point) => priorityPoints.includes(point))
 				? "1. a 2."
 				: [2, 3].every((point) => priorityPoints.includes(point))
 				? "2. a 3."
@@ -891,8 +894,42 @@ const CategoryInformations = (props: Props) => {
 	//
 
 	//
+	//	#region Category Name
+	//
+	const [nameHelperText, setNameHelperText] = useState("");
+
+	useEffect(() => {
+		setNameHelperText("");
+	}, [props.editing.state]);
+
+	const handleChangeCategoryName = async (value: string) => {
+		try {
+			const res = await changeCategoryNameReq({ categoryName: value, sportId: props.selectedSport.state?.sportId!, categoryId: props.selectedCategory.state?.categoryId || -1 });
+
+			if (res.status === 400 || res.status === 409) {
+				setNameHelperText(res.message);
+			} else if (res.status === 200) {
+				const newCategory = {
+					...props.selectedCategory.state,
+					categoryName: value,
+				} as Category;
+
+				setNewCategory(newCategory);
+			}
+
+			consoleLogPrint(res);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+	//	#endregion
+	//
+
+	//
 	//	#region Main Comp
 	//
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
 	return (
 		<>
 			<GeneralCard
@@ -901,50 +938,119 @@ const CategoryInformations = (props: Props) => {
 				firstTitle="Popis"
 				height="h-full"
 				secondChildren={
-					<Box className="flex flex-col  ">
-						<LabelAndValue
-							noPaddingTop
-							label="Název kategorie"
-							value={props.selectedCategory.state?.categoryName}
-						/>
+					<Box className="flex flex-col  mt-3">
+						{props.editing.state && props.selectedCategory.state?.orderNumber !== 0 ? (
+							<Box className=" flex items-start mr-3">
+								<LabelAndValue
+									label="Název kategorie"
+									noPaddingTop
+									maxLength={40}
+									mainStyle="w-full "
+									textFieldValue={props.selectedCategory.state?.categoryName}
+									textFieldOnClick={(value) => handleChangeCategoryName(value)}
+									icon={IconEnum.CHECK}
+									onChangeCond={(value) => {
+										if (value === props.selectedCategory.state?.categoryName) {
+											setNameHelperText("");
+											return false;
+										}
+
+										let nameExists = false;
+
+										props.categoriesData.state.map((category) => {
+											if (category.categoryName === value) nameExists = true;
+										});
+
+										if (nameExists) {
+											setNameHelperText("Kategorie s tímto názvem již existuje");
+											return false;
+										}
+
+										if (value.length > 40) {
+											setNameHelperText("Název může mít maximálně 40 znaků");
+										}
+
+										if (value !== "") {
+											setNameHelperText("");
+
+											return true;
+										} else {
+											setNameHelperText("Název nesmí být prázdný");
+
+											return false;
+										}
+									}}
+									helperText={nameHelperText}
+								/>
+							</Box>
+						) : (
+							<LabelAndValue
+								noPaddingTop
+								label="Název kategorie"
+								value={props.selectedCategory.state?.categoryName}
+							/>
+						)}
 
 						{props.selectedSport.state?.hasAutomaticPlanCreation ? <AutomaticPlanCreationSettings /> : <></>}
 					</Box>
 				}
 				firstChildren={
 					<Box className="h-full">
-						<Box className="pt-1">
-							{props.editing.state ? (
-								<TextField
-									className="w-full"
-									placeholder="Popis sportu"
-									multiline
-									minRows={10}
-									value={descriptionValue}
-									onChange={(e) => setDescriptionValue(e.target.value)}
-									onBlur={() => handleChangeCategoryDesc()}
-									InputProps={{
-										className: "font-light",
-									}}
-								/>
+						<Box className="mt-3">
+							{!props.editing.state && descriptionValue.length < 1 ? (
+								<Typography className="text-lg font-light ml-4">Pro vybranou kategorii neexistuje popis.</Typography>
+							) : props.editing.state ? (
+								<Box className="relative">
+									<TextField
+										className="w-full"
+										label="Popis kategorie"
+										placeholder=" Popište například obecné informace o kategorii, čím je specifická nebo společné znaky cviků v této kategorii."
+										multiline
+										minRows={10}
+										value={descriptionValue}
+										onChange={(e) => setDescriptionValue(e.target.value)}
+										onBlur={() => handleChangeCategoryDesc()}
+										InputProps={{
+											className: "font-light",
+										}}
+									/>
+									<Box className="absolute bottom-2 right-2">
+										<ButtonComp
+											size="small"
+											contentStyle="scale-[1.2]"
+											content={IconEnum.QUESTION}
+											externalClicked={{ state: isModalOpen, setState: setIsModalOpen }}
+											onClick={() => setIsModalOpen(true)}
+										/>
+									</Box>
+								</Box>
 							) : (
-								<span className="react-markdown break-words font-light">
+								<Typography className="react-markdown break-words font-light mb-6">
 									<ReactMarkdown
 										remarkPlugins={[remarkBreaks]}
 										components={{
-											p: ({ children }) => <p className="font-light">{children}</p>,
+											p: ({ children }) => <p className="font-light ml-4">{children}</p>,
 											ul: ({ children }) => <ul className="list-disc pl-8 mt-1 mb-0 space-y-1">{children}</ul>,
 											ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 mb-0 space-y-1">{children}</ol>,
-											li: ({ children }) => <li className="mb-0">{children}</li>,
+											li: ({ children }) => <li className="mb-0 ml-4">{children}</li>,
 											h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
 											h2: ({ children }) => <h2 className="text-2xl font-semibold">{children}</h2>,
 											h3: ({ children }) => <h3 className="text-xl font-medium">{children}</h3>,
 										}}>
 										{descriptionValue || ""}
 									</ReactMarkdown>
-								</span>
+								</Typography>
 							)}
 						</Box>
+
+						<CustomModal
+							style="max-w-2xl w-full"
+							isOpen={isModalOpen}
+							paddingTop
+							onClose={() => setIsModalOpen(false)}
+							title="Podporované formátovací prvky"
+							children={<RemarkEntitiesDescription />}
+						/>
 					</Box>
 				}></GeneralCard>
 		</>

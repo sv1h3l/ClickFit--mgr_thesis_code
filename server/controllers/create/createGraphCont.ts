@@ -69,15 +69,25 @@ export const createGraphCont = async (req: Request, res: Response): Promise<void
 	}
 
 	try {
-		const checkRes = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW });
-		if (checkRes.status !== GenEnum.SUCCESS) {
-			res.status(checkRes.status).json({ message: checkRes.message });
+		const checkSportView = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW }); // TODO předělat na SPORT_VIEW
+		const checkSportEdit = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT }); // TODO předělat na SPORT_VIEW
+	
+		if (checkSportView.status !== GenEnum.SUCCESS && checkSportEdit.status !== GenEnum.SUCCESS) {
+			res.status(checkSportView.status).json({ message: checkSportView.message });
 			return;
+		}
+	
+		let userId = -1;
+	
+		if (checkSportView.status === GenEnum.SUCCESS) {
+			userId = checkSportView.data?.userId || -1;
+		} else {
+			userId = checkSportEdit.data?.userId || -1;
 		}
 
 		let highestOrderNumber = 0;
-		const resHighestDefaultOrderNumber = await getHighestDefaultGraphsOrderNumberModNEW({ userId: checkRes.data?.userId! });
-		const resHighestUserOrderNumber = await getHighestGraphsOrderNumberMod({ userId: checkRes.data?.userId! });
+		const resHighestDefaultOrderNumber = await getHighestDefaultGraphsOrderNumberModNEW({ userId });
+		const resHighestUserOrderNumber = await getHighestGraphsOrderNumberMod({ userId });
 
 		highestOrderNumber = resHighestDefaultOrderNumber.data?.highestOrderNumber! + resHighestUserOrderNumber.data?.highestOrderNumber! + 1;
 
@@ -86,9 +96,9 @@ export const createGraphCont = async (req: Request, res: Response): Promise<void
 
 		if (createDefGraph) {
 			dbResult = await createDefaultGraphMod({ sportId, graphLabel, hasDate, xAxisLabel, yAxisLabel, unit, hasGoals });
-			defaultGraphOnId = await createDefaultGraphOrderNumberMod({ userId: checkRes.data?.userId!, graphId: dbResult.data?.graphId!, highestOrderNumber });
+			defaultGraphOnId = await createDefaultGraphOrderNumberMod({ userId, graphId: dbResult.data?.graphId!, highestOrderNumber });
 		} else {
-			dbResult = await createGraphMod({ sportId, userId: checkRes.data?.userId!, graphLabel, orderNumber: highestOrderNumber, hasDate, xAxisLabel, yAxisLabel, unit, hasGoals });
+			dbResult = await createGraphMod({ sportId, userId, graphLabel, orderNumber: highestOrderNumber, hasDate, xAxisLabel, yAxisLabel, unit, hasGoals });
 		}
 
 		res.status(dbResult.status).json({ message: dbResult.message, data: { graphId: dbResult.data?.graphId, defaultGraphOnId: defaultGraphOnId?.data?.defaultGraphOrderNumberId, orderNumber: highestOrderNumber } });

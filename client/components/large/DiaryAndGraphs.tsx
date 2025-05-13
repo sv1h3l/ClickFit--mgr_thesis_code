@@ -7,9 +7,12 @@ import { getDiaryReq } from "@/api/get/getDiaryReq";
 import { getGraphsReq } from "@/api/get/getGraphsReq";
 import { getGraphValuesReq } from "@/api/get/getGraphValuesReq";
 import { Sport } from "@/api/get/getSportsReq";
+import { getVisitedUserGraphsReq } from "@/api/get/getVisitedUserGraphsReq";
+import { getVisitedUserGraphValuesReq } from "@/api/get/getVisitedUserGraphValuesReq";
 import { hideDefGraphReq } from "@/api/move/hideDefGraphReq";
 import { moveGraphReq } from "@/api/move/moveGraphReq";
 import { showDefGraphReq } from "@/api/move/showDefGraphReq";
+import { useAppContext } from "@/utilities/Context";
 import { StateAndSetFunction } from "@/utilities/generalInterfaces";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -19,6 +22,7 @@ import ReactMarkdown from "react-markdown";
 import { CartesianGrid, Customized, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import remarkBreaks from "remark-breaks";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
+import CustomModal from "../small/CustomModal";
 import DoubleLabelAndValue from "../small/DoubleLabelAndValue";
 import LabelAndValue from "../small/LabelAndValue";
 import TextFieldWithIcon from "../small/TextFieldWithIcon";
@@ -30,6 +34,8 @@ interface Props {
 
 	isSelectedFirstSection: StateAndSetFunction<boolean>;
 	isDisabledFirstSection: StateAndSetFunction<boolean>;
+
+	cannotEdit?: boolean;
 }
 
 export interface Diary {
@@ -67,11 +73,110 @@ export interface Graph {
 	graphValues: GraphValue[];
 }
 
+//
+//	#region Markdown Comp
+//
+const MarkdownComp = ({ value }: { value: string }) => {
+	return (
+		<span className="react-markdown break-words font-light w-1/2">
+			<ReactMarkdown
+				remarkPlugins={[remarkBreaks]}
+				components={{
+					p: ({ children }) => <p className="font-light ml-4">{children}</p>,
+					ul: ({ children }) => <ul className="list-disc pl-8 mt-1 mb-0 space-y-1">{children}</ul>,
+					ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 mb-0 space-y-1">{children}</ol>,
+					li: ({ children }) => <li className="mb-0 ml-4">{children}</li>,
+					h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+					h2: ({ children }) => <h2 className="text-2xl font-semibold">{children}</h2>,
+					h3: ({ children }) => <h3 className="text-xl font-medium">{children}</h3>,
+				}}>
+				{value}
+			</ReactMarkdown>
+		</span>
+	);
+};
+
+export const RemarkEntitiesDescription = () => {
+	return (
+		<Box className="w-full flex flex-col gap-8 mb-4 ">
+			<Box className="flex items-center  w-full gap-8">
+				<Typography className=" text-right w-1/2 font-light"># Nadpis 1</Typography>
+				<Typography className="font-light opacity-50">»</Typography>
+				<MarkdownComp value="# Nadpis 1" />
+			</Box>
+
+			<Box className="flex items-center  w-full gap-8">
+				<Typography className=" text-right w-1/2 font-light">## Nadpis 2</Typography>
+				<Typography className="font-light opacity-50">»</Typography>
+				<MarkdownComp value="## Nadpis 2" />
+			</Box>
+
+			<Box className="flex items-center w-full gap-8">
+				<Typography className=" text-right w-1/2 font-light">### Nadpis 3</Typography>
+				<Typography className="font-light opacity-50">»</Typography>
+				<MarkdownComp value="### Nadpis 3" />
+			</Box>
+
+			<Box className="flex items-center w-full gap-8">
+				<Typography className=" text-right w-1/2 font-light">Libovolný souvislý text.</Typography>
+				<Typography className="font-light opacity-50">»</Typography>
+				<MarkdownComp value="Libovolný souvislý text." />
+			</Box>
+
+			<Box className="flex items-center w-full gap-8">
+				<Typography className=" text-right w-1/2 font-light">*kurzíva*</Typography>
+				<Typography className="font-light opacity-50">»</Typography>
+				<MarkdownComp value="*kurzíva*" />
+			</Box>
+
+			<Box className="flex items-center w-full gap-8">
+				<Typography className=" text-right w-1/2 font-light">**tučný text**</Typography>
+				<Typography className="font-light opacity-50">»</Typography>
+				<MarkdownComp value="**tučný text**" />
+			</Box>
+
+			<Box className="flex items-center w-full gap-8">
+				<Box className="flex flex-col w-1/2 -mt-4">
+					<Typography className=" text-right font-light">- položka seznamu</Typography>
+					<Typography className=" text-right font-light">- položka seznamu</Typography>
+					<Typography className=" text-right font-light">- položka seznamu</Typography>
+				</Box>
+				<Typography className="font-light opacity-50 -mt-4">»</Typography>
+				<MarkdownComp value={`- položka seznamu\n- položka seznamu\n- položka seznamu`} />
+			</Box>
+
+			<Box className="flex items-center w-full gap-8 -mt-4">
+				<Box className="flex flex-col w-1/2 -mt-4">
+					<Typography className=" text-right font-light">1. položka seznamu</Typography>
+					<Typography className=" text-right font-light">2. položka seznamu</Typography>
+					<Typography className=" text-right font-light">3. položka seznamu</Typography>
+				</Box>
+				<Typography className="font-light opacity-50 -mt-4">»</Typography>
+				<MarkdownComp value={`1. položka seznamu\n2. položka seznamu\n3. položka seznamu`} />
+			</Box>
+
+			<Box className="flex items-center w-full gap-8 -mt-6">
+				<Box className={`flex w-1/2 justify-end`}>
+					<Typography className=" text-right font-light opacity-50 mr-2">(oddělovací čára)</Typography>
+					<Typography className=" text-right font-light">-</Typography>
+					<Typography className=" text-right font-light mx-0.5">-</Typography>
+					<Typography className=" text-right font-light">-</Typography>
+				</Box>
+				<Typography className="font-light opacity-50">»</Typography>
+				<MarkdownComp value="---" />
+			</Box>
+		</Box>
+	);
+};
+//	#endregion
+//
+
 const DiaryAndGraphs = (props: Props) => {
+	const context = useAppContext();
+
 	useEffect(() => {
 		if (props.selectedSport.state) {
 			getDiary(props.selectedSport.state.sportId);
-
 			getGraphs(props.selectedSport.state.sportId);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,7 +210,7 @@ const DiaryAndGraphs = (props: Props) => {
 	useEffect(() => {
 		setDiaryContent(diary.content);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [diaryEditing]);
+	}, [diaryEditing, props.selectedSport.state?.sportId]);
 
 	const getDiary = async (sportId: number) => {
 		try {
@@ -113,6 +218,7 @@ const DiaryAndGraphs = (props: Props) => {
 
 			if (res.status === 200 && res.data) {
 				setDiary(res.data);
+				setDiaryContent(res.data.content);
 			}
 
 			consoleLogPrint(res);
@@ -215,7 +321,9 @@ const DiaryAndGraphs = (props: Props) => {
 
 		if (selectedGraph && !selectedGraph?.graphValues) {
 			try {
-				const res = await getGraphValuesReq({ graphId: selectedGraph.graphId, defaultGraph: selectedGraph.defaultGraphOrderNumberId ? true : false });
+				const res = props.cannotEdit
+					? await getVisitedUserGraphValuesReq({ graphId: selectedGraph.graphId, defaultGraph: selectedGraph.defaultGraphOrderNumberId ? true : false })
+					: await getGraphValuesReq({ graphId: selectedGraph.graphId, defaultGraph: selectedGraph.defaultGraphOrderNumberId ? true : false });
 
 				if (res.status === 200 && res.data) {
 					selectedGraph.graphValues = res.data;
@@ -232,7 +340,7 @@ const DiaryAndGraphs = (props: Props) => {
 
 	const getGraphs = async (sportId: number) => {
 		try {
-			const res = await getGraphsReq({ sportId });
+			const res = props.cannotEdit ? await getVisitedUserGraphsReq({ sportId }) : await getGraphsReq({ sportId });
 
 			if (res.status === 200 && res.data) {
 				setGraphsData(res.data);
@@ -404,16 +512,17 @@ const DiaryAndGraphs = (props: Props) => {
 					graphValues: [],
 				} as Graph;
 
-				setGraphsData((prev) => [...prev, newGraph]);
+				setGraphsData((prev) => [newGraph, ...prev]);
 
 				props.selectedGraph.setState(newGraph);
 
-				let newMenuItems: { value: string; label: string }[] = menuItems;
-
-				newMenuItems.push({
-					value: res.data.orderNumber.toString(),
-					label: graphLabel,
-				});
+				const newMenuItems: { value: string; label: string }[] = [
+					{
+						value: res.data.orderNumber.toString(),
+						label: graphLabel,
+					},
+					...menuItems,
+				];
 
 				setMenuItems(newMenuItems);
 				setSelectedValue(res.data.orderNumber.toString());
@@ -421,6 +530,7 @@ const DiaryAndGraphs = (props: Props) => {
 				setNewGraph(false);
 				setNewDefaultGraph(false);
 				props.isDisabledFirstSection.setState(false);
+				props.isSelectedFirstSection.setState(false);
 
 				setHighestOrderNumber(highestOrderNumber + 1);
 			}
@@ -640,7 +750,7 @@ const DiaryAndGraphs = (props: Props) => {
 						else return graph;
 					});
 
-					updatedGraphs.sort((a, b) => a.orderNumber - b.orderNumber);
+					updatedGraphs.sort((a, b) => b.orderNumber - a.orderNumber);
 
 					let newMenuItems: { value: string; label: string }[] = [];
 
@@ -735,17 +845,214 @@ const DiaryAndGraphs = (props: Props) => {
 		}
 	};
 
+	//
+	//	#region Select Comp
+	//
+
+	const SelectComp = () => {
+		const [open, setOpen] = useState(false);
+
+		const handleOpen = () => {
+			setOpen(true);
+		};
+
+		const handleClose = () => {
+			setOpen(false);
+		};
+
+		const handleChange = (event: SelectChangeEvent<string>) => {
+			const value = event.target.value;
+
+			setSelectedValue(value);
+
+			handleClose();
+		};
+
+		return (
+			<FormControl
+				className=" -mt-1 mr-8"
+				variant="standard"
+				sx={{
+					"& .MuiSelect-select": {
+						backgroundColor: "transparent !important",
+					},
+				}}>
+				<Select
+					open={open}
+					onClose={handleClose}
+					onOpen={handleOpen}
+					value={selectedValue || ""}
+					onChange={handleChange}
+					className=" h-[2rem]  "
+					disableUnderline
+					sx={{
+						"& .MuiSelect-select": {
+							display: "flex",
+							alignItems: "center",
+
+							backgroundColor: "transparent !important",
+						},
+					}}
+					IconComponent={() => null}
+					renderValue={(value) => (
+						<Box className="flex items-center gap-2 ml-0.5 -mr-5 ">
+							<Typography
+								className="text-lg"
+								sx={{ opacity: 1 }}>
+								{menuItems.find((item) => item.value === selectedValue)?.label}
+							</Typography>
+							<ButtonComp
+								content={open ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
+								style="-mt-0.5  mr-1 "
+								color="text-[#fff]"
+								size="small"
+								onClick={handleOpen}
+								externalClicked={{ state: open, setState: setOpen }}
+							/>
+						</Box>
+					)}
+					MenuProps={{
+						PaperProps: {
+							sx: {
+								marginTop: "-0.15rem",
+								marginLeft: "-0.3rem",
+								backgroundColor: "#1E1E1E",
+								borderRadius: "0.75rem",
+								borderTopRightRadius: "0.25rem",
+								fontWeight: 300,
+							},
+						},
+						anchorOrigin: {
+							vertical: "bottom",
+							horizontal: "right",
+						},
+						transformOrigin: {
+							vertical: "top",
+							horizontal: "right",
+						},
+					}}>
+					{menuItems.map((item) => (
+						<MenuItem
+							sx={{
+								opacity: 1,
+								"&.Mui-selected": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+								"&.Mui-selected:hover": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+							}}
+							key={item.value}
+							className={`py-1.5 hover:cursor-pointer transition-colors duration-150 w-full
+								${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}
+							value={item.value}>
+							{item.label}
+						</MenuItem>
+					))}
+					{menuItems.length > 0 && !props.cannotEdit ? (
+						<MenuItem
+							disabled
+							className="bg-gray-400 p-0 pt-[0.1rem] "
+						/>
+					) : null}
+
+					{!props.cannotEdit ? (
+						<MenuItem
+							className={`py-1.5 hover:cursor-pointer transition-colors duration-150 w-full
+							${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}
+							sx={{
+								opacity: 1,
+								"&.Mui-selected": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+								"&.Mui-selected:hover": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+							}}
+							value="newGraph">
+							<AddIcon
+								className="text-green-500 scale-[1.15] -ml-2"
+								fontSize="small"
+								style={{
+									filter: "drop-shadow(3px 3px 3px #00000060)",
+								}}
+							/>
+							<Typography className="ml-2">Nový graf</Typography>
+						</MenuItem>
+					) : null}
+
+					{props.selectedSport.state?.canUserEdit && !props.cannotEdit ? (
+						<MenuItem
+							sx={{
+								opacity: 1,
+								"&.Mui-selected": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+								"&.Mui-selected:hover": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+							}}
+							className={`py-1.5 hover:cursor-pointer transition-colors duration-150 w-full
+								${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}
+							value="newDefaultGraph">
+							<AddIcon
+								className="text-green-500 scale-[1.15] -ml-2"
+								fontSize="small"
+								style={{
+									filter: "drop-shadow(3px 3px 3px #00000060)",
+								}}
+							/>
+							<Typography className="ml-2">Nový výchozí graf</Typography>
+						</MenuItem>
+					) : null}
+
+					{menuItems.length > 0 && !props.cannotEdit ? (
+						<MenuItem
+							sx={{
+								opacity: 1,
+								"&.Mui-selected": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+								"&.Mui-selected:hover": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+							}}
+							className={`py-1.5 hover:cursor-pointer transition-colors duration-150 w-full
+								${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}
+							value="reorderGraphs">
+							<EditIcon
+								className={`text-blue-500 scale-[0.9] -ml-2`}
+								fontSize="small"
+								style={{
+									filter: "drop-shadow(3px 3px 3px #00000060)",
+								}}
+							/>
+							<Typography className="ml-2">Úprava grafů</Typography>
+						</MenuItem>
+					) : null}
+				</Select>
+			</FormControl>
+		);
+	};
+	//	#endregion
+	//
+
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const [showFirstSection, setShowFirstSection] = useState(props.cannotEdit ? false : true);
+
 	return (
 		<GeneralCard
 			height="h-full "
 			disabled={!props.selectedSport.state}
-			firstTitle="Deník"
+			showFirstSection={{ state: showFirstSection, setState: setShowFirstSection }}
+			firstTitle={props.cannotEdit ? "" : "Deník"}
 			firstSideContent={
-				props.selectedSport.state
+				props.selectedSport.state && !props.cannotEdit
 					? [
 							<ButtonComp
 								key={"edit"}
-								style="ml-2 mt-0.5"
+								style="ml-2 -mt-0.5"
 								size="small"
 								content={IconEnum.EDIT}
 								onClick={() => {
@@ -756,24 +1063,36 @@ const DiaryAndGraphs = (props: Props) => {
 					: []
 			}
 			firstChildren={
-				<Box className=" h-full ">
+				<Box className=" h-full mt-3">
 					{diaryEditing ? (
-						<TextField
-							className="w-full"
-							placeholder="Obsah deníku"
-							multiline
-							minRows={20}
-							value={diaryContent}
-							onChange={(e) => setDiaryContent(e.target.value)}
-							onBlur={() => {
-								changeDiaryContent(diary.diaryId);
-							}}
-							InputProps={{
-								className: "font-light",
-							}}
-						/>
-					) : (
-						<span className="react-markdown break-words font-light">
+						<Box className="relative">
+							<TextField
+								className="w-full"
+								label="Obsah deníku"
+								placeholder=" Zde je vhodné zaznamenat průběh tréninků, pocity během cvičení, dosažené výkony nebo poznámky k technice a regeneraci."
+								multiline
+								minRows={20}
+								value={diaryContent}
+								onChange={(e) => setDiaryContent(e.target.value)}
+								onBlur={() => {
+									changeDiaryContent(diary.diaryId);
+								}}
+								InputProps={{
+									className: "font-light",
+								}}
+							/>
+							<Box className="absolute bottom-2 right-2">
+								<ButtonComp
+									size="small"
+									contentStyle="scale-[1.2]"
+									content={IconEnum.QUESTION}
+									externalClicked={{ state: isModalOpen, setState: setIsModalOpen }}
+									onClick={() => setIsModalOpen(true)}
+								/>
+							</Box>
+						</Box>
+					) : diaryContent.length > 1 ? (
+						<span className="react-markdown break-words font-light mb-6">
 							<ReactMarkdown
 								remarkPlugins={[remarkBreaks]}
 								components={{
@@ -788,7 +1107,110 @@ const DiaryAndGraphs = (props: Props) => {
 								{diary.content || ""}
 							</ReactMarkdown>
 						</span>
+					) : (
+						<Typography className=" ml-2 text-lg font-light">Deník je prázdný.</Typography>
 					)}
+
+					{/*<Box className=" h-full flex gap-6">
+						<ButtonComp
+							content={IconEnum.PLUS}
+							size="medium"
+						/>
+
+						<ButtonComp
+							content={IconEnum.CHECK}
+							size="medium"
+						/>
+
+						<ButtonComp
+							content={IconEnum.EDIT}
+							size="medium"
+						/>
+
+						<Box className="flex gap-2">
+							<ButtonComp
+								content={IconEnum.ARROW}
+								size="medium"
+								contentStyle="-rotate-90"
+							/>
+							<ButtonComp
+								content={IconEnum.ARROW}
+								size="medium"
+								contentStyle="rotate-90"
+							/>
+						</Box>
+
+						<Box className="flex gap-2">
+							<ButtonComp
+								content={IconEnum.CROSS}
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.TRASH}
+								size="medium"
+							/>
+						</Box>
+
+						<Box className="flex gap-2">
+							<ButtonComp
+								content={IconEnum.ARROW_DROP_DOWN}
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.ARROW_DROP_UP}
+								size="medium"
+							/>
+						</Box>
+
+						<Box className="flex gap-2">
+							<ButtonComp
+								content={IconEnum.EYE}
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.EYE_HIDDEN}
+								size="medium"
+							/>
+						</Box>
+
+						<Box className="flex gap-2">
+							<ButtonComp
+								content={IconEnum.ARROW}
+								contentStyle="-rotate-180"
+								color="text-white"
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.FLAG}
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.CHART}
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.PROFILE}
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.SETTINGS}
+								size="medium"
+							/>
+							<ButtonComp
+								content={IconEnum.LOGOUT}
+								size="medium"
+							/>
+						</Box>
+					</Box>*/}
+
+					<CustomModal
+						style="max-w-2xl w-full"
+						isOpen={isModalOpen}
+						paddingTop
+						onClose={() => setIsModalOpen(false)}
+						title="Podporované formátovací prvky"
+						children={<RemarkEntitiesDescription />}
+					/>
 				</Box>
 			}
 			secondTitle="Grafy"
@@ -868,7 +1290,7 @@ const DiaryAndGraphs = (props: Props) => {
 												className="ml-[3.9rem] mt-3"
 												control={
 													<Checkbox
-														checked={hasDate}
+														checked={!!hasDate}
 														onChange={() => {
 															setHasDate(!hasDate);
 														}}
@@ -927,7 +1349,7 @@ const DiaryAndGraphs = (props: Props) => {
 												disabled={!hasDate}
 												control={
 													<Checkbox
-														checked={hasGoals}
+														checked={!!hasGoals}
 														onChange={() => {
 															setHasGoals(!hasGoals);
 														}}
@@ -985,6 +1407,7 @@ const DiaryAndGraphs = (props: Props) => {
 								<Typography className="mb-2 font-light  ">Kromě toho můžete upravit i základní vlastnosti jednotlivých grafů, které jste zvolili při jejich vytváření.</Typography>
 
 								{graphsData
+
 									.filter((graph) => graph.orderNumber !== 0)
 									.map((graph) => {
 										return (
@@ -992,15 +1415,18 @@ const DiaryAndGraphs = (props: Props) => {
 												key={graph.defaultGraphOrderNumberId ? "D" + graph.graphId : graph.graphId}
 												className="py-4 px-4">
 												<Box className="flex items-center">
-													<ButtonComp
-														style="mr-4 "
-														content={IconEnum.EDIT}
-														size="small"
-														onClick={() => {
-															editGraphPrerequisites(graph);
-														}}
-													/>
-													<Typography className="mr-4">{graph.graphLabel}</Typography>
+													{graph.defaultGraphOrderNumberId && !props.selectedSport.state?.canUserEdit ? null : (
+														<ButtonComp
+															style="mr-4 "
+															content={IconEnum.EDIT}
+															size="small"
+															onClick={() => {
+																editGraphPrerequisites(graph);
+															}}
+														/>
+													)}
+
+													<Typography className={`mr-4 ${graph.defaultGraphOrderNumberId && !props.selectedSport.state?.canUserEdit && "ml-[2.6rem]"}`}>{graph.graphLabel}</Typography>
 													<Box className="ml-auto flex gap-4">
 														{graph.defaultGraphOrderNumberId ? (
 															<ButtonComp
@@ -1018,11 +1444,11 @@ const DiaryAndGraphs = (props: Props) => {
 														<ButtonComp
 															justClick
 															dontChangeOutline
-															disabled={graph.orderNumber === 1}
+															disabled={graph.orderNumber === highestOrderNumber}
 															content={IconEnum.ARROW}
 															contentStyle="-rotate-90 scale-[1.16]"
 															size="small"
-															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, true, !!graph.defaultGraphOrderNumberId)}
+															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, false, !!graph.defaultGraphOrderNumberId)}
 														/>
 
 														<ButtonComp
@@ -1030,9 +1456,9 @@ const DiaryAndGraphs = (props: Props) => {
 															dontChangeOutline
 															content={IconEnum.ARROW}
 															contentStyle="rotate-90 scale-[1.16]"
-															disabled={graph.orderNumber === highestOrderNumber}
+															disabled={graph.orderNumber === 1}
 															size="small"
-															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, false, !!graph.defaultGraphOrderNumberId)}
+															onClick={() => handleMoveGraph(graph.defaultGraphOrderNumberId || graph.graphId, graph.orderNumber, true, !!graph.defaultGraphOrderNumberId)}
 														/>
 													</Box>
 												</Box>
@@ -1050,16 +1476,17 @@ const DiaryAndGraphs = (props: Props) => {
 												key={"D" + graph.graphId}
 												className="py-4 px-5">
 												<Box className="flex">
-													<ButtonComp
-														style="mr-4 "
-														hidden={!!graph.defaultGraphOrderNumberId}
-														disabled={!!graph.defaultGraphOrderNumberId}
-														content={IconEnum.EDIT}
-														size="small"
-														onClick={() => {
-															editGraphPrerequisites(graph);
-														}}
-													/>
+													{graph.defaultGraphOrderNumberId && !props.selectedSport.state?.canUserEdit ? null : (
+														<ButtonComp
+															style="mr-4 "
+															content={IconEnum.EDIT}
+															size="small"
+															onClick={() => {
+																editGraphPrerequisites(graph);
+															}}
+														/>
+													)}
+
 													<Typography className="mr-auto">{graph.graphLabel}</Typography>
 													<ButtonComp
 														style="ml-4 mr-4"
@@ -1081,6 +1508,7 @@ const DiaryAndGraphs = (props: Props) => {
 						<Box className="h-full">
 							<Box className="flex justify-end">
 								{menuItems.length > 0 ? (
+									/*
 									<FormControl
 										className="mr-10 w-fit  "
 										variant="standard"
@@ -1131,26 +1559,29 @@ const DiaryAndGraphs = (props: Props) => {
 													{item.label}
 												</MenuItem>
 											))}
-											{menuItems.length > 0 ? (
+											{menuItems.length > 0 && !props.cannotEdit ? (
 												<MenuItem
 													disabled
 													className="bg-gray-400 p-0 pt-[0.1rem] "
 												/>
 											) : null}
 
-											<MenuItem
-												className=""
-												value="newGraph">
-												<AddIcon
-													className="text-green-500 scale-[1.15] -ml-2"
-													fontSize="small"
-													style={{
-														filter: "drop-shadow(3px 3px 3px #00000060)",
-													}}
-												/>
-												<Typography className="ml-2">Nový graf</Typography>
-											</MenuItem>
-											{props.selectedSport.state?.canUserEdit ? (
+											{!props.cannotEdit ? (
+												<MenuItem
+													className=""
+													value="newGraph">
+													<AddIcon
+														className="text-green-500 scale-[1.15] -ml-2"
+														fontSize="small"
+														style={{
+															filter: "drop-shadow(3px 3px 3px #00000060)",
+														}}
+													/>
+													<Typography className="ml-2">Nový graf</Typography>
+												</MenuItem>
+											) : null}
+
+											{props.selectedSport.state?.canUserEdit && !props.cannotEdit ? (
 												<MenuItem
 													className=""
 													value="newDefaultGraph">
@@ -1165,7 +1596,7 @@ const DiaryAndGraphs = (props: Props) => {
 												</MenuItem>
 											) : null}
 
-											{menuItems.length > 0 ? (
+											{menuItems.length > 0 && !props.cannotEdit ? (
 												<MenuItem
 													className=""
 													value="reorderGraphs">
@@ -1180,8 +1611,10 @@ const DiaryAndGraphs = (props: Props) => {
 												</MenuItem>
 											) : null}
 										</Select>
-									</FormControl>
-								) : (
+									</FormControl>*/
+
+									<SelectComp />
+								) : !props.cannotEdit ? (
 									<Box className="flex gap-4">
 										<ButtonComp
 											content={"Nový graf"}
@@ -1206,7 +1639,7 @@ const DiaryAndGraphs = (props: Props) => {
 											/>
 										) : null}
 									</Box>
-								)}
+								) : null}
 							</Box>
 
 							<Box className="h-[calc(100%-2rem)] flex justify-center items-center">
@@ -1262,7 +1695,7 @@ const DiaryAndGraphs = (props: Props) => {
 															const formattedDate = `${formattedDay}. ${formattedMonth}. ${year}`;
 
 															return (
-																<Box className="bg-navigation-color-neutral p-1 mt-3 border-2 shadow rounded">
+																<Box className={`bg-navigation-color-neutral p-1 mt-3 border-2 shadow rounded ${context.bgTertiaryColor + context.borderTertiaryColor} ${""}`}>
 																	<DoubleLabelAndValue
 																		style="items-center"
 																		goal={isGoal ? "Cíl" : "Záznam"}
@@ -1354,16 +1787,26 @@ const DiaryAndGraphs = (props: Props) => {
 										</ResponsiveContainer>
 									)
 								) : menuItems.length > 0 ? (
-									<Box className=" h-1/3 ">
-										<Typography className="font-light text-2xl -ml-8	">↖</Typography>
+									!props.cannotEdit ? (
+										<Box className=" h-1/3 ">
+											<Typography className="font-light text-2xl -ml-8	">↖</Typography>
 
-										<Typography className="font-light text-xl">Pro zobrazení grafu přidejte alespoň 2 záznamy.</Typography>
-									</Box>
-								) : (
+											<Typography className="font-light text-xl">Pro zobrazení grafu přidejte alespoň 2 záznamy.</Typography>
+										</Box>
+									) : (
+										<Box className=" h-1/3 ">
+											<Typography className="font-light text-xl">Pro vybraný graf uživatel nemá alespoň 2 záznamy.</Typography>
+										</Box>
+									)
+								) : !props.cannotEdit ? (
 									<Box className=" h-1/3  flex flex-col items-center">
 										<Typography className="font-light text-2xl -mt-2 pb-2 ml-8	">↗</Typography>
 
 										<Typography className="font-light text-xl">Pro sledování pokroku je nutné si vytvořit nový graf.</Typography>
+									</Box>
+								) : (
+									<Box className=" h-1/3 ">
+										<Typography className="font-light text-xl">Uživatel nemá žádné grafy.</Typography>
 									</Box>
 								)}
 							</Box>

@@ -4,6 +4,7 @@ const cookie = require("cookie");
 
 interface Props {
 	sportId: number;
+	authToken?: string;
 }
 
 export const getExerciseInformationLabsReq = async (props: Props): Promise<GenericResponse<ExerciseInformationLabel[]>> => {
@@ -14,6 +15,7 @@ export const getExerciseInformationLabsReq = async (props: Props): Promise<Gener
 			method: "GET",
 			credentials: "include",
 			headers: {
+				Authorization: `Bearer ${props.authToken}`,
 				"Content-Type": "application/json",
 			},
 		});

@@ -5,7 +5,9 @@ import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { getDifficultiesReq } from "@/api/get/getDifficultiesReq";
 import { getSportDetailLabsAndValsReq } from "@/api/get/getSportDetailLabsAndValsReq";
 import { Sport } from "@/api/get/getSportsReq";
+import { getVisitedUserSportDetailLabsAndValsReq } from "@/api/get/getVisitedUserSportDetailLabsAndValsReq";
 import { moveSportDetailLabelReq } from "@/api/move/moveSportDetailLabelReq";
+import { useAppContext } from "@/utilities/Context";
 import { StateAndSet } from "@/utilities/generalInterfaces";
 import { Box, FormControl, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
 import router from "next/router";
@@ -15,6 +17,8 @@ import LabelAndValue from "../small/LabelAndValue";
 import TextFieldWithIcon from "../small/TextFieldWithIcon";
 import GeneralCard from "./GeneralCard";
 import { SportDifficulty } from "./SportDescriptionAndSettings";
+
+const cookie = require("cookie");
 
 export interface SportDetailLabAndVal {
 	sportDetailLabId: number;
@@ -27,9 +31,13 @@ export interface SportDetailLabAndVal {
 
 interface Props {
 	selectedSport: StateAndSet<Sport | null>;
+
+	cannotEdit?: boolean;
 }
 
 const Sports = (props: Props) => {
+	const context = useAppContext();
+
 	const [sportDetailLabsAndVals, setSportDetailLabsAndVals] = useState<SportDetailLabAndVal[]>([]);
 	const [sportDifficulties, setSportDifficulties] = useState<SportDifficulty[]>([]);
 
@@ -45,7 +53,11 @@ const Sports = (props: Props) => {
 
 	const getSportDetailLabs = async (sportId: number) => {
 		try {
-			const response = await getSportDetailLabsAndValsReq({ sportId });
+			const cookies = cookie.parse(document.cookie);
+			const visitedUserId = cookies.view_tmp ? Number(atob(cookies.view_tmp)) : -1;
+			const authToken = cookies.authToken || null;
+
+			const response = props.cannotEdit ? await getVisitedUserSportDetailLabsAndValsReq({ sportId, visitedUserId, authToken }) : await getSportDetailLabsAndValsReq({ sportId });
 
 			if (response.status === 200) {
 				setSportDetailLabsAndVals(response.data ?? []);
@@ -168,7 +180,7 @@ const Sports = (props: Props) => {
 	};
 
 	const MoveAndDeleteButtons = ({ sportDetailLabId, orderNumber }: { sportDetailLabId: number; orderNumber: number }) => {
-		const disableUpArrow = orderNumber === 4;
+		const disableUpArrow = orderNumber === 8;
 		const disableDownArrow = orderNumber === sportDetailLabsAndVals.length;
 
 		return (
@@ -308,8 +320,8 @@ const Sports = (props: Props) => {
 					MenuProps={{
 						PaperProps: {
 							sx: {
-								marginTop: "-0.25rem",
-								marginLeft: "0.1rem",
+								marginTop: "-0.15rem",
+								marginLeft: "0.3rem",
 								backgroundColor: "#1E1E1E",
 								borderRadius: "0.75rem",
 								borderTopLeftRadius: "0.25rem",
@@ -329,8 +341,17 @@ const Sports = (props: Props) => {
 						<MenuItem
 							key={item}
 							value={item}
-							sx={{ opacity: 0.95 }}
-							className={`py-1.5 hover:bg-[#2a2a2a] hover:cursor-pointer transition-colors duration-150 px-3 w-full ${localProps.labAndVal.orderNumber === 1 && "flex justify-center"} `}>
+							sx={{
+								opacity: 1,
+								"&.Mui-selected": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+								"&.Mui-selected:hover": {
+									backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+								},
+							}}
+							className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+								${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
 							<Typography sx={{ opacity: 0.95 }}>{item}</Typography>
 						</MenuItem>
 					))}
@@ -340,56 +361,81 @@ const Sports = (props: Props) => {
 	};
 
 	const AutomaticCreationDetails = (localProps: AutomaticCreationDetailsProps) => {
-		return localProps.labAndVal.orderNumber === 7 && !props.selectedSport.state?.hasDifficulties ? null : (
-			<Box className={`flex  pl-2 h-7 items-center  ${localProps.labAndVal.orderNumber === 7 ? "gap-2" : "gap-3"}`}>
-				<Typography className="font-light text-nowrap">
-					{props.selectedSport.state?.hasCategories
-						? localProps.labAndVal.label
-						: localProps.labAndVal.orderNumber === 5
-						? "Minimální počet cviků pro jednotlivé dny"
-						: localProps.labAndVal.orderNumber === 6
-						? "Maximální počet cviků pro jednotlivé dny"
-						: localProps.labAndVal.label}
-				</Typography>
-				{localProps.labAndVal.orderNumber !== 7 ? <Typography className={`opacity-50 font-light text-nowrap`}>»</Typography> : null}
+		const LocalLabAndValVisual = ({ labAndVal }: { labAndVal: SportDetailLabAndVal }) => {
+			return (
+				<Box className="flex gap-3  ">
+					<Typography className="font-light text-nowrap">{labAndVal.orderNumber % 2 !== 0 ? "Minimální" : "Maximální"} počet</Typography>
+					<Typography className={`opacity-50 font-light text-nowrap`}>»</Typography>
 
-				{localProps.labAndVal.orderNumber === 7 ? (
-					<SelectComp labAndVal={localProps.labAndVal} />
-				) : props.selectedSport.state?.hasAutomaticPlanCreation ? (
-					<TextFieldWithIcon
-						onlyNumbers
-						cantBeZero
-						previousValue={localProps.labAndVal.value}
-						maxLength={3}
-						icon={IconEnum.CHECK}
-						dontDeleteValue
-						style="w-[4.5rem]"
-						tfCenterValueAndPlaceholder
-						maxValue={localProps.labAndVal.orderNumber < 3 ? 14 : localProps.labAndVal.orderNumber < 5 ? 20 : 30}
-						onClick={async (value) => {
-							try {
-								await handleChangeSportDetailVal(value, localProps.labAndVal.sportDetailValId);
+					{editing ? (
+						<TextFieldWithIcon
+							onlyNumbers
+							cantBeZero
+							previousValue={labAndVal!.value}
+							maxLength={3}
+							icon={IconEnum.CHECK}
+							dontDeleteValue
+							style="w-[4.5rem]"
+							tfCenterValueAndPlaceholder
+							maxValue={labAndVal!.orderNumber < 3 ? 14 : labAndVal!.orderNumber < 5 ? 20 : 30}
+							onClick={async (value) => {
+								try {
+									await handleChangeSportDetailVal(value, labAndVal!.sportDetailValId);
 
-								const pre = [1, 3, 5].includes(localProps.labAndVal.orderNumber);
-								setSportDetailLabsAndVals((prevDetails) =>
-									prevDetails.map((detail) => {
-										if (detail.orderNumber + (pre ? -1 : 1) === localProps.labAndVal.orderNumber) {
-											const newValue = pre ? (Number(detail.value) < Number(value) ? value : detail.value) : Number(detail.value) > Number(value) ? value : detail.value;
+									const pre = [1, 3, 5].includes(labAndVal!.orderNumber);
+									setSportDetailLabsAndVals((prevDetails) =>
+										prevDetails.map((detail) => {
+											if (detail.orderNumber + (pre ? -1 : 1) === labAndVal!.orderNumber) {
+												const newValue = pre ? (Number(detail.value) < Number(value) ? value : detail.value) : Number(detail.value) > Number(value) ? value : detail.value;
 
-											if (newValue !== detail.value) {
-												const newDetail = { ...detail, value: newValue };
-												handleChangeSportDetailVal(value, newDetail.sportDetailValId);
+												if (newValue !== detail.value) {
+													const newDetail = { ...detail, value: newValue };
+													handleChangeSportDetailVal(value, newDetail.sportDetailValId);
 
-												return newDetail;
+													return newDetail;
+												} else return detail;
 											} else return detail;
-										} else return detail;
-									})
-								);
-							} catch (error) {
-								console.error("Error: ", error);
-							}
-						}}
-					/>
+										})
+									);
+								} catch (error) {
+									console.error("Error: ", error);
+								}
+							}}
+						/>
+					) : (
+						<Typography className={`w-[4.5rem]`}>{labAndVal.value}</Typography>
+					)}
+				</Box>
+			);
+		};
+
+		if (localProps.labAndVal.orderNumber % 2 !== 0) {
+			return;
+		}
+
+		return (
+			<Box className={`w-full pl-2 ${localProps.labAndVal.orderNumber === 2 ? "pb-4 pt-2" : "py-4"}`}>
+				<Typography className="">
+					{localProps.labAndVal.orderNumber === 2
+						? "Počet tréninkových dní"
+						: localProps.labAndVal.orderNumber === 4
+						? "Počet kategorií pro jednotlivé dny"
+						: localProps.labAndVal.orderNumber === 6
+						? props.selectedSport.state?.hasCategories
+							? "Počet cviků pro jednotlivé kategorie"
+							: "Počet cviků pro jednotlivé dny"
+						: ""}
+				</Typography>
+
+				<Box className={`flex  pt-3 pl-4 h-7 items-center gap-20 `}>
+					<LocalLabAndValVisual labAndVal={sportDetailLabsAndVals.find((labAndVal) => labAndVal.orderNumber === localProps.labAndVal.orderNumber - 1) || localProps.labAndVal} />
+					<LocalLabAndValVisual labAndVal={localProps.labAndVal} />
+				</Box>
+
+				{editing && localProps.labAndVal.orderNumber === 6 ? (
+					<Box className="mt-5">
+						<Typography className={`opacity-60 font-light   mr-2`}>* Počty ovlivňují automatickou tvorbu, pokud to povaha sportu dovoluje.</Typography>
+					</Box>
 				) : null}
 			</Box>
 		);
@@ -403,7 +449,7 @@ const Sports = (props: Props) => {
 			height="h-full"
 			firstTitle="Sportovní údaje"
 			firstSideContent={
-				!!props.selectedSport.state
+				!!props.selectedSport.state && !props.cannotEdit
 					? [
 							<ButtonComp
 								style=" ml-3"
@@ -418,61 +464,58 @@ const Sports = (props: Props) => {
 			removeJustifyBetween
 			firstChildren={
 				<Box className=" h-full ">
-					{editing
-						? sportDetailLabsAndVals.map((labAndVal, index) => {
-								return (
-									<Box
-										className={`flex  ${[3, 4].includes(labAndVal.orderNumber) && !props.selectedSport.state?.hasCategories ? "" : "py-2"}`}
-										key={index}>
-										{labAndVal.orderNumber > 7 ? (
-											<>
-												<LabelAndValue
-													noPaddingTop
-													mainStyle={`w-full ${labAndVal.orderNumber < 4 ? "mr-[7.35rem]" : "mr-5"}`}
-													label={labAndVal.label}
-													textFieldValue={labAndVal.value}
-													textFieldOnClick={(value) => handleChangeSportDetailVal(value, labAndVal.sportDetailValId)}
-													icon={IconEnum.CHECK}
-												/>
-
-												<MoveAndDeleteButtons
-													sportDetailLabId={labAndVal.sportDetailLabId}
-													orderNumber={labAndVal.orderNumber}
-												/>
-											</>
-										) : [3, 4].includes(labAndVal.orderNumber) && !props.selectedSport.state?.hasCategories ? null : (
-											<AutomaticCreationDetails labAndVal={labAndVal} />
-										)}
-									</Box>
-								);
-						  })
-						: sportDetailLabsAndVals.map((labAndVal, index) => {
-								return props.selectedSport.state?.hasCategories || ![3, 4].includes(labAndVal.orderNumber) ? (
-									<Box className={`py-2 ${index === sportDetailLabsAndVals.length - 1 && "pb-12"}`}>
+					{sportDetailLabsAndVals.map((labAndVal, index) => {
+						return (
+							<Box key={index}>
+								{labAndVal.orderNumber > 7 ? (
+									<Box className="flex py-2">
 										<LabelAndValue
-											key={index}
 											noPaddingTop
-											label={
-												props.selectedSport.state?.hasCategories
-													? labAndVal.label
-													: labAndVal.orderNumber === 5
-													? "Minimální počet cviků pro jednotlivé dny"
-													: labAndVal.orderNumber === 6
-													? "Maximální počet cviků pro jednotlivé dny"
-													: labAndVal.label
-											}
+											mainStyle={`w-full  mr-5`}
+											label={labAndVal.label}
+											textFieldValue={labAndVal.value}
 											value={labAndVal.value}
 											notFilledIn={!labAndVal.value}
+											textFieldOnClick={editing ? (value) => handleChangeSportDetailVal(value, labAndVal.sportDetailValId) : undefined}
+											icon={IconEnum.CHECK}
 										/>
+
+										{editing ? (
+											<MoveAndDeleteButtons
+												sportDetailLabId={labAndVal.sportDetailLabId}
+												orderNumber={labAndVal.orderNumber}
+											/>
+										) : null}
 									</Box>
-								) : null;
-						  })}
+								) : labAndVal.orderNumber === 7 ? (
+									!props.selectedSport.state?.hasDifficulties ? null : (
+										<Box className={`mb-1.5 ${props.selectedSport.state.hasAutomaticPlanCreation ? "mt-4 " : "mt-2"}`}>
+											<Box className={`flex  pl-2 h-7 items-center py-4`}>
+												<Typography className="font-light text-nowrap ">{labAndVal.label}</Typography>
+												<Typography className={`opacity-50 font-light text-nowrap ml-3 mr-2`}>»</Typography>
+												{editing ? <SelectComp labAndVal={labAndVal} /> : <Typography className="">{labAndVal.value}</Typography>}
+											</Box>
+											{editing ? (
+												<Box className="mt-1">
+													<Typography className={`opacity-60 font-light  ml-2 mr-2`}>* Obtížnost cviků ovlivňuje, jaké cviky mohou být použity během tvorby.</Typography>
+													<Typography className={`opacity-60 font-light  ml-5 mr-2`}>Při volbě nižší obtížnosti nelze použít cviky vyšší obtížnosti.</Typography>
+													<Typography className={`opacity-60 font-light  ml-5 mr-2 mb-6`}>Při volbě vyšší obtížnosti je možné použít i cviky nižší obtížnosti.</Typography>
+												</Box>
+											) : null}
+										</Box>
+									)
+								) : [3, 4].includes(labAndVal.orderNumber) && !props.selectedSport.state?.hasCategories ? null : props.selectedSport.state?.hasAutomaticPlanCreation ? (
+									<AutomaticCreationDetails labAndVal={labAndVal} />
+								) : null}
+							</Box>
+						);
+					})}
 
 					{editing && (
 						<TextFieldWithIcon
 							disableSaveAnimation
 							placeHolder="Přidat sportovní údaj"
-							style="w-2/5 ml-2 pt-4 "
+							style="w-2/5 ml-2 pt-2 "
 							onClick={(value) => handleCreateSportDetailLab(value)}
 						/>
 					)}

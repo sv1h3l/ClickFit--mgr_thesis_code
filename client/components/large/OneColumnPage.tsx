@@ -11,7 +11,7 @@ const OneColumnPage = ({ firstColumnWidth, firstColumnHeight, firstColumnChildre
 	return (
 		<Box className="flex justify-center  h-content-prelog pt-7 px-1 w-full">
 			<Box
-				className={`${firstColumnWidth || "w-1/2"} ${firstColumnHeight || "h-full "} rounded-3xl pb-1  pr-2   mt-4
+				className={`${firstColumnWidth || "w-1/2"} ${firstColumnHeight || "h-full "} rounded-3xl pb-1    mt-4
 						    `}>
 				{firstColumnChildren}
 			</Box>

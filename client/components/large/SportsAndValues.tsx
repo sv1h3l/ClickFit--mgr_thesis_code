@@ -11,9 +11,9 @@ import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import DoubleValue from "../small/DoubleValue";
 import LabelAndValue from "../small/LabelAndValue";
-import Title from "../small/Title";
 import { Graph, GraphValue } from "./DiaryAndGraphs";
 import GeneralCard from "./GeneralCard";
+import router from "next/router";
 
 interface Props {
 	sportsData: StateAndSetFunction<Sport[]>;
@@ -23,6 +23,8 @@ interface Props {
 
 	isSelectedFirstSection: StateAndSetFunction<boolean>;
 	isDisabledFirstSection: StateAndSetFunction<boolean>;
+
+	cannotEdit?: boolean;
 }
 
 const SportsAndValues = (props: Props) => {
@@ -261,7 +263,7 @@ const SportsAndValues = (props: Props) => {
 					key={value.graphValueId}>
 					{props.selectedGraph.state?.hasDate ? yearMap.get(year) === false && <Typography className="mt-7 -mb-1 font-light">{year}</Typography> : null}
 
-					<Box className="w-full pl-4">
+					<Box className="w-full pl-4 ml-4">
 						<DoubleValue
 							checkOnClick={(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue) => handleChangeGraphValue(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue)}
 							firstValuePlaceholder={props.selectedGraph.state?.xAxisLabel}
@@ -294,17 +296,20 @@ const SportsAndValues = (props: Props) => {
 
 	return (
 		<GeneralCard
+			showBackButton={props.cannotEdit}
+			backButtonClick={() => {
+				router.push(`/chat`);
+			}}
 			height="h-full max-h-full"
 			firstTitle="Sporty"
 			showFirstSection={{ state: props.isSelectedFirstSection.state, setState: props.isSelectedFirstSection.setState }}
 			disabled={props.isDisabledFirstSection.state}
 			firstChildren={
 				<Box className=" h-full ">
-					<Title
-						title="Sport"
-						secondTitle="Autor"
-						smallPaddingTop
-					/>
+					<Box className="flex rounded-xl  overflow-hidden pt-1.5 px-2.5 ">
+						<Typography className="w-1/2 font-light italic text-[0.9rem]">Sport</Typography>
+						<Typography className="w-1/2 font-light italic text-[0.9rem] pl-2">Autor</Typography>
+					</Box>
 
 					{props.sportsData.state.map((sport) => (
 						<LabelAndValue
@@ -324,41 +329,48 @@ const SportsAndValues = (props: Props) => {
 					))}
 				</Box>
 			}
-			secondTitle={props.selectedGraph.state  ? "Záznamy" : ""}
+			secondTitle={props.selectedGraph.state ? "Záznamy" : ""}
 			secondChildren={
 				<Box className=" h-full ">
-					<Box className="flex justify-center items-center pt-8 ">
-						<Box className="w-fit pr-3 -ml-3 -mt-1">
-							<ButtonComp
-								disabled={!props.selectedGraph.state?.graphValues?.length}
-								content={IconEnum.EDIT}
-								size="small"
-								onClick={() => setEdit(!edit)}
-							/>
-						</Box>
+					<Box className="flex justify-center items-center pt-6 ">
+						{props.cannotEdit ? null : (
+							<Box className="w-fit pr-3 -ml-3 ">
+								<ButtonComp
+									disabled={!props.selectedGraph.state?.graphValues?.length}
+									content={IconEnum.EDIT}
+									size="small"
+									onClick={() => setEdit(!edit)}
+								/>
+							</Box>
+						)}
+
 						<Typography className="text-xl">{props.selectedGraph.state?.graphLabel}</Typography>
 					</Box>
-					<Typography className="mt-7 font-light  ">Nový záznam</Typography>
-					<Box className="pl-4">
-						<DoubleValue
-							checkOnClick={(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue) => handleCreateGraphValue(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue)}
-							firstValuePlaceholder={props.selectedGraph.state?.xAxisLabel}
-							secondValuePlaceholder={props.selectedGraph.state?.yAxisLabel}
-							tfFirstValueMaxLength={12}
-							tfSecondValueMaxLength={4}
-							edit={true}
-							unit={props.selectedGraph.state?.unit}
-							graphValueId={0}
-							orderNumber={0}
-							graphId={props.selectedGraph.state?.graphId!}
-							isDefaultGraphValue={props.selectedGraph.state?.defaultGraphOrderNumberId ? true : false}
-							firstValueError={{ state: firstValueErrorGoal, setState: setFirstValueErrorGoal }}
-							secondValueError={{ state: secondValueErrorGoal, setState: setSecondValueErrorGoal }}
-							hasDate={props.selectedGraph.state?.hasDate}
-							showGoalButton={props.selectedGraph.state?.hasGoals}
-							showCheckButttonAlways
-						/>
-					</Box>
+					{props.cannotEdit ? null : (
+						<Box>
+							<Typography className="mt-7 font-light  ">Nový záznam</Typography>
+							<Box className="pl-4 ml-4">
+								<DoubleValue
+									checkOnClick={(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue) => handleCreateGraphValue(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue)}
+									firstValuePlaceholder={props.selectedGraph.state?.xAxisLabel}
+									secondValuePlaceholder={props.selectedGraph.state?.yAxisLabel}
+									tfFirstValueMaxLength={12}
+									tfSecondValueMaxLength={4}
+									edit={true}
+									unit={props.selectedGraph.state?.unit}
+									graphValueId={0}
+									orderNumber={0}
+									graphId={props.selectedGraph.state?.graphId!}
+									isDefaultGraphValue={props.selectedGraph.state?.defaultGraphOrderNumberId ? true : false}
+									firstValueError={{ state: firstValueErrorGoal, setState: setFirstValueErrorGoal }}
+									secondValueError={{ state: secondValueErrorGoal, setState: setSecondValueErrorGoal }}
+									hasDate={props.selectedGraph.state?.hasDate}
+									showGoalButton={props.selectedGraph.state?.hasGoals}
+									showCheckButttonAlways
+								/>
+							</Box>
+						</Box>
+					)}
 					{props.selectedGraph.state?.hasDate || !props.selectedGraph.state?.graphValues ? null : <Typography className="mt-7 -mb-1 font-light">Záznamy</Typography>}{" "}
 					{/* FIXME když smažu poslední záznam ta kzůstane "Záznámy" + když kliknu na save tak se úplně neschová tlačítko fajvky */}
 					{props.selectedGraph.state?.graphValues && renderFormattedGraphValues()}

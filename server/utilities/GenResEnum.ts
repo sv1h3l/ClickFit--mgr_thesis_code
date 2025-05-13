@@ -3,6 +3,7 @@
 export enum GenEnum {
 	SUCCESS = 200,
 
+	BAD_REQUEST = 400,
 	UNAUTHORIZED = 403,
 	NOT_FOUND = 404,
 	ALREADY_EXISTS = 409,

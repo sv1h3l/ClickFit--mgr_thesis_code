@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { createGraphValueMod } from "../../models/create/createGraphValueMod";
 import { getHighestGraphValuesOrderNumberMod } from "../../models/get/getHighestGraphValuesOrderNumberMod";
 import { GenEnum } from "../../utilities/GenResEnum";
+import { checkAuthorizationCont, CheckAuthorizationCodeEnum } from "../residue/checkAuthorizationCont";
 
 export const createGraphValueCont = async (req: Request, res: Response): Promise<void> => {
 	const { graphId, yAxisValue, xAxisValue, isGoal, isDefaultGraphValue } = req.body;
@@ -17,22 +18,18 @@ export const createGraphValueCont = async (req: Request, res: Response): Promise
 	}
 
 	try {
-		/* FIXME předělat to, jestli uživatel může přidat hodnotu. 
-
-		const checkRes = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT });
+		const checkRes = await checkAuthorizationCont({ req, id: graphId, checkAuthorizationCode: CheckAuthorizationCodeEnum.GRAPH_EDIT });
 		if (checkRes.status !== GenEnum.SUCCESS) {
 			res.status(checkRes.status).json({ message: checkRes.message });
 			return;
-		}*/
+		}
 
-		/* TODO udělat to i pro default grafy */
-
-		const resHighestUserOrderNumber = await getHighestGraphValuesOrderNumberMod({ userId: 2, graphId, isDefaultGraphValue });
+		const resHighestUserOrderNumber = await getHighestGraphValuesOrderNumberMod({ userId: checkRes.data?.userId!, graphId, isDefaultGraphValue });
 
 		let highestOrderNumber = 1;
 		if (resHighestUserOrderNumber.status === GenEnum.SUCCESS && resHighestUserOrderNumber.data?.highestOrderNumber) highestOrderNumber = resHighestUserOrderNumber.data?.highestOrderNumber + 1;
 
-		const dbResult = await createGraphValueMod({ graphId, userId: 2, yAxisValue, xAxisValue, isGoal, isDefaultGraphValue, orderNumber: highestOrderNumber });
+		const dbResult = await createGraphValueMod({ graphId, userId: checkRes.data?.userId!, yAxisValue, xAxisValue, isGoal, isDefaultGraphValue, orderNumber: highestOrderNumber });
 
 		res.status(dbResult.status).json({ message: dbResult.message, data: { graphValueId: dbResult.data?.graphValueId, orderNumber: highestOrderNumber } });
 	} catch (error) {

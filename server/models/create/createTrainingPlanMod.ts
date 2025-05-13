@@ -25,24 +25,21 @@ interface Res {
 export const createTrainingPlanMod = async (props: Props): Promise<GenRes<Res>> => {
 	const connection = await db.promise().getConnection();
 
-	const ownerId = props.ownerId || null;
-
 	try {
 		await connection.beginTransaction();
 
 		const reorderTrainingPlansQuery = `
 			UPDATE training_plans
 			SET order_number = order_number + 1
-			WHERE (author_id = ? AND owner_id IS NULL)
-			OR owner_id = ?;
+			WHERE owner_id = ?;
 		`;
-		await connection.query<ResultSetHeader>(reorderTrainingPlansQuery, [ownerId ? ownerId : props.authorId, ownerId ? ownerId : props.authorId]);
+		await connection.query<ResultSetHeader>(reorderTrainingPlansQuery, [props.ownerId]);
 
 		const createTrainingPlanQuery = `
 			INSERT INTO training_plans (sport_id, author_id, owner_id, name, can_owner_edit, date_of_creation, unit_code, has_burden_and_unit)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 		`;
-		const [insertResult] = await connection.query<ResultSetHeader>(createTrainingPlanQuery, [props.sportId, props.authorId, ownerId, props.trainingPlanName, props.canOwnerEdit, props.dateOfCreation, props.unitCode, props.hasBurdenAndUnit]);
+		const [insertResult] = await connection.query<ResultSetHeader>(createTrainingPlanQuery, [props.sportId, props.authorId, props.ownerId, props.trainingPlanName, props.canOwnerEdit, props.dateOfCreation, props.unitCode, props.hasBurdenAndUnit]);
 		const trainingPlanId = insertResult.insertId;
 
 		for (const exercise of props.trainingPlanExercises) {

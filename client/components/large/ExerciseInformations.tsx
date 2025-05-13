@@ -2,6 +2,7 @@ import { changeBlacklistReq } from "@/api/change/changeBlacklistReq";
 import { changeCategoryReq } from "@/api/change/changeCategoryReq";
 import { changeDescReq } from "@/api/change/changeDescReq";
 import { changeExerciseDifficultyRecommendedValsReq } from "@/api/change/changeExerciseDifficultyRecommendedValsReq";
+import { changeExerciseNameReq } from "@/api/change/changeExerciseNameReq";
 import { changeExerciseRecommendedValsReq } from "@/api/change/changeExerciseRecommendedValsReq";
 import { changeExerciseUnitCodeReq } from "@/api/change/changeExerciseUnitCodeReq";
 import { changeHasRepeatabilityReq } from "@/api/change/changeHasRepeatabilityReq";
@@ -22,18 +23,21 @@ import { getExerciseInformationValsReq } from "@/api/get/getExerciseInformationV
 import { Exercise } from "@/api/get/getExercisesReq";
 import { Sport } from "@/api/get/getSportsReq";
 import { moveExerciseInformationLabReq } from "@/api/move/moveExerciseInformationLabReq";
+import { Unit } from "@/pages/training-plan";
 import { useAppContext } from "@/utilities/Context";
 import { StateAndSet, StateAndSetFunction } from "@/utilities/generalInterfaces";
-import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
-import CloseIcon from "@mui/icons-material/Close";
-import { Autocomplete, Box, Button, Checkbox, ClickAwayListener, FormControl, FormControlLabel, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, Checkbox, ClickAwayListener, FormControl, FormControlLabel, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import LabelAndValue from "../small/LabelAndValue";
 import TextFieldWithIcon from "../small/TextFieldWithIcon";
 import Title from "../small/Title";
 import GeneralCard from "./GeneralCard";
 import { SportDifficulty } from "./SportDescriptionAndSettings";
+import CustomModal from "../small/CustomModal";
+import { RemarkEntitiesDescription } from "./DiaryAndGraphs";
 
 export interface ExerciseInformationLabel {
 	exerciseInformationLabelId: number;
@@ -317,51 +321,48 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 		return;
 	};
 
-	const MoveAndDeleteButtons = ({ exerciseInformationLabelId, orderNumber }: { exerciseInformationLabelId: number; orderNumber: number }) => {
+	const MoveAndDeleteButtons = ({ exerciseInformationLabelId, orderNumber, disabled }: { exerciseInformationLabelId: number; orderNumber: number; disabled?: boolean }) => {
 		const disableUpArrow = orderNumber === 1;
 		const disableDownArrow = orderNumber === props.exerciseInformationLabelsData.state.length;
 
 		return (
-			<Box className="ml-auto flex relative">
-				<Button
-					disabled={disableUpArrow}
-					onClick={() => handleMoveExerciseInformationLabel(orderNumber, "up")}
+			<Box className="ml-auto flex gap-2  mr-3 mb-1">
+				<ButtonComp
+					disabled={disabled || disableUpArrow}
 					size="small"
-					className={`w-8 h-8 p-1 min-w-8 ml-3
-								${disableUpArrow && "opacity-30"}`}>
-					<ArrowUpward
-						className="text-blue-300"
-						fontSize="small"
-					/>
-				</Button>
-				<Button
-					disabled={disableDownArrow}
-					onClick={() => handleMoveExerciseInformationLabel(orderNumber, "down")}
+					onClick={() => setTimeout(() => handleMoveExerciseInformationLabel(orderNumber, "up"), 100)}
+					content={IconEnum.ARROW}
+					contentStyle="-rotate-90"
+					dontChangeOutline
+					justClick
+				/>
+
+				<ButtonComp
+					disabled={disabled || disableDownArrow}
 					size="small"
-					className={`w-8 h-8 p-1 min-w-8
-								${disableDownArrow && "opacity-30"}`}>
-					<ArrowDownward
-						className="text-blue-300"
-						fontSize="small"
-					/>
-				</Button>
-				<Button
-					onClick={() => handleDeleteExerciseInformationLabel(exerciseInformationLabelId, orderNumber)}
+					onClick={() => setTimeout(() => handleMoveExerciseInformationLabel(orderNumber, "down"), 100)}
+					content={IconEnum.ARROW}
+					contentStyle="rotate-90"
+					dontChangeOutline
+					justClick
+				/>
+
+				<ButtonComp
+					disabled={disabled}
 					size="small"
-					className={`w-8 h-8 p-1 min-w-8 ml-3`}>
-					<CloseIcon
-						className="text-red-400"
-						fontSize="small"
-					/>
-				</Button>
+					onClick={() => setTimeout(() => handleDeleteExerciseInformationLabel(exerciseInformationLabelId, orderNumber), 100)}
+					content={IconEnum.CROSS}
+					style="ml-2.5"
+					dontChangeOutline
+					justClick
+				/>
 			</Box>
 		);
 	};
 
 	const [categoryValue, setCategoryValue] = useState(props.categoryId);
 
-	const handleChangeCategory = async (event: SelectChangeEvent<number>) => {
-		const newCategoryId = event.target.value as number;
+	const handleChangeCategory = async (newCategoryId: number) => {
 		const oldOrderNumber = props.selectedExercise.state.orderNumber;
 
 		if (categoryValue === newCategoryId) return;
@@ -415,9 +416,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 		}
 	};
 
-	const handleChangeDifficulty = async (event: SelectChangeEvent<number>) => {
-		const newDifficultyId = event.target.value as number;
-
+	const handleChangeDifficulty = async (newDifficultyId: number) => {
 		if (difficultyValue === newDifficultyId) return;
 
 		try {
@@ -470,9 +469,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 
 	const [unitCodeValue, setUnitCodeValue] = useState(props.selectedExercise.state.unitCode);
 
-	const handleChangeExerciseUnitCode = async (event: SelectChangeEvent<number>) => {
-		const newExerciseUnitCode = event.target.value as number;
-
+	const handleChangeExerciseUnitCode = async (newExerciseUnitCode: number) => {
 		if (unitCodeValue === newExerciseUnitCode) return;
 
 		try {
@@ -760,9 +757,9 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 
 									<Typography>{sportDifficulty.difficultyName}</Typography>
 
-									<Box className="ml-3">
+									<Box className="ml-3 flex justify-between w-3/4 ">
 										{props.editing.state ? (
-											<Box className="flex items-center">
+											<Box className="flex items-end ">
 												<LabelAndValue
 													noPaddingTop
 													mainStyle="w-min mt-3"
@@ -770,14 +767,13 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 													label="Počet sérií"
 												/>
 												<TextFieldWithIcon
+													style="h-7 w-10"
 													dontDeleteValue
 													onlyNumbers
 													canBeEmptyValue
 													onClickForBlur
 													withoutIcon
-													style="-mb-[1rem]"
 													previousValue={concreteExerciseDifficulty.series > 0 ? concreteExerciseDifficulty.series.toString() : ""}
-													placeHolder="Není vyplněno"
 													onClick={(value) => {
 														concreteExerciseDifficulty.exerciseDifficultyId === -1
 															? handleCreateExerciseDifficultyRecommendedVals(value, 1, concreteExerciseDifficulty)
@@ -786,33 +782,34 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 												/>
 											</Box>
 										) : (
-											concreteExerciseDifficulty.series > 0 && (
+											<Box className={``}>
 												<LabelAndValue
 													noPaddingTop
 													mainStyle="mt-3"
+													secondTypographyStyle="w-14"
 													label="Počet sérií"
 													notFilledIn={concreteExerciseDifficulty.series < 1}
+													notFilledInContent=" "
 													value={concreteExerciseDifficulty.series > 0 ? concreteExerciseDifficulty.series.toString() : ""}
 												/>
-											)
+											</Box>
 										)}
 
 										{props.editing.state ? (
-											<Box className="flex items-center">
+											<Box className="flex items-end">
 												<LabelAndValue
 													mainStyle="w-min"
 													showArrow
 													label="Počet opakování"
 												/>
 												<TextFieldWithIcon
+													style="h-7 w-10"
 													dontDeleteValue
 													onlyNumbers
 													canBeEmptyValue
 													onClickForBlur
 													withoutIcon
-													style="-mb-[1.3rem]"
 													previousValue={concreteExerciseDifficulty.repetitions > 0 ? concreteExerciseDifficulty.repetitions.toString() : ""}
-													placeHolder="Není vyplněno"
 													onClick={(value) => {
 														concreteExerciseDifficulty.exerciseDifficultyId === -1
 															? handleCreateExerciseDifficultyRecommendedVals(value, 2, concreteExerciseDifficulty)
@@ -821,31 +818,32 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 												/>
 											</Box>
 										) : (
-											concreteExerciseDifficulty.repetitions > 0 && (
+											<Box className={``}>
 												<LabelAndValue
 													label="Počet opakování"
+													secondTypographyStyle="w-14"
 													notFilledIn={concreteExerciseDifficulty.repetitions < 1}
+													notFilledInContent=" "
 													value={concreteExerciseDifficulty.repetitions > 0 ? concreteExerciseDifficulty.repetitions.toString() : ""}
 												/>
-											)
+											</Box>
 										)}
 
 										{props.editing.state ? (
-											<Box className="flex items-center">
+											<Box className="flex items-end">
 												<LabelAndValue
 													mainStyle="w-min"
 													showArrow
-													label="Zátěž"
+													label="Intenzita zátěže"
 												/>
 												<TextFieldWithIcon
+													style="h-7 w-10"
 													dontDeleteValue
 													onlyNumbers
 													canBeEmptyValue
 													onClickForBlur
 													withoutIcon
-													style="-mb-[1.25rem]"
 													previousValue={concreteExerciseDifficulty.burden > 0 ? concreteExerciseDifficulty.burden.toString() : ""}
-													placeHolder="Není vyplněno"
 													onClick={(value) => {
 														concreteExerciseDifficulty.exerciseDifficultyId === -1
 															? handleCreateExerciseDifficultyRecommendedVals(value, 3, concreteExerciseDifficulty)
@@ -854,13 +852,15 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 												/>
 											</Box>
 										) : (
-											concreteExerciseDifficulty.burden > 0 && (
+											<Box className={``}>
 												<LabelAndValue
-													label="Zátěž"
+													secondTypographyStyle="w-14"
+													label="Intenzita zátěže"
 													notFilledIn={concreteExerciseDifficulty.burden < 1}
+													notFilledInContent=" "
 													value={concreteExerciseDifficulty.burden > 0 ? concreteExerciseDifficulty.burden.toString() : ""}
 												/>
-											)
+											</Box>
 										)}
 									</Box>
 								</Box>
@@ -1447,13 +1447,11 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
          															${context.bgHoverTertiaryColor + context.borderHoverTertiaryColor}
 																	${selected && context.bgQuaternaryColor}`}>
 														<Typography
-														
 															className={`    font-light
 																${selected ? "w-2 opacity-50" : "opacity-0"}`}>
 															{selected ? "»" : ""}
 														</Typography>
 														<Typography
-														
 															className={`w-full 
 																${selected ? "translate-x-2" : ""}`}>
 															{option.exerciseName}
@@ -1721,7 +1719,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 														}}
 														className={`border-2 w-fit h-fit rounded-xl my-1 flex items-center mr-2
 																	${context.borderTertiaryColor + context.bgTertiaryColor}`}>
-														<Typography   className=" text-base bg-transparent w-fit px-1.5 py-0.5">{option}</Typography>
+														<Typography className=" text-base bg-transparent w-fit px-1.5 py-0.5">{option}</Typography>
 													</Box>
 												))
 											}
@@ -1771,9 +1769,248 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 	//
 
 	//
+	//	#region Select Comp
+	//
+
+	const UnitNames: Record<number, string> = {
+		[Unit.WITHOUT_UNIT]: "Bez jednotky",
+		[Unit.KILOGRAM]: "Kilogram",
+		[Unit.SECOND]: "Sekunda",
+		[Unit.MINUTE]: "Minuta",
+		[Unit.HOUR]: "Hodina",
+		[Unit.METER]: "Metr",
+		[Unit.KILOMETER]: "Kilometr",
+	};
+
+	const [unitNames, setUnitNames] = useState<{ unitCode: number; unitName: string }[]>([
+		{ unitCode: Unit.KILOGRAM, unitName: UnitNames[Unit.KILOGRAM] },
+		{ unitCode: Unit.SECOND, unitName: UnitNames[Unit.SECOND] },
+		{ unitCode: Unit.MINUTE, unitName: UnitNames[Unit.MINUTE] },
+		{ unitCode: Unit.HOUR, unitName: UnitNames[Unit.HOUR] },
+		{ unitCode: Unit.METER, unitName: UnitNames[Unit.METER] },
+		{ unitCode: Unit.KILOMETER, unitName: UnitNames[Unit.KILOMETER] },
+		{ unitCode: Unit.WITHOUT_UNIT, unitName: UnitNames[Unit.WITHOUT_UNIT] },
+	]);
+
+	interface SelectCompProps {
+		selectCode: number;
+	}
+
+	const SelectComp = (localProps: SelectCompProps) => {
+		const [open, setOpen] = useState(false);
+
+		const handleOpen = () => {
+			setOpen(true);
+		};
+
+		const handleClose = () => {
+			setOpen(false);
+		};
+
+		const handleChange = (event: SelectChangeEvent<string>) => {
+			const value = Number(event.target.value);
+
+			if (localProps.selectCode === 1) {
+				setCategoryValue(value);
+				handleChangeCategory(value);
+			} else if (localProps.selectCode === 2) {
+				setDifficultyValue(value);
+				handleChangeDifficulty(value);
+			} else if (localProps.selectCode === 3) {
+				setUnitCodeValue(value);
+				handleChangeExerciseUnitCode(value);
+			}
+
+			handleClose();
+		};
+
+		return (
+			<FormControl
+				className=""
+				variant="standard"
+				sx={{
+					"& .MuiSelect-select": {
+						backgroundColor: "transparent !important",
+					},
+				}}>
+				<Select
+					open={open}
+					onClose={handleClose}
+					onOpen={handleOpen}
+					value={localProps.selectCode === 1 ? categoryValue.toString() : localProps.selectCode === 2 ? difficultyValue.toString() : localProps.selectCode === 3 ? unitCodeValue.toString() : ""}
+					onChange={handleChange}
+					className=" h-[2rem]  "
+					disableUnderline
+					sx={{
+						"& .MuiSelect-select": {
+							display: "flex",
+							alignItems: "center",
+
+							backgroundColor: "transparent !important",
+						},
+					}}
+					IconComponent={() => null}
+					renderValue={(value) => (
+						<Box className="flex items-center gap-2 ml-0.5 -mr-5 ">
+							<ButtonComp
+								content={open ? IconEnum.ARROW_DROP_UP : IconEnum.ARROW_DROP_DOWN}
+								style="-mt-0.5  mr-1 "
+								color="text-[#fff]"
+								onClick={handleOpen}
+								externalClicked={{ state: open, setState: setOpen }}
+							/>
+							<Typography sx={{ opacity: 1 }}>
+								{localProps.selectCode === 1
+									? menuCategories.find((category) => category.categoryId === categoryValue)?.categoryName
+									: localProps.selectCode === 2
+									? menuDifficulties.find((difficulty) => difficulty.difficultyId === difficultyValue)?.difficultyName
+									: localProps.selectCode === 3
+									? UnitNames[Number(value)]
+									: ""}
+							</Typography>
+						</Box>
+					)}
+					MenuProps={{
+						PaperProps: {
+							sx: {
+								marginTop: "-0.15rem",
+								marginLeft: "0.3rem",
+								backgroundColor: "#1E1E1E",
+								borderRadius: "0.75rem",
+								borderTopLeftRadius: "0.25rem",
+								fontWeight: 300,
+							},
+						},
+						anchorOrigin: {
+							vertical: "bottom",
+							horizontal: "left",
+						},
+						transformOrigin: {
+							vertical: "top",
+							horizontal: "left",
+						},
+					}}>
+					{localProps.selectCode === 1
+						? menuCategories.map((item) => (
+								<MenuItem
+									key={item.categoryId}
+									value={item.categoryId}
+									sx={{
+										opacity: 1,
+										"&.Mui-selected": {
+											backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+										},
+										"&.Mui-selected:hover": {
+											backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+										},
+									}}
+									className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+										${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+									<Typography sx={{ opacity: 0.95 }}>{item.categoryName}</Typography>
+								</MenuItem>
+						  ))
+						: localProps.selectCode === 2
+						? menuDifficulties.map((item) => (
+								<MenuItem
+									key={item.difficultyId}
+									value={item.difficultyId}
+									sx={{
+										opacity: 1,
+										"&.Mui-selected": {
+											backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+										},
+										"&.Mui-selected:hover": {
+											backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+										},
+									}}
+									className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+										${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+									<Typography sx={{ opacity: 0.95 }}>{item.difficultyName}</Typography>
+								</MenuItem>
+						  ))
+						: localProps.selectCode === 3
+						? unitNames.map((item) => (
+								<MenuItem
+									key={item.unitCode}
+									value={item.unitCode}
+									sx={{
+										opacity: 1,
+										"&.Mui-selected": {
+											backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+										},
+										"&.Mui-selected:hover": {
+											backgroundColor: context.colorSchemeCode === "red" ? "#4e3939" : context.colorSchemeCode === "blue" ? "#313c49" : context.colorSchemeCode === "green" ? "#284437" : "#414141",
+										},
+									}}
+									className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+										${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+									<Typography sx={{ opacity: 0.95 }}>{item.unitName}</Typography>
+								</MenuItem>
+						  ))
+						: []}
+				</Select>
+			</FormControl>
+		);
+	};
+
+	//	#endregion
+	//
+
+	//
+	//	#region Exercise Name
+	//
+	const [nameHelperText, setNameHelperText] = useState("");
+
+	useEffect(() => {
+		setNameHelperText("");
+	}, [props.editing.state]);
+
+	const handleChangeExerciseName = async (value: string) => {
+		try {
+			const res = await changeExerciseNameReq({ exerciseName: value, sportId: props.selectedSport.state?.sportId!, exerciseId: props.selectedExercise.state.exerciseId });
+
+			if (res.status === 400 || res.status === 409) {
+				setNameHelperText(res.message);
+			} else if (res.status === 200) {
+				const newExercise = {
+					...props.selectedExercise.state,
+					exerciseName: value,
+				} as Exercise;
+
+				setNewExercise(newExercise);
+
+				if (props.selectedSport.state?.hasCategories) {
+					props.categoriesData.setState((prevCategories) =>
+						prevCategories.map((category) => {
+							if (category.categoryId === props.selectedExercise.state.categoryId) {
+								return {
+									...category,
+									exercises: category.exercises.map((exercise) => (exercise.exerciseId === props.selectedExercise.state.exerciseId ? newExercise : exercise)),
+								};
+							}
+							return category;
+						})
+					);
+				} else {
+					props.exercisesData.setState((prevExercises) => prevExercises.map((exercise) => (exercise.exerciseId === props.selectedExercise.state.exerciseId ? newExercise : exercise)));
+				}
+			}
+
+			consoleLogPrint(res);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
+	};
+
+	//	#endregion
+	//
+
+	//
 	//	#region Main Comp
 	//
 	const [overflowHidden, setOverflowHidden] = useState(false);
+
+	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	return (
 		<>
@@ -1785,26 +2022,87 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 				height="h-full"
 				style={overflowHidden ? "overflow-hidden" : ""}
 				secondChildren={
-					<Box className="flex flex-col  ">
-						<LabelAndValue
-							noPaddingTop
-							label="Název cviku"
-							value={props.exerciseName}
-						/>
+					<Box className="flex flex-col  mt-3 gap-2">
+						{props.editing.state ? (
+							<Box className=" flex items-start mr-3">
+								<LabelAndValue
+									label="Název cviku"
+									noPaddingTop
+									maxLength={75}
+									mainStyle="w-full "
+									textFieldValue={props.selectedExercise.state.exerciseName}
+									textFieldOnClick={(value) => handleChangeExerciseName(value)}
+									icon={IconEnum.CHECK}
+									onChangeCond={(value) => {
+										if (value === props.selectedExercise.state.exerciseName) {
+											setNameHelperText("");
+											return false;
+										}
+
+										if (props.selectedSport.state?.hasCategories) {
+											let nameExists = false;
+
+											props.categoriesData.state
+												.find((category) => category.categoryId === props.selectedExercise.state.categoryId)
+												?.exercises.map((exercise) => {
+													if (exercise.exerciseName === value) nameExists = true;
+												});
+
+											if (nameExists) {
+												setNameHelperText("Cvik s tímto názvem již existuje");
+												return false;
+											}
+										} else {
+											const nameExists = props.exercisesData.state.map((exercise) => {
+												if (exercise.exerciseName === value) return true;
+											});
+											if (nameExists) {
+												setNameHelperText("Cvik s tímto názvem již existuje");
+												return false;
+											}
+										}
+
+										if (value.length > 75) {
+											setNameHelperText("Název může mít maximálně 75 znaků");
+										}
+
+										if (value !== "") {
+											setNameHelperText("");
+
+											return true;
+										} else {
+											setNameHelperText("Název nesmí být prázdný");
+
+											return false;
+										}
+									}}
+									helperText={nameHelperText}
+								/>
+							</Box>
+						) : (
+							<LabelAndValue
+								noPaddingTop
+								label="Název cviku"
+								value={props.selectedExercise.state.exerciseName}
+							/>
+						)}
+
 						{props.selectedSport.state?.hasCategories ? (
 							props.editing.state ? (
-								<Box className="flex">
+								<Box className="flex items-end">
 									<LabelAndValue
 										mainStyle="w-min"
 										showArrow
 										label="Kategorie"
 									/>
-									<FormControl
+									<SelectComp selectCode={1} />
+
+									{/*<FormControl
 										variant="standard"
-										className="w-1/3 mt-[0.8rem]">
+										className="w-1/3 h-8 -ml-[0.2rem]">
 										<Select
 											value={categoryValue}
-											onChange={handleChangeCategory}
+											onChange={ }
 											sx={{
 												"& .MuiSelect-select": {
 													paddingBottom: 0,
@@ -1821,7 +2119,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 												</MenuItem>
 											))}
 										</Select>
-									</FormControl>
+									</FormControl>*/}
 								</Box>
 							) : (
 								<LabelAndValue
@@ -1835,15 +2133,18 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 
 						{props.selectedSport.state?.hasDifficulties ? (
 							props.editing.state ? (
-								<Box className="flex">
+								<Box className="flex items-end">
 									<LabelAndValue
 										mainStyle="w-min"
 										showArrow
 										label="Obtížnost"
 									/>
-									<FormControl
+
+									<SelectComp selectCode={2} />
+
+									{/*<FormControl
 										variant="standard"
-										className="w-1/3 mt-[0.8rem]">
+										className="w-1/3 h-8 -ml-[0.2rem]">
 										<Select
 											value={difficultyValue}
 											onChange={handleChangeDifficulty}
@@ -1863,7 +2164,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 												</MenuItem>
 											))}
 										</Select>
-									</FormControl>
+									</FormControl>*/}
 								</Box>
 							) : (
 								<LabelAndValue
@@ -1874,16 +2175,18 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 						) : null}
 
 						{props.editing.state ? (
-							<Box className="flex items-center">
+							<Box className="flex items-end">
 								<LabelAndValue
 									mainStyle="w-min"
 									showArrow
 									label="Jednotka zátěže"
 								/>
+								<SelectComp selectCode={3} />
+
+								{/*
 								<FormControl
 									variant="standard"
-									className="w-36 mt-[0.8rem]">
-									{/* 0.75rem pro hasReccomendedValues */}
+									className="w-36 h-5 -ml-[0.2rem]">
 									<Select
 										value={unitCodeValue}
 										onChange={handleChangeExerciseUnitCode}
@@ -1903,12 +2206,12 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 										<MenuItem value="6">Kilometr</MenuItem>
 										<MenuItem value="7">Bez jednotky</MenuItem>
 									</Select>
-								</FormControl>
+								</FormControl>*/}
 							</Box>
 						) : (
 							<LabelAndValue
 								label="Jednotka zátěže"
-								value={unitCodeValue == 1 ? "Kilogram" : unitCodeValue == 2 ? "Sekunda" : "Bez jednotky"}
+								value={UnitNames[unitCodeValue]}
 							/>
 						)}
 
@@ -1916,12 +2219,13 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 							? props.exerciseInformationLabelsData.state.map((label) => {
 									return (
 										<Box
-											className=" flex items-end"
+											className=" flex items-end "
 											key={label.exerciseInformationLabelId}>
 											<LabelAndValue
 												label={label.label}
 												onClickForBlur={true}
 												withoutIcon
+												mainStyle="w-full "
 												textFieldValue={findValue(label.exerciseInformationLabelId)}
 												textFieldOnClick={(value) => handleCreateExerciseInformationValue(value, label.exerciseInformationLabelId)}
 												icon={IconEnum.CHECK}
@@ -1949,100 +2253,115 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 							  })}
 
 						{props.editing.state && (
-							<TextFieldWithIcon
-								placeHolder="Přidat informaci o cviku"
-								style="w-2/5 ml-2 pt-4 "
-								onClick={handleCreateExerciseInformationLabel}
-							/>
+							<Box className="max-w-full flex items-end pr-[7.35rem]">
+								<TextFieldWithIcon
+									placeHolder="Přidat informaci o cviku"
+									style="w-full ml-2 pt-4 pr-5"
+									onClick={handleCreateExerciseInformationLabel}
+								/>
+
+								<Box className="-mb-1">
+									<MoveAndDeleteButtons
+										exerciseInformationLabelId={-1}
+										orderNumber={-1}
+										disabled={true}
+									/>
+								</Box>
+							</Box>
 						)}
 
 						{props.selectedSport.state?.hasRecommendedValues && !props.selectedSport.state.hasRecommendedDifficultyValues ? (
 							<Box className="mt-4">
 								{props.selectedExercise.state.series > 0 || props.selectedExercise.state.repetitions > 0 || props.selectedExercise.state.burden > 0 || props.editing.state ? <Title title="Doporučené hodnoty" /> : <></>}
 
-								{props.editing.state ? (
-									<Box className="flex items-center">
-										<LabelAndValue
-											mainStyle="w-min"
-											showArrow
-											label="Počet sérií"
-										/>
-										<TextFieldWithIcon
-											dontDeleteValue
-											onlyNumbers
-											onClickForBlur
-											withoutIcon
-											canBeEmptyValue
-											style="-mb-[1.3rem]"
-											previousValue={props.selectedExercise.state.series > 0 ? props.selectedExercise.state.series.toString() : ""}
-											placeHolder="Není vyplněno"
-											onClick={(value) => handleChangeExerciseRecommendedVals(value, 1)}></TextFieldWithIcon>
-									</Box>
-								) : (
-									props.selectedExercise.state.series > 0 && (
-										<LabelAndValue
-											label="Počet sérií"
-											notFilledIn={props.selectedExercise.state.series < 1}
-											value={props.selectedExercise.state.series > 0 ? props.selectedExercise.state.series.toString() : ""}
-										/>
-									)
-								)}
+								<Box className="flex justify-between ml-4 w-3/4">
+									{props.editing.state ? (
+										<Box className="flex items-end">
+											<LabelAndValue
+												mainStyle="w-min "
+												showArrow
+												label="Počet sérií"
+											/>
+											<TextFieldWithIcon
+												style="h-7 w-10"
+												dontDeleteValue
+												onlyNumbers
+												onClickForBlur
+												withoutIcon
+												canBeEmptyValue
+												previousValue={props.selectedExercise.state.series > 0 ? props.selectedExercise.state.series.toString() : ""}
+												onClick={(value) => handleChangeExerciseRecommendedVals(value, 1)}></TextFieldWithIcon>
+										</Box>
+									) : (
+										<Box className={``}>
+											<LabelAndValue
+												secondTypographyStyle="w-14"
+												label="Počet sérií"
+												notFilledInContent=" "
+												notFilledIn={props.selectedExercise.state.series < 1}
+												value={props.selectedExercise.state.series > 0 ? props.selectedExercise.state.series.toString() : ""}
+											/>
+										</Box>
+									)}
 
-								{props.editing.state ? (
-									<Box className="flex items-center">
-										<LabelAndValue
-											mainStyle="w-min"
-											showArrow
-											label="Počet opakování"
-										/>
-										<TextFieldWithIcon
-											dontDeleteValue
-											onlyNumbers
-											onClickForBlur
-											withoutIcon
-											canBeEmptyValue
-											style="-mb-[1.25rem]"
-											previousValue={props.selectedExercise.state.repetitions > 0 ? props.selectedExercise.state.repetitions.toString() : ""}
-											placeHolder="Není vyplněno"
-											onClick={(value) => handleChangeExerciseRecommendedVals(value, 2)}></TextFieldWithIcon>
-									</Box>
-								) : (
-									props.selectedExercise.state.repetitions > 0 && (
-										<LabelAndValue
-											label="Počet opakování"
-											notFilledIn={props.selectedExercise.state.repetitions < 1}
-											value={props.selectedExercise.state.repetitions > 0 ? props.selectedExercise.state.repetitions.toString() : ""}
-										/>
-									)
-								)}
+									{props.editing.state ? (
+										<Box className="flex items-end">
+											<LabelAndValue
+												mainStyle="w-min"
+												showArrow
+												label="Počet opakování"
+											/>
+											<TextFieldWithIcon
+												style="h-7 w-10"
+												dontDeleteValue
+												onlyNumbers
+												onClickForBlur
+												withoutIcon
+												canBeEmptyValue
+												previousValue={props.selectedExercise.state.repetitions > 0 ? props.selectedExercise.state.repetitions.toString() : ""}
+												onClick={(value) => handleChangeExerciseRecommendedVals(value, 2)}></TextFieldWithIcon>
+										</Box>
+									) : (
+										<Box className={``}>
+											<LabelAndValue
+												secondTypographyStyle="w-14"
+												label="Počet opakování"
+												notFilledInContent=" "
+												notFilledIn={props.selectedExercise.state.repetitions < 1}
+												value={props.selectedExercise.state.repetitions > 0 ? props.selectedExercise.state.repetitions.toString() : ""}
+											/>
+										</Box>
+									)}
 
-								{props.editing.state ? (
-									<Box className="flex items-center">
-										<LabelAndValue
-											mainStyle="w-min"
-											showArrow
-											label="Zátěž"
-										/>
-										<TextFieldWithIcon
-											dontDeleteValue
-											onlyNumbers
-											onClickForBlur
-											withoutIcon
-											canBeEmptyValue
-											style="-mb-[1.25rem]"
-											previousValue={props.selectedExercise.state.burden > 0 ? props.selectedExercise.state.burden.toString() : ""}
-											placeHolder="Není vyplněno"
-											onClick={(value) => handleChangeExerciseRecommendedVals(value, 3)}></TextFieldWithIcon>
-									</Box>
-								) : (
-									props.selectedExercise.state.burden > 0 && (
-										<LabelAndValue
-											label="Zátěž"
-											notFilledIn={props.selectedExercise.state.burden < 1}
-											value={props.selectedExercise.state.burden > 0 ? props.selectedExercise.state.burden.toString() : ""}
-										/>
-									)
-								)}
+									{props.editing.state ? (
+										<Box className="flex items-end">
+											<LabelAndValue
+												mainStyle="w-min"
+												showArrow
+												label="Intenzita zátěže"
+											/>
+											<TextFieldWithIcon
+												style="h-7 w-10"
+												dontDeleteValue
+												onlyNumbers
+												onClickForBlur
+												withoutIcon
+												canBeEmptyValue
+												previousValue={props.selectedExercise.state.burden > 0 ? props.selectedExercise.state.burden.toString() : ""}
+												onClick={(value) => handleChangeExerciseRecommendedVals(value, 3)}></TextFieldWithIcon>
+										</Box>
+									) : (
+										<Box className={``}>
+											<LabelAndValue
+												label="Intenzita zátěže"
+												notFilledInContent=" "
+												secondTypographyStyle="w-14"
+												notFilledIn={props.selectedExercise.state.burden < 1}
+												value={props.selectedExercise.state.burden > 0 ? props.selectedExercise.state.burden.toString() : ""}
+											/>
+										</Box>
+									)}
+								</Box>
 							</Box>
 						) : (exerciseDifficulties.length > 0 && props.selectedSport.state?.hasRecommendedDifficultyValues) || (props.selectedSport.state?.hasRecommendedDifficultyValues && props.editing.state) ? (
 							<RecommendedDifficultyValues />
@@ -2054,49 +2373,86 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 					</Box>
 				}
 				firstChildren={
-					<Box className="h-full">
-						<Box className="pb-10 pt-4">
-							{props.editing.state ? (
-								<>
-									<TextField
-										className="w-full"
-										label="Popis provedení cviku"
-										multiline
-										minRows={10}
-										value={descriptionValue}
-										onChange={(e) => setDescriptionValue(e.target.value)}
-										onBlur={() => handleChangeExerciseDescription(props.sportId, props.exerciseId, categoryValue)} // XXX ? změněno z props.categoryId na categoryValue
-									/>
-								</>
-							) : (
-								<Typography className=" font-light mx-2">{descriptionValue}</Typography>
-							)}
-						</Box>
-
-						{props.editing.state ? (
-							<>
-								<TextField
-									className="w-full"
-									variant="standard"
-									label="Odkaz na YouTube video"
-									value={youtubeLinkValue}
-									onChange={(e) => setYoutubeLinkValue(e.target.value)}
-									onBlur={() => handleChangeYoutubeLink(props.sportId, props.exerciseId, categoryValue)} // XXX ? změněno z props.categoryId na categoryValue
-								/>
-							</>
+					<Box className="h-full  pt-3">
+						{!props.editing.state && youtubeLinkValue.length < 1 && descriptionValue.length < 1 ? (
+							<Typography className="text-lg font-light ml-4">Pro vybraný cvik neexistuje popis.</Typography>
 						) : (
-							youtubeLinkValue && (
-								<Box className="   w-full flex justify-center ">
-									<iframe
-										className=" h-auto w-full aspect-video rounded-3xl"
-										width="854"
-										height="480"
-										src={"https://www.youtube.com/embed/" + extractWatchParams(youtubeLinkValue) + "?&mute=1&rel=0"}
-										title="YouTube video player"
-										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
-								</Box>
-							)
+							<Box>
+								{props.editing.state ? (
+									<Box className="relative mb-14">
+										<TextField
+											className="w-full "
+											label="Popis cviku"
+											placeholder=" Popište například účel cviku, správné provedení, různé varianty nebo jiné informace spojené s tímto cvikem."
+											multiline
+											minRows={10}
+											value={descriptionValue}
+											onChange={(e) => setDescriptionValue(e.target.value)}
+											onBlur={() => handleChangeExerciseDescription(props.sportId, props.exerciseId, categoryValue)} // XXX ? změněno z props.categoryId na categoryValue
+										/>
+										<Box className="absolute bottom-2 right-2">
+											<ButtonComp
+												size="small"
+												contentStyle="scale-[1.2]"
+												content={IconEnum.QUESTION}
+												externalClicked={{ state: isModalOpen, setState: setIsModalOpen }}
+												onClick={() => setIsModalOpen(true)}
+											/>
+										</Box>
+									</Box>
+								) : descriptionValue.length > 0 ? (
+									<Typography className="react-markdown break-words font-light mb-14">
+										<ReactMarkdown
+											remarkPlugins={[remarkBreaks]}
+											components={{
+												p: ({ children }) => <p className="font-light ml-4">{children}</p>,
+												ul: ({ children }) => <ul className="list-disc pl-8 mt-1 mb-0 space-y-1">{children}</ul>,
+												ol: ({ children }) => <ol className="list-decimal pl-8 mt-1 mb-0 space-y-1">{children}</ol>,
+												li: ({ children }) => <li className="mb-0 ml-4">{children}</li>,
+												h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+												h2: ({ children }) => <h2 className="text-2xl font-semibold">{children}</h2>,
+												h3: ({ children }) => <h3 className="text-xl font-medium">{children}</h3>,
+											}}>
+											{descriptionValue || ""}
+										</ReactMarkdown>
+									</Typography>
+								) : null}
+
+								{props.editing.state ? (
+									<>
+										<TextField
+											className="w-full"
+											variant="standard"
+											label="Odkaz na YouTube video"
+											value={youtubeLinkValue}
+											onChange={(e) => setYoutubeLinkValue(e.target.value)}
+											onBlur={() => handleChangeYoutubeLink(props.sportId, props.exerciseId, categoryValue)} // XXX ? změněno z props.categoryId na categoryValue
+										/>
+									</>
+								) : (
+									youtubeLinkValue && (
+										<Box className="   w-full flex justify-center ">
+											<iframe
+												className=" h-auto w-full aspect-video rounded-3xl"
+												width="854"
+												height="480"
+												src={"https://www.youtube.com/embed/" + extractWatchParams(youtubeLinkValue) + "?&mute=1&rel=0"}
+												title="YouTube video player"
+												allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
+										</Box>
+									)
+								)}
+							</Box>
 						)}
+
+						<CustomModal
+							style="max-w-2xl w-full"
+							isOpen={isModalOpen}
+							paddingTop
+							onClose={() => setIsModalOpen(false)}
+							title="Podporované formátovací prvky"
+							children={<RemarkEntitiesDescription />}
+						/>
 					</Box>
 				}></GeneralCard>
 		</>

@@ -18,6 +18,10 @@ import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import SettingsIcon from "@mui/icons-material/Settings";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import SportsMartialArtsRoundedIcon from "@mui/icons-material/SportsMartialArtsRounded";
+
 
 import { Box, Button, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -47,6 +51,9 @@ export enum IconEnum {
 
 	SEND = 17,
 	CHART = 18,
+	QUESTION = 19,
+	TRAININGS = 20,
+	SHARE = 21,
 }
 
 interface Props {
@@ -99,6 +106,9 @@ const ButtonComp = (props: Props) => {
 
 		[IconEnum.SEND]: SendRoundedIcon,
 		[IconEnum.CHART]: BarChartIcon,
+		[IconEnum.QUESTION]: QuestionMarkIcon,
+		[IconEnum.TRAININGS]: SportsMartialArtsRoundedIcon,
+		[IconEnum.SHARE]: NoteAddIcon,
 	};
 
 	const context = useAppContext();
@@ -120,6 +130,7 @@ const ButtonComp = (props: Props) => {
 
 	switch (props.content) {
 		case IconEnum.EDIT:
+		case IconEnum.QUESTION:
 		case IconEnum.ARROW: {
 			color = "text-blue-icon";
 			break;

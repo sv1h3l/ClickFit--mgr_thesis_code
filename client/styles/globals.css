@@ -193,10 +193,10 @@ body,
 	background-color: rgb(42, 42, 42);
 }
 .bg-tertiary_color-gray {
-	background-color: rgb(55, 55, 55);
+	background-color: #373737;
 }
 .bg-quaternary_color-gray {
-	background-color: rgb(65, 65, 65);
+	background-color: #414141;
 }
 
 .border-primary_color-gray {
@@ -217,7 +217,7 @@ body,
 }
 
 .bg_hover-tertiary_color-gray:hover {
-	background-color: rgb(49, 49, 49);
+	background-color: #313131;
 }
 .border_hover-tertiary_color-gray:hover {
 	border-color: rgb(59, 59, 59);
@@ -237,10 +237,10 @@ body,
 	background-color: rgb(55, 34, 34);
 }
 .bg-tertiary_color-red {
-	background-color: rgb(68, 47, 47);
+	background-color: #442f2f;
 }
 .bg-quaternary_color-red {
-	background-color: rgb(78, 57, 57);
+	background-color: #4e3939;
 }
 
 .border-primary_color-red {
@@ -281,10 +281,10 @@ body,
 	background-color: rgb(26, 37, 50);
 }
 .bg-tertiary_color-blue {
-	background-color: rgb(39, 50, 63);
+	background-color: #27323f;
 }
 .bg-quaternary_color-blue {
-	background-color: rgb(49, 60, 73);
+	background-color: #313c49;
 }
 
 .border-primary_color-blue {
@@ -325,10 +325,10 @@ body,
 	background-color: rgb(17, 45, 32);
 }
 .bg-tertiary_color-green {
-	background-color: rgb(30, 58, 45);
+	background-color: #1e3a2d;
 }
 .bg-quaternary_color-green {
-	background-color: rgb(40, 68, 55);
+	background-color: #284437;
 }
 
 .border-primary_color-green {
@@ -373,7 +373,7 @@ li,
 ul,
 ol {
 	color: #fff;
-	opacity: 0.94;
+	opacity: 0.98;
 	text-shadow: 3px 3px 3px #00000040; /* černý stín kolem textu */
 }
 

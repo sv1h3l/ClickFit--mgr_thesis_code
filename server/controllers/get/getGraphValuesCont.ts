@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { getGraphValuesMod } from "../../models/get/getGraphValuesMod";
-import { getUserAtrFromAuthTokenMod } from "../../models/get/getUserAtrFromAuthTokenMod";
 import { GenEnum } from "../../utilities/GenResEnum";
+import { checkAuthorizationCont, CheckAuthorizationCodeEnum } from "../residue/checkAuthorizationCont";
 
 interface GraphValue {
 	graphValueId: number;
@@ -33,13 +33,12 @@ export const getGraphValuesCont = async (req: Request, res: Response): Promise<v
 	const defaultGraphBool = defaultGraph === "true";
 
 	try {
-		const userAtrs = await getUserAtrFromAuthTokenMod({ req });
-		if (userAtrs.status !== GenEnum.SUCCESS || !userAtrs.data) {
-			res.status(userAtrs.status).json({ message: userAtrs.message });
+		const checkRes = await checkAuthorizationCont({ req, id: graphIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.GRAPH_EDIT });
+		if (checkRes.status !== GenEnum.SUCCESS) {
+			res.status(checkRes.status).json({ message: checkRes.message });
 			return;
 		}
-
-		const dbResDefGraphValues = await getGraphValuesMod({ graphId: graphIdNumber, defaultGraph: defaultGraphBool, userId: userAtrs.data.userId });
+		const dbResDefGraphValues = await getGraphValuesMod({ graphId: graphIdNumber, defaultGraph: defaultGraphBool, userId: checkRes.data?.userId! });
 
 		let formattedValues: GraphValue[] = [];
 

@@ -71,10 +71,6 @@ export const checkAuthorizationCont = async (props: Props): Promise<GenRes<{ use
 			case CheckAuthorizationCodeEnum.TRAINING_PLAN_VIEW:
 				dbRes = await checkTrainingPlanViewMod({ userId, trainingPlanId: props.id });
 				break;
-
-			case CheckAuthorizationCodeEnum.TRAINING_PLAN_VIEW:
-				dbRes = await checkTrainingPlanViewMod({ userId, trainingPlanId: props.id });
-				break;
 			case CheckAuthorizationCodeEnum.SPORT_VIEW:
 				dbRes = await checkSharedSportMod({ userId, sharedSportId: props.id });
 				break;
@@ -94,7 +90,7 @@ export const checkAuthorizationCont = async (props: Props): Promise<GenRes<{ use
 		}
 
 		if (dbRes.status === GenEnum.SUCCESS) {
-			return { status: GenEnum.SUCCESS, message: "Přístup povolen", data: { userId: dbUserAtr.data.userId, userEmail: dbUserAtr.data.userEmail } };
+			return { status: GenEnum.SUCCESS, message: "Přístup povolen", data: { userId, userEmail: dbUserAtr.data.userEmail } };
 		} else {
 			return { status: GenEnum.UNAUTHORIZED, message: "Přístup zamítnut" };
 		}

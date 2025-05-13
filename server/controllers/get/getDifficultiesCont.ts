@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { getDifficultiesMod } from "../../models/get/getDifficultiesMod";
+import { GenEnum } from "../../utilities/GenResEnum";
+import { CheckAuthorizationCodeEnum, checkAuthorizationCont } from "../residue/checkAuthorizationCont";
 
 export const getDifficultiesCont = async (req: Request, res: Response): Promise<void> => {
 	const { sportId } = req.query;
@@ -15,11 +17,14 @@ export const getDifficultiesCont = async (req: Request, res: Response): Promise<
 		return;
 	}
 
-	/* TODO
-	const checkRes = await checkAuthorizationController(req, sportIdNumber, CheckAuthorizationCodeEnum.SPORT_VIEW); 
-	if (!checkRes.authorized) {
-		res.status(401).json({ message: checkRes.message });
-	}*/
+	const authToken = req.headers["authorization"]?.split(" ")[1];
+
+	const checkResView = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_VIEW, authToken: authToken ? authToken : undefined });
+	const checkResEdit = await checkAuthorizationCont({ req, id: sportIdNumber, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT, authToken: authToken ? authToken : undefined });
+	if (checkResView.status !== GenEnum.SUCCESS && checkResEdit.status !== GenEnum.SUCCESS) {
+		res.status(checkResView.status).json({ message: checkResView.message });
+		return;
+	}
 
 	try {
 		const dbRes = await getDifficultiesMod({ sportId: sportIdNumber });

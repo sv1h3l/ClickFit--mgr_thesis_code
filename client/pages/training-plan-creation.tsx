@@ -1,3 +1,4 @@
+import { changeTrainingPlanReq } from "@/api/change/changeTrainingPlanReq";
 import { createTrainingPlanReq } from "@/api/create/createTrainingPlanReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { Category } from "@/api/get/getCategoriesWithExercisesReq";
@@ -6,10 +7,18 @@ import { Exercise } from "@/api/get/getExercisesReq";
 import { getSportDetailLabsAndValsReq } from "@/api/get/getSportDetailLabsAndValsReq";
 import { Sport } from "@/api/get/getSportsReq";
 import { getTrainingPlanCreationPropsReq } from "@/api/get/getTrainingPlanCreationPropsReq";
+import { getTrainingPlanExercisesReq } from "@/api/get/getTrainingPlanExercisesReq";
+import { getTrainingPlansReq } from "@/api/get/getTrainingPlansReq";
+import { getVisitedUserDifficultiesReq } from "@/api/get/getVisitedUserDifficultiesReq";
+import { getVisitedUserSportDetailLabsAndValsReq } from "@/api/get/getVisitedUserSportDetailLabsAndValsReq";
+import { getVisitedUserTrainingPlanCreationPropsReq } from "@/api/get/getVisitedUserTrainingPlanCreationPropsReq";
+import { getVisitedUserTrainingPlanExercisesReq } from "@/api/get/getVisitedUserTrainingPlanExercisesReq";
+import { getVisitedUserTrainingPlansReq } from "@/api/get/getVisitedUserTrainingPlansReq";
 import { ExerciseDifficulty } from "@/components/large/ExerciseInformations";
 import GeneralCard from "@/components/large/GeneralCard";
 import { SportDifficulty } from "@/components/large/SportDescriptionAndSettings";
 import { SportDetailLabAndVal } from "@/components/large/SportDetails";
+import { TrainingPlan } from "@/components/large/TrainingPlansAndCreation";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
 import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
 import TextFieldWithIcon from "@/components/small/TextFieldWithIcon";
@@ -66,6 +75,10 @@ interface Props {
 
 	labsAndVals: SportDetailLabAndVal[];
 	difficulties: SportDifficulty[];
+
+	edit?: boolean;
+	trainingPlan?: TrainingPlan;
+	trainingPlanExercises?: TrainingPlanExercise[];
 }
 
 const ManualCreation = (props: Props) => {
@@ -84,22 +97,28 @@ const ManualCreation = (props: Props) => {
 	const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
 	const [exerciseOptions, setExerciseOptions] = useState<{ category: string; exercises: string[] }[]>([]);
 	const [exerciseOptionsWithoutCategory, setExerciseOptionsWithoutCategory] = useState<string[]>([]);
-	const [exerciseIds, setExerciseIds] = useState<{ exerciseName: string; exerciseId: number }[]>([]);
+	//const [exerciseIds, setExerciseIds] = useState<{ exerciseName: string; exerciseId: number }[]>([]);
+
+	const concreteDifficulty = props.difficulties.find((diff) => diff.difficultyName === props.labsAndVals.find((labAndVal) => labAndVal.orderNumber === 7)?.value);
 
 	useEffect(() => {
 		if (props.categoriesData) {
 			setCategoryOptions(props.categoriesData.map((category) => category.categoryName));
 		}
 
-		let exerciseIds: { exerciseName: string; exerciseId: number }[] = [];
+		const possibleDifficultiesIds = props.difficulties.filter((diff) => diff.orderNumber <= concreteDifficulty?.orderNumber!).map((diff) => diff.sportDifficultyId);
+
+		//let exerciseIds: { exerciseName: string; exerciseId: number }[] = [];
 
 		if (props.selectedSport.hasCategories) {
 			const newCategoryWithExercises = props.categoriesData.map((category) => {
-				const exercises = category.exercises.map((exercise) => exercise.exerciseName);
+				const exercisesExplorer = props.selectedSport.hasDifficulties ? category.exercises.filter((exercise) => possibleDifficultiesIds.includes(exercise.sportDifficultyId)) : category.exercises;
 
-				category.exercises.map((exercise) => {
+				const exercises = exercisesExplorer.map((exercise) => exercise.exerciseName);
+
+				/*category.exercises.map((exercise) => {
 					exerciseIds.push({ exerciseName: exercise.exerciseName, exerciseId: exercise.exerciseId });
-				});
+				});*/
 
 				return {
 					category: category.categoryName,
@@ -108,15 +127,71 @@ const ManualCreation = (props: Props) => {
 			});
 			setExerciseOptions(newCategoryWithExercises);
 		} else {
-			const newExercisesOptions = props.exercisesData.map((exercise) => {
-				exerciseIds.push({ exerciseName: exercise.exerciseName, exerciseId: exercise.exerciseId });
+			const exercisesExplorer = props.selectedSport.hasDifficulties ? props.exercisesData.filter((exercise) => possibleDifficultiesIds.includes(exercise.sportDifficultyId)) : props.exercisesData;
+
+			const newExercisesOptions = exercisesExplorer.map((exercise) => {
+				//exerciseIds.push({ exerciseName: exercise.exerciseName, exerciseId: exercise.exerciseId });
 				return exercise.exerciseName;
 			});
 
 			setExerciseOptionsWithoutCategory(newExercisesOptions);
 		}
 
-		setExerciseIds(exerciseIds);
+		//setExerciseIds(exerciseIds);
+	}, [props]);
+
+	useEffect(() => {
+		if (props.edit && props.trainingPlanExercises) {
+			const dayMap = new Map<number, LocalDay>();
+
+			for (const ex of props.trainingPlanExercises) {
+				if (!dayMap.has(ex.nthDay)) {
+					dayMap.set(ex.nthDay, {
+						nthDay: ex.nthDay,
+						categories: [],
+					});
+				}
+				const day = dayMap.get(ex.nthDay)!;
+
+				let category = day.categories.find((c) => c.nthCategory === ex.nthCategory);
+				if (!category) {
+					category = {
+						nthDay: ex.nthDay,
+						nthCategory: ex.nthCategory,
+						categoryName: ex.categoryName,
+						exercises: [],
+					};
+					day.categories.push(category);
+				}
+
+				category.exercises.push({
+					exerciseId: ex.exerciseId,
+
+					nthDay: ex.nthDay,
+					nthCategory: ex.nthCategory,
+					nthExercise: ex.nthExercise,
+
+					categoryName: ex.categoryName,
+					exerciseName: ex.exerciseName,
+
+					repetitions: ex.repetitions,
+					series: ex.series,
+					burden: ex.burden,
+
+					unitCode: ex.unitCode,
+
+					isVisible: true,
+				});
+			}
+
+			setDays(Array.from(dayMap.values()));
+
+			if (props.trainingPlan) {
+				setTrainingPlanName(props.trainingPlan.name);
+				setTrainingPlanHasBurdenAndUnit(props.trainingPlan.hasBurdenAndUnit);
+				setTrainingPlanUnitCode(props.trainingPlan.unitCode);
+			}
+		}
 	}, [props]);
 
 	// #region Day
@@ -749,19 +824,31 @@ const ManualCreation = (props: Props) => {
 	const handleSaveTrainingPlan = async () => {
 		const trainingPlanExercises = extractExercises();
 
+		const cookies = cookie.parse(document.cookie);
+		const visitedUserId = cookies.view_tmp ? Number(atob(cookies.view_tmp)) : -1;
+
 		if (trainingPlanExercises === undefined || trainingPlanExercises.length === 0 || trainingPlanName.length < 1) {
 			console.error("Nevalidní data pro odeslání.");
 		} else {
 			try {
-				const response = await createTrainingPlanReq({
-					ownerId: 0,
-					canOwnerEdit: false,
-					trainingPlanName,
-					sportId: props.selectedSport.sportId,
-					trainingPlanExercises,
-					hasBurdenAndUnit: trainingPlanHasBurdenAndUnit,
-					unitCode: trainingPlanUnitCode,
-				});
+				const response = props.edit
+					? await changeTrainingPlanReq({
+							trainingPlanId: props.trainingPlan?.trainingPlanId! || -1,
+							canOwnerEdit: false,
+							trainingPlanName,
+							trainingPlanExercises,
+							hasBurdenAndUnit: trainingPlanHasBurdenAndUnit,
+							unitCode: trainingPlanUnitCode,
+					  })
+					: await createTrainingPlanReq({
+							ownerId: visitedUserId,
+							canOwnerEdit: false,
+							trainingPlanName,
+							sportId: props.selectedSport.sportId,
+							trainingPlanExercises,
+							hasBurdenAndUnit: trainingPlanHasBurdenAndUnit,
+							unitCode: trainingPlanUnitCode,
+					  });
 
 				consoleLogPrint(response);
 
@@ -1002,8 +1089,6 @@ const ManualCreation = (props: Props) => {
 		return returnVal;
 	};
 
-	const concreteDifficulty = props.difficulties.find((diff) => diff.difficultyName === props.labsAndVals.find((labAndVal) => labAndVal.orderNumber === 7)?.value);
-
 	const findRecommendedDifficultyVal = (exerciseId: number, categoryName: string) => {
 		let series = 0;
 		let repetitions = 0;
@@ -1196,8 +1281,8 @@ const ManualCreation = (props: Props) => {
 	};
 
 	const [trainingPlanName, setTrainingPlanName] = useState<string>("");
-	const [trainingPlanHasBurdenAndUnit, setTrainingPlanHasBurdenAndUnit] = useState<boolean>(true);
-	const [trainingPlanUnitCode, setTrainingPlanUnitCode] = useState<number>(props.selectedSport.unitCode !== 0 ? props.selectedSport.unitCode : 1);
+	const [trainingPlanHasBurdenAndUnit, setTrainingPlanHasBurdenAndUnit] = useState<boolean>(props.selectedSport.unitCode === 7 ? false : true);
+	const [trainingPlanUnitCode, setTrainingPlanUnitCode] = useState<number>(props.selectedSport.unitCode === 1 ? 1 : [2, 3, 4].includes(props.selectedSport.unitCode) ? 2 : [5, 6].includes(props.selectedSport.unitCode) ? 3 : 1);
 
 	const [open, setOpen] = useState(false);
 
@@ -1242,6 +1327,7 @@ const ManualCreation = (props: Props) => {
 										<Box className="flex ml-3 mt-2 gap-4  items-center">
 											<TextFieldWithIcon
 												externalValue={{ state: trainingPlanName, setState: setTrainingPlanName }}
+												previousValue={trainingPlanName}
 												onClick={() => {}}
 												withoutIcon
 												fontSize="1.4rem"
@@ -2639,18 +2725,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 	};
 
 	const createTrainingPlan = (localProps: CreateTrainingPlanProps): LocalDay[] => {
-		const concreteDifficulty = localProps.difficulties.find((diff) => diff.difficultyName === localProps.labsAndVals.find((labAndVal) => labAndVal.orderNumber === 7)?.value);
-
 		const sport: Sport = localProps.sport;
+
+		const concreteDifficulty = localProps.difficulties.find((diff) => diff.difficultyName === localProps.labsAndVals.find((labAndVal) => labAndVal.orderNumber === 7)?.value);
+		const possibleDifficultiesIds = localProps.difficulties.filter((diff) => diff.orderNumber <= concreteDifficulty?.orderNumber!).map((diff) => diff.sportDifficultyId);
 
 		const categoriesWithExercises: Category[] = localProps.categoriesWithExercises
 			? localProps.categoriesWithExercises.map((category) => ({
 					...category,
-					exercises: category.exercises.filter((exercise) => exercise.sportDifficultyId === concreteDifficulty?.sportDifficultyId),
+					exercises: category.exercises.filter((exercise) => possibleDifficultiesIds.includes(exercise.sportDifficultyId)),
 			  }))
 			: [];
 
-		const exercises: Exercise[] = localProps.exercises ? localProps.exercises.filter((exercise) => exercise.sportDifficultyId === concreteDifficulty?.sportDifficultyId) : [];
+		const exercises: Exercise[] = localProps.exercises ? localProps.exercises.filter((exercise) => possibleDifficultiesIds.includes(exercise.sportDifficultyId)) : [];
 		const recommendedDifficultyVals: ExerciseDifficulty[] = localProps.recommendedDifficultyVals || [];
 
 		const days: LocalDay[] = [];
@@ -2879,14 +2966,111 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 		//console.log("Sport ID → " + sportId);
 		//context.res.setHeader("Set-Cookie", "tpc_tmp=; path=/; max-age=0;"); // TODO Možná smazat až po vytvořenní tréninku. Kdybych zaktualizoval stránku, tka nevím, jaký sport začít dělat.
 
+		const visitedUserId = cookies.view_tmp ? Number(atob(cookies.view_tmp)) : -1;
+		if (visitedUserId > 0) {
+			const response = await getVisitedUserTrainingPlanCreationPropsReq({ sportId, authToken, visitedUserId });
+
+			if (response.status === 200 && response.data) {
+				const automaticCreation = cookies.tpac_tmp ? Boolean(cookies.tpac_tmp) : false;
+
+				const labsAndVals = await getVisitedUserSportDetailLabsAndValsReq({ authToken, sportId, visitedUserId });
+				const difficulties = await getVisitedUserDifficultiesReq({ sportId, authToken, visitedUserId });
+
+				const edit = cookies.tpc_edit || false;
+				const trainingPlanId = cookies.tp_tmp ? Number(atob(cookies.tp_tmp)) : -1;
+
+				if (edit && trainingPlanId !== -1) {
+					const resTrainingPlans = await getVisitedUserTrainingPlansReq({ authToken, visitedUserId });
+					const resTrainingPlanExercises = await getVisitedUserTrainingPlanExercisesReq({ authToken, trainingPlanId, visitedUserId });
+
+					if (resTrainingPlans.status === 200 && resTrainingPlans.data && resTrainingPlanExercises.status === 200 && resTrainingPlanExercises.data) {
+						const trainingPlan = resTrainingPlans.data.trainingPlans.find((trainingPlan) => trainingPlan.trainingPlanId === trainingPlanId);
+
+						return {
+							props: {
+								sportsData: response.data || [],
+								selectedSport: response.data.sport,
+								categoriesData: response.data.categoriesWithExercises || [],
+								exercisesData: response.data.exercises || [],
+								recommendedDifficultiesData: response.data.recommendedDifficultyVals || [],
+								automaticCreationDays: [],
+								labsAndVals: labsAndVals.data || [],
+								difficulties: difficulties.data || [],
+								edit: true,
+								trainingPlan: trainingPlan,
+								trainingPlanExercises: resTrainingPlanExercises.data.trainingPlanExercises,
+							},
+						};
+					}
+				}
+
+				const days =
+					automaticCreation && labsAndVals?.data && difficulties?.data
+						? createTrainingPlan({
+								sport: response.data.sport,
+								categoriesWithExercises: response.data.categoriesWithExercises,
+								exercises: response.data.exercises, // pokud má response.data.exercises nějaká data
+								recommendedDifficultyVals: response.data.recommendedDifficultyVals, // pokud má response.data.recommendedDifficultyVals
+								labsAndVals: labsAndVals.data, // správné použití parametru
+								difficulties: difficulties.data,
+						  })
+						: undefined;
+
+				return {
+					props: {
+						sportsData: response.data || [],
+						selectedSport: response.data.sport,
+						categoriesData: response.data.categoriesWithExercises || [],
+						exercisesData: response.data.exercises || [],
+						recommendedDifficultiesData: response.data.recommendedDifficultyVals || [],
+						automaticCreationDays: days || [],
+						labsAndVals: labsAndVals.data || [],
+						difficulties: difficulties.data || [],
+					},
+				};
+			}
+		}
+
+		//
+		//
+		//
+
 		const response = await getTrainingPlanCreationPropsReq({ sportId, authToken });
 
 		if (response.status === 200 && response.data) {
-			const automaticCreation = cookies.tpc_tmp ? Boolean(cookies.tpac_tmp) : false;
+			const automaticCreation = cookies.tpac_tmp ? Boolean(cookies.tpac_tmp) : false;
 
 			const labsAndVals = await getSportDetailLabsAndValsReq({ authToken, sportId });
 
-			const difficulties = await getDifficultiesReq({ sportId });
+			const difficulties = await getDifficultiesReq({ sportId, authToken });
+
+			const edit = cookies.tpc_edit || false;
+			const trainingPlanId = cookies.tp_tmp ? Number(atob(cookies.tp_tmp)) : -1;
+
+			if (edit && trainingPlanId !== -1) {
+				const resTrainingPlans = await getTrainingPlansReq({ authToken });
+				const resTrainingPlanExercises = await getTrainingPlanExercisesReq({ authToken, trainingPlanId });
+
+				if (resTrainingPlans.status === 200 && resTrainingPlans.data && resTrainingPlanExercises.status === 200 && resTrainingPlanExercises.data) {
+					const trainingPlan = resTrainingPlans.data.trainingPlans.find((trainingPlan) => trainingPlan.trainingPlanId === trainingPlanId);
+
+					return {
+						props: {
+							sportsData: response.data || [],
+							selectedSport: response.data.sport,
+							categoriesData: response.data.categoriesWithExercises || [],
+							exercisesData: response.data.exercises || [],
+							recommendedDifficultiesData: response.data.recommendedDifficultyVals || [],
+							automaticCreationDays: [],
+							labsAndVals: labsAndVals.data || [],
+							difficulties: difficulties.data || [],
+							edit: true,
+							trainingPlan: trainingPlan,
+							trainingPlanExercises: resTrainingPlanExercises.data.trainingPlanExercises,
+						},
+					};
+				}
+			}
 
 			const days =
 				automaticCreation && labsAndVals?.data && difficulties?.data

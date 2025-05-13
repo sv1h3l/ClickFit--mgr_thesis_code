@@ -1,8 +1,12 @@
+import { getUserSettingsReq } from "@/api/get/getUserSettingsReq";
 import { useAppContext } from "@/utilities/Context";
 import { Box } from "@mui/material";
 import Head from "next/head";
 import { ReactNode, useEffect } from "react";
 import Header from "./Header";
+import HeaderMobile from "./HeaderMobile";
+
+const cookie = require("cookie");
 
 function Layout({ children }: { children: ReactNode }) {
 	const context = useAppContext();
@@ -26,7 +30,7 @@ function Layout({ children }: { children: ReactNode }) {
 
 		// Mapa barev pro každé téma
 		const colorMap: Record<string, string> = {
-			"outer_content-color-gray": "#141414", 
+			"outer_content-color-gray": "#141414",
 			"outer_content-color-red": "#1e1111",
 			"outer_content-color-green": "#0a1510",
 			"outer_content-color-blue": "#111117",
@@ -65,6 +69,36 @@ function Layout({ children }: { children: ReactNode }) {
 		metaThemeColor.setAttribute("content", color);
 	}, [context.outerContentColor]);
 
+	useEffect(() => {
+		const cookies = cookie.parse(document.cookie);
+		const authToken = cookies.authToken || null;
+
+		const fetchSettings = async () => {
+			let textSizeCode = 3;
+			let colorSchemeCode = 1;
+
+			if (!authToken) {
+				textSizeCode = Number(cookies.text_size);
+				colorSchemeCode = Number(cookies.color_scheme);
+			} else {
+				const settings = await getUserSettingsReq({ authToken });
+
+				if (settings.status === 200 && settings.data) {
+					textSizeCode = settings.data.textSizeCode;
+					colorSchemeCode = settings.data.colorSchemeCode;
+
+					document.cookie = `text_size=${textSizeCode}; path=/; max-age=${60 * 60 * 24 * 90};`;
+					document.cookie = `color_scheme=${colorSchemeCode}; path=/; max-age=${60 * 60 * 24 * 90};`;
+				}
+			}
+
+			context.setTextSize(textSizeCode === 2 ? "text_size-small" : textSizeCode === 4 ? "text_size-large" : "text_size-medium");
+			context.setColors(colorSchemeCode === 2 ? "red" : colorSchemeCode === 3 ? "blue" : colorSchemeCode === 4 ? "green" : "gray");
+		};
+
+		fetchSettings();
+	}, []);
+
 	return (
 		<>
 			<Head>
@@ -76,8 +110,11 @@ function Layout({ children }: { children: ReactNode }) {
 
 			<Box className={`${context.outerContentColor}`}>
 				<div className="flex justify-center">
-					<Box className="max-w-content w-full">
+					<Box className="max-w-content w-full hidden lg:block">
 						<Header />
+					</Box>
+					<Box className="max-w-content w-full block lg:hidden">
+						<HeaderMobile />
 					</Box>
 				</div>
 

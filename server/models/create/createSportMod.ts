@@ -14,7 +14,7 @@ export const createSportMod = async (userId: number, sportName: string): Promise
 
 		const insertQuery = `
             INSERT INTO sports (user_id, sport_name, description)
-            VALUES (?, ?, "Zde je vhodné napsat obecný popis sportu.")
+            VALUES (?, ?, "")
         `;
 
 		const [result] = await db.promise().query(insertQuery, [userId, sportName]);

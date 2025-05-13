@@ -1,3 +1,4 @@
+import { createConnectionReq } from "@/api/create/createConnectionReq";
 import { getConnectionAtrsReq } from "@/api/get/getConnectionAtrsReq";
 import Connections from "@/components/large/Connections";
 import NewConnection from "@/components/large/NewConnection";
@@ -25,6 +26,9 @@ interface Props {
 	qrCode: string;
 
 	connectedUsers: ConnectedUser[];
+
+	modalCode?: number | null;
+	connectionString?: string | null;
 }
 
 const Connection = (props: Props) => {
@@ -43,6 +47,8 @@ const Connection = (props: Props) => {
 				firstColumnChildren={<Connections connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }} />}
 				secondColumnChildren={
 					<NewConnection
+						modalCode={props.modalCode}
+						connectionString={props.connectionString}
 						connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }}
 						connectionCode={props.connectionCode}
 						qrCode={props.qrCode}
@@ -63,10 +69,42 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 		const resConnectionAtrs = await getConnectionAtrsReq({ authToken });
 		const connectionCode = resConnectionAtrs.data?.connectionCode;
 
+		const connectionCodeStr = context.query.cc;
+		const connectionCodeNum = Number(connectionCodeStr);
+
+		let newConnection;
+		if (authToken) newConnection = await createConnectionReq({ connectionCode: connectionCodeNum, authToken });
+
 		if (resConnectionAtrs.status === 200 && connectionCode) {
 			const qrCode = await generateQRCode(connectionCode.toString());
 
-			return { props: { connectionCode, qrCode, connectedUsers: resConnectionAtrs.data?.connectedUsers } };
+			return {
+				props: {
+					connectionCode,
+					qrCode,
+					connectedUsers: resConnectionAtrs.data?.connectedUsers,
+					modalCode:
+						newConnection?.status === 200 && newConnection?.data
+							? 1
+							: newConnection?.status === 404
+							? 2
+							: newConnection?.status === 400
+							? 3
+							: newConnection?.status === 409 && newConnection?.data
+							? 4
+							: newConnection?.status === 422 && connectionCodeStr && connectionCodeStr?.length > 0
+							? 5
+							: null,
+					connectionString:
+						(newConnection?.status === 200 || newConnection?.status === 409) && newConnection?.data
+							? newConnection.data.connectedUserFirstName + " " + newConnection.data.connectedUserLastName
+							: newConnection?.status === 404
+							? connectionCodeStr
+							: newConnection?.status === 400 || (newConnection?.status === 422 && connectionCodeStr && connectionCodeStr?.length > 0)
+							? ""
+							: null,
+				},
+			};
 		} else {
 			return { props: { connectionCode: 0, qrCode: 0, connectedUsers: [] } };
 		}
