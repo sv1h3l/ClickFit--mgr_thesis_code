@@ -98,6 +98,8 @@ const TrainingPlanDaySelection = (props: Props) => {
 		<GeneralCard
 			disabled={props.selectedTrainingPlan?.state === null || props.trainingPlanExercises.length < 1}
 			height="h-full"
+			showBackButton={context.isSmallDevice}
+			backButtonClick={() => context.setActiveSection(1)}
 			firstTitle="Vybraný trénink"
 			firstSideContent={
 				props.selectedTrainingPlan?.state?.authorId === props.user?.userId

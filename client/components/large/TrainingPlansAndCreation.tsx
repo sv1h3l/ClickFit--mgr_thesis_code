@@ -52,7 +52,7 @@ const TrainingPlansAndCreation = (props: Props) => {
 	return (
 		<GeneralCard
 			firstTitle="Tréninky"
-			secondTitle="Nový trénink"
+			secondTitle={context.windowWidth > 375 ? "Nový trénink" : "Nový"}
 			height="h-full"
 			showBackButton={props.cannotEdit}
 			backButtonClick={() => {
@@ -90,10 +90,13 @@ const TrainingPlansAndCreation = (props: Props) => {
 							{props.trainingPlans.map((training) => (
 								<Box
 									key={training.trainingPlanId}
-									onClick={() => props.clickedTrainingPlanId.setState(training.trainingPlanId)}
+									onClick={() => {
+										context.setActiveSection(2);
+										props.clickedTrainingPlanId.setState(training.trainingPlanId);
+									}}
 									className={`group rounded-xl overflow-hidden transition-all duration-200 ease-in-out py-1.5 px-2.5 border-[0.125rem]
 								${context.bgSecondaryColor} ${context.borderSecondaryColor} 
-								${training.trainingPlanId === props.clickedTrainingPlanId.state ? `   btn-message-shadow ${context.bgQuaternaryColor} ${context.borderQuaternaryColor}` : ` cursor-pointer ${context.bgHoverTertiaryColor + context.borderHoverTertiaryColor}`}
+								${training.trainingPlanId === props.clickedTrainingPlanId.state && !context.isSmallDevice ? `   btn-message-shadow ${context.bgQuaternaryColor} ${context.borderQuaternaryColor}` : ` cursor-pointer ${context.bgHoverTertiaryColor + context.borderHoverTertiaryColor}`}
 
 								
 						`}>
@@ -114,12 +117,12 @@ const TrainingPlansAndCreation = (props: Props) => {
 										<Box
 											className={`absolute inset-0 transition-opacity duration-200 ease-in-out bg-gradient-to-r from-transparent via-[#505050] to-transparent
 												${training.trainingPlanId === props.clickedTrainingPlanId.state ? "opacity-100" : "opacity-0"} 
-												group-hover:via-[#fff]`} // Add hover effect to change the middle color of the gradient
+												`} // Add hover effect to change the middle color of the gradient
 										/>
 										<Box
 											className={`absolute inset-0 transition-opacity duration-200 ease-in-out bg-gradient-to-r from-transparent via-[#2d2d2d] to-transparent
 												${training.trainingPlanId === props.clickedTrainingPlanId.state ? "opacity-0" : "opacity-100"}
-												group-hover:via-[#fff]`} // Add hover effect to change the middle color of the gradient
+												f]`} // Add hover effect to change the middle color of the gradient
 										/>
 									</Box>
 
@@ -142,7 +145,7 @@ const TrainingPlansAndCreation = (props: Props) => {
 						<Box>
 							<Box className="flex">
 								<Typography className="mt-3 text-lg font-light">
-									Tréninkový plán vytvoříte v sekci <span className="font-normal">Nový trénink</span>.
+									Tréninkový plán vytvoříte v sekci <span className="font-normal">{context.windowWidth > 375 ? "Nový trénink" : "Nový"}</span>.
 								</Typography>
 							</Box>
 						</Box>

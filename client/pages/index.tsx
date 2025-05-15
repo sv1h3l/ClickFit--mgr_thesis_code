@@ -27,7 +27,7 @@ function Index() {
 			</Head>
 
 			<OneColumnPage
-				firstColumnWidth="w-5/12 "
+				firstColumnWidth="w-full max-w-lg"
 				firstColumnHeight="h-fit"
 				firstColumnChildren={
 					<GeneralCard

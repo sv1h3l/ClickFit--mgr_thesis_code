@@ -5,15 +5,16 @@ import { deleteGraphValueReq } from "@/api/delete/deleteGraphValueReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { Sport } from "@/api/get/getSportsReq";
 import { moveGraphValueReq } from "@/api/move/moveGraphValueReq";
+import { useAppContext } from "@/utilities/Context";
 import { StateAndSetFunction } from "@/utilities/generalInterfaces";
 import { Box, Typography } from "@mui/material";
+import router from "next/router";
 import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import DoubleValue from "../small/DoubleValue";
 import LabelAndValue from "../small/LabelAndValue";
 import { Graph, GraphValue } from "./DiaryAndGraphs";
 import GeneralCard from "./GeneralCard";
-import router from "next/router";
 
 interface Props {
 	sportsData: StateAndSetFunction<Sport[]>;
@@ -28,6 +29,8 @@ interface Props {
 }
 
 const SportsAndValues = (props: Props) => {
+	const context = useAppContext();
+
 	const [edit, setEdit] = useState(false);
 
 	const [firstValueErrorGoal, setFirstValueErrorGoal] = useState(false);
@@ -296,85 +299,144 @@ const SportsAndValues = (props: Props) => {
 
 	return (
 		<GeneralCard
-			showBackButton={props.cannotEdit}
-			backButtonClick={() => {
-				router.push(`/chat`);
-			}}
+			showBackButton={props.cannotEdit || context.activeSection === 3}
+			backButtonClick={
+				props.cannotEdit
+					? () => {
+							router.push(`/chat`);
+					  }
+					: context.activeSection === 3
+					? () => {
+							context.setActiveSection(2);
+					  }
+					: undefined
+			}
 			height="h-full max-h-full"
-			firstTitle="Sporty"
+			firstTitle={context.activeSection === 3 && context.isSmallDevice ? "Záznamy" : "Sporty"}
 			showFirstSection={{ state: props.isSelectedFirstSection.state, setState: props.isSelectedFirstSection.setState }}
 			disabled={props.isDisabledFirstSection.state}
 			firstChildren={
-				<Box className=" h-full ">
-					<Box className="flex rounded-xl  overflow-hidden pt-1.5 px-2.5 ">
-						<Typography className="w-1/2 font-light italic text-[0.9rem]">Sport</Typography>
-						<Typography className="w-1/2 font-light italic text-[0.9rem] pl-2">Autor</Typography>
-					</Box>
+				context.activeSection === 3 && context.isSmallDevice ? (
+					<Box className=" h-full ">
+						<Box className="flex justify-center items-center pt-6 ">
+							{props.cannotEdit ? null : (
+								<Box className="w-fit pr-3 -ml-3 ">
+									<ButtonComp
+										disabled={!props.selectedGraph.state?.graphValues?.length}
+										content={IconEnum.EDIT}
+										size="small"
+										onClick={() => setEdit(!edit)}
+									/>
+								</Box>
+							)}
 
-					{props.sportsData.state.map((sport) => (
-						<LabelAndValue
-							disableSelection={props.isDisabledFirstSection.state}
-							key={sport.sportId}
-							spaceBetween
-							label={sport.sportName}
-							value={sport.userName}
-							isSelected={sport.sportId == props.selectedSport.state?.sportId}
-							onClick={() => {
-								if (props.selectedSport.state?.sportId !== sport.sportId) {
-									props.selectedGraph.setState(null);
-								}
-								props.selectedSport.setState(sport);
-							}}
-						/>
-					))}
-				</Box>
-			}
-			secondTitle={props.selectedGraph.state ? "Záznamy" : ""}
-			secondChildren={
-				<Box className=" h-full ">
-					<Box className="flex justify-center items-center pt-6 ">
+							<Typography className="text-xl">{props.selectedGraph.state?.graphLabel}</Typography>
+						</Box>
 						{props.cannotEdit ? null : (
-							<Box className="w-fit pr-3 -ml-3 ">
-								<ButtonComp
-									disabled={!props.selectedGraph.state?.graphValues?.length}
-									content={IconEnum.EDIT}
-									size="small"
-									onClick={() => setEdit(!edit)}
-								/>
+							<Box>
+								<Typography className="mt-7 font-light  ">Nový záznam</Typography>
+								<Box className="pl-4 ml-4">
+									<DoubleValue
+										checkOnClick={(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue) => handleCreateGraphValue(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue)}
+										firstValuePlaceholder={props.selectedGraph.state?.xAxisLabel}
+										secondValuePlaceholder={props.selectedGraph.state?.yAxisLabel}
+										tfFirstValueMaxLength={12}
+										tfSecondValueMaxLength={4}
+										edit={true}
+										unit={props.selectedGraph.state?.unit}
+										graphValueId={0}
+										orderNumber={0}
+										graphId={props.selectedGraph.state?.graphId!}
+										isDefaultGraphValue={props.selectedGraph.state?.defaultGraphOrderNumberId ? true : false}
+										firstValueError={{ state: firstValueErrorGoal, setState: setFirstValueErrorGoal }}
+										secondValueError={{ state: secondValueErrorGoal, setState: setSecondValueErrorGoal }}
+										hasDate={props.selectedGraph.state?.hasDate}
+										showGoalButton={props.selectedGraph.state?.hasGoals}
+										showCheckButttonAlways
+									/>
+								</Box>
 							</Box>
 						)}
-
-						<Typography className="text-xl">{props.selectedGraph.state?.graphLabel}</Typography>
+						{props.selectedGraph.state?.hasDate || !props.selectedGraph.state?.graphValues ? null : <Typography className="mt-7 -mb-1 font-light">Záznamy</Typography>}{" "}
+						{/* FIXME když smažu poslední záznam ta kzůstane "Záznámy" + když kliknu na save tak se úplně neschová tlačítko fajvky */}
+						{props.selectedGraph.state?.graphValues && renderFormattedGraphValues()}
 					</Box>
-					{props.cannotEdit ? null : (
-						<Box>
-							<Typography className="mt-7 font-light  ">Nový záznam</Typography>
-							<Box className="pl-4 ml-4">
-								<DoubleValue
-									checkOnClick={(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue) => handleCreateGraphValue(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue)}
-									firstValuePlaceholder={props.selectedGraph.state?.xAxisLabel}
-									secondValuePlaceholder={props.selectedGraph.state?.yAxisLabel}
-									tfFirstValueMaxLength={12}
-									tfSecondValueMaxLength={4}
-									edit={true}
-									unit={props.selectedGraph.state?.unit}
-									graphValueId={0}
-									orderNumber={0}
-									graphId={props.selectedGraph.state?.graphId!}
-									isDefaultGraphValue={props.selectedGraph.state?.defaultGraphOrderNumberId ? true : false}
-									firstValueError={{ state: firstValueErrorGoal, setState: setFirstValueErrorGoal }}
-									secondValueError={{ state: secondValueErrorGoal, setState: setSecondValueErrorGoal }}
-									hasDate={props.selectedGraph.state?.hasDate}
-									showGoalButton={props.selectedGraph.state?.hasGoals}
-									showCheckButttonAlways
-								/>
-							</Box>
+				) : (
+					<Box className=" h-full ">
+						<Box className="flex rounded-xl  overflow-hidden pt-1.5 px-2.5 ">
+							<Typography className="w-1/2 font-light italic text-[0.9rem]">Sport</Typography>
+							<Typography className="w-1/2 font-light italic text-[0.9rem] pl-2">Autor</Typography>
 						</Box>
-					)}
-					{props.selectedGraph.state?.hasDate || !props.selectedGraph.state?.graphValues ? null : <Typography className="mt-7 -mb-1 font-light">Záznamy</Typography>}{" "}
-					{/* FIXME když smažu poslední záznam ta kzůstane "Záznámy" + když kliknu na save tak se úplně neschová tlačítko fajvky */}
-					{props.selectedGraph.state?.graphValues && renderFormattedGraphValues()}
-				</Box>
+
+						{props.sportsData.state.map((sport) => (
+							<LabelAndValue
+								disableSelection={props.isDisabledFirstSection.state}
+								key={sport.sportId}
+								spaceBetween
+								label={sport.sportName}
+								value={sport.userName}
+								isSelected={sport.sportId == props.selectedSport.state?.sportId}
+								onClick={() => {
+									if (props.selectedSport.state?.sportId !== sport.sportId) {
+										props.selectedGraph.setState(null);
+									}
+									props.selectedSport.setState(sport);
+									context.setActiveSection(2);
+								}}
+							/>
+						))}
+					</Box>
+				)
+			}
+			secondTitle={!context.isSmallDevice && props.selectedGraph.state ? "Záznamy" : ""}
+			secondChildren={
+				!context.isSmallDevice ? (
+					<Box className=" h-full ">
+						<Box className={`flex justify-center items-center pt-6
+									`}>
+							{props.cannotEdit ? null : (
+								<Box className="w-fit pr-3 -ml-3 ">
+									<ButtonComp
+										disabled={!props.selectedGraph.state?.graphValues?.length}
+										content={IconEnum.EDIT}
+										size="small"
+										onClick={() => setEdit(!edit)}
+									/>
+								</Box>
+							)}
+
+							<Typography className="text-xl">{props.selectedGraph.state?.graphLabel}</Typography>
+						</Box>
+						{props.cannotEdit ? null : (
+							<Box>
+								<Typography className="mt-7 font-light  ">Nový záznam</Typography>
+								<Box className="pl-4 ml-4">
+									<DoubleValue
+										checkOnClick={(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue) => handleCreateGraphValue(firstValue, secondValue, graphValueId, isGoal, isDefaultGraphValue)}
+										firstValuePlaceholder={props.selectedGraph.state?.xAxisLabel}
+										secondValuePlaceholder={props.selectedGraph.state?.yAxisLabel}
+										tfFirstValueMaxLength={12}
+										tfSecondValueMaxLength={4}
+										edit={true}
+										unit={props.selectedGraph.state?.unit}
+										graphValueId={0}
+										orderNumber={0}
+										graphId={props.selectedGraph.state?.graphId!}
+										isDefaultGraphValue={props.selectedGraph.state?.defaultGraphOrderNumberId ? true : false}
+										firstValueError={{ state: firstValueErrorGoal, setState: setFirstValueErrorGoal }}
+										secondValueError={{ state: secondValueErrorGoal, setState: setSecondValueErrorGoal }}
+										hasDate={props.selectedGraph.state?.hasDate}
+										showGoalButton={props.selectedGraph.state?.hasGoals}
+										showCheckButttonAlways
+									/>
+								</Box>
+							</Box>
+						)}
+						{props.selectedGraph.state?.hasDate || !props.selectedGraph.state?.graphValues ? null : <Typography className="mt-7 -mb-1 font-light">Záznamy</Typography>}{" "}
+						{/* FIXME když smažu poslední záznam ta kzůstane "Záznámy" + když kliknu na save tak se úplně neschová tlačítko fajvky */}
+						{props.selectedGraph.state?.graphValues && renderFormattedGraphValues()}
+					</Box>
+				) : null
 			}
 		/>
 	);

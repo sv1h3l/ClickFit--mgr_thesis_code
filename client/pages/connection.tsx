@@ -1,9 +1,11 @@
 import { createConnectionReq } from "@/api/create/createConnectionReq";
 import { getConnectionAtrsReq } from "@/api/get/getConnectionAtrsReq";
 import Connections from "@/components/large/Connections";
+import GeneralCard from "@/components/large/GeneralCard";
 import NewConnection from "@/components/large/NewConnection";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
 import { generateQRCode } from "@/components/small/QRComp";
+import { useAppContext } from "@/utilities/Context";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useState } from "react";
@@ -32,6 +34,8 @@ interface Props {
 }
 
 const Connection = (props: Props) => {
+	const context = useAppContext();
+
 	const [connectedUsers, setConnectedUsers] = useState<ConnectedUser[]>(props.connectedUsers);
 
 	return (
@@ -41,18 +45,46 @@ const Connection = (props: Props) => {
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth="w-1/3"
-				secondColumnWidth="w-1/3"
+				firstColumnWidth={context.isSmallDevice ? "w-full" : "w-full max-w-[30rem]"}
+				secondColumnWidth={context.isSmallDevice ? "w-0" : "w-full max-w-[30rem]"}
 				secondColumnHeight="h-fit"
-				firstColumnChildren={<Connections connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }} />}
-				secondColumnChildren={
-					<NewConnection
-						modalCode={props.modalCode}
-						connectionString={props.connectionString}
-						connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }}
-						connectionCode={props.connectionCode}
-						qrCode={props.qrCode}
+				firstColumnChildren={
+					<GeneralCard
+						firstTitle="Spojení"
+						secondTitle={context.isSmallDevice ? "Nová spojení" : ""}
+						height="h-full"
+						firstChildren={<Connections connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }} />}
+						secondChildren={
+							context.isSmallDevice ? (
+								<NewConnection
+									modalCode={props.modalCode}
+									connectionString={props.connectionString}
+									connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }}
+									connectionCode={props.connectionCode}
+									qrCode={props.qrCode}
+								/>
+							) : null
+						}
 					/>
+				}
+				secondColumnChildren={
+					!context.isSmallDevice ? (
+						<GeneralCard
+							firstTitle="Nová spojení"
+							height="h-full"
+							firstChildren={
+								<NewConnection
+									modalCode={props.modalCode}
+									connectionString={props.connectionString}
+									connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }}
+									connectionCode={props.connectionCode}
+									qrCode={props.qrCode}
+								/>
+							}
+						/>
+					) : (
+						<></>
+					)
 				}
 			/>
 		</>

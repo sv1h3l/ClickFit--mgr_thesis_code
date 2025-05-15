@@ -23,12 +23,12 @@ import TwoColumnsPage from "@/components/large/TwoColumnsPage";
 import ButtonComp, { IconEnum } from "@/components/small/ButtonComp";
 import TextFieldWithIcon from "@/components/small/TextFieldWithIcon";
 import { useAppContext } from "@/utilities/Context";
-import { Autocomplete, Box, Checkbox, FormControl, FormControlLabel, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, FormControl, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import router from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TrainingPlanExercise, UnitShortcuts } from "./training-plan";
 
 const cookie = require("cookie");
@@ -942,7 +942,21 @@ const ManualCreation = (props: Props) => {
 		return nthExercise === maxNthExercise;
 	};
 
-	const MoveAndDeleteButtons = ({ nthDay, nthCategory, nthExercise, disable }: { nthDay: number; nthCategory?: number; nthExercise?: number; disable?: boolean }) => {
+	const MoveAndDeleteButtons = ({
+		nthDay,
+		nthCategory,
+		nthExercise,
+		disable,
+		onlyMoveButtons,
+		onlyUpButton,
+	}: {
+		nthDay: number;
+		nthCategory?: number;
+		nthExercise?: number;
+		disable?: boolean;
+		onlyMoveButtons?: boolean;
+		onlyUpButton?: boolean;
+	}) => {
 		const disableMoveUpCauseItsFirstEntity =
 			(nthExercise === 1 && nthCategory === 1 && nthDay === 1) || (nthExercise === undefined && nthCategory === 1 && nthDay === 1) || (nthExercise === undefined && nthCategory === undefined && nthDay === 1);
 
@@ -961,69 +975,105 @@ const ManualCreation = (props: Props) => {
 			<Box className="flex  gap-2 mr-3">
 				{/*{nthCategory && !nthExercise && <Box className="border-t-2 border-r-2 border-gray-200 h-7 rounded-tr-xl absolute top-2 right-0 w-[6.8rem]" />}*/}
 
-				<ButtonComp
-					disabled={disableMoveUpCauseItsFirstEntity || !isSameAbove || disable}
-					content={IconEnum.ARROW}
-					color="text-blue-icon"
-					dontChangeOutline
-					justClick
-					contentStyle="-rotate-90 mr-[0.01rem]"
-					size="small"
-					onClick={() => {
-						setTimeout(() => {
-							if (nthCategory && nthExercise) {
-								moveExerciseUp(nthDay, nthCategory, nthExercise);
-							} else if (nthCategory) {
-								moveCategoryUp(nthDay, nthCategory);
-							} else {
-								moveDayUp(nthDay);
-							}
-						}, 100);
-					}}
-				/>
+				{context.windowWidth < 850 && !onlyMoveButtons ? (
+					<ButtonComp
+						style=""
+						disabled={disable}
+						content={IconEnum.CROSS}
+						color="text-red-icon"
+						contentStyle="-rotate-90"
+						dontChangeOutline
+						justClick
+						size="small"
+						onClick={() => {
+							setTimeout(() => {
+								if (nthCategory && nthExercise) {
+									removeExercise(nthDay, nthCategory, nthExercise);
+								} else if (nthCategory) {
+									removeCategory(nthDay, nthCategory);
+								} else {
+									removeDay(nthDay);
+								}
+							}, 100);
+						}}
+					/>
+				) : null}
 
-				<ButtonComp
-					disabled={disableMoveDownCauseItsLastEntity || !isSameBelow || disable}
-					content={IconEnum.ARROW}
-					color="text-blue-icon"
-					dontChangeOutline
-					justClick
-					contentStyle="rotate-90"
-					size="small"
-					onClick={() => {
-						setTimeout(() => {
-							if (nthCategory && nthExercise) {
-								moveExerciseDown(nthDay, nthCategory, nthExercise);
-							} else if (nthCategory) {
-								moveCategoryDown(nthDay, nthCategory);
-							} else {
-								moveDayDown(nthDay);
-							}
-						}, 100);
-					}}
-				/>
+				{context.windowWidth >= 850 || (context.windowWidth < 850 && onlyMoveButtons) ? (
+					<>
+						{!onlyUpButton && context.windowWidth < 850 ? null : (
+							<ButtonComp
+								disabled={disableMoveUpCauseItsFirstEntity || !isSameAbove || disable}
+								content={IconEnum.ARROW}
+								color="text-blue-icon"
+								dontChangeOutline
+								justClick
+								style={`${context.windowWidth < 850 && "-mb-2"}`}
+								contentStyle="-rotate-90 mr-[0.01rem] "
+								size="small"
+								onClick={() => {
+									setTimeout(() => {
+										if (nthCategory && nthExercise) {
+											moveExerciseUp(nthDay, nthCategory, nthExercise);
+										} else if (nthCategory) {
+											moveCategoryUp(nthDay, nthCategory);
+										} else {
+											moveDayUp(nthDay);
+										}
+									}, 100);
+								}}
+							/>
+						)}
 
-				<ButtonComp
-					style="ml-2.5"
-					disabled={disable}
-					content={IconEnum.CROSS}
-					color="text-red-icon"
-					contentStyle="-rotate-90"
-					dontChangeOutline
-					justClick
-					size="small"
-					onClick={() => {
-						setTimeout(() => {
-							if (nthCategory && nthExercise) {
-								removeExercise(nthDay, nthCategory, nthExercise);
-							} else if (nthCategory) {
-								removeCategory(nthDay, nthCategory);
-							} else {
-								removeDay(nthDay);
-							}
-						}, 100);
-					}}
-				/>
+						{onlyUpButton && context.windowWidth < 850 ? null : (
+							<ButtonComp
+								disabled={disableMoveDownCauseItsLastEntity || !isSameBelow || disable}
+								content={IconEnum.ARROW}
+								color="text-blue-icon"
+								dontChangeOutline
+								justClick
+								style={`${context.windowWidth < 850 && "-mb-1"}`}
+								contentStyle="rotate-90"
+								size="small"
+								onClick={() => {
+									setTimeout(() => {
+										if (nthCategory && nthExercise) {
+											moveExerciseDown(nthDay, nthCategory, nthExercise);
+										} else if (nthCategory) {
+											moveCategoryDown(nthDay, nthCategory);
+										} else {
+											moveDayDown(nthDay);
+										}
+									}, 100);
+								}}
+							/>
+						)}
+					</>
+				) : null}
+
+				{context.windowWidth >= 850 ? (
+					<ButtonComp
+						style="ml-2.5"
+						disabled={disable}
+						content={IconEnum.CROSS}
+						color="text-red-icon"
+						contentStyle="-rotate-90"
+						dontChangeOutline
+						justClick
+						size="small"
+						onClick={() => {
+							setTimeout(() => {
+								if (nthCategory && nthExercise) {
+									removeExercise(nthDay, nthCategory, nthExercise);
+								} else if (nthCategory) {
+									removeCategory(nthDay, nthCategory);
+								} else {
+									removeDay(nthDay);
+								}
+							}, 100);
+						}}
+					/>
+				) : null}
 			</Box>
 		);
 	};
@@ -1304,6 +1354,15 @@ const ManualCreation = (props: Props) => {
 
 	const [overflowHidden, setOverflowHidden] = useState<string[]>([]);
 
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	/*useEffect(() => {
+		// Zamez focusu při mountu
+		if (inputRef.current) {
+			inputRef.current.blur(); // zajistí že nebude autofokus
+		}
+	}, []);*/
+
 	return (
 		<>
 			<Head>
@@ -1337,22 +1396,24 @@ const ManualCreation = (props: Props) => {
 											/>
 										</Box>
 
-										<Box className="flex ml-3 gap-8  items-center w-full">
-											<FormControlLabel
-												className=""
-												control={
-													<Checkbox
-														checked={trainingPlanHasBurdenAndUnit}
-														onChange={() => {
-															setTrainingPlanHasBurdenAndUnit(!trainingPlanHasBurdenAndUnit);
-														}}
-													/>
-												}
-												label={trainingPlanHasBurdenAndUnit ? "Cviky mají zátěž a jednotku." : "Cviky nemají zátěž a jednotku."}
-											/>
+										<Box
+											className={`flex  ml-3  w-full 
+														${context.windowWidth < 450 ? "flex-col pb-3" : "flex-row gap-8 items-center pb-0"}`}>
+											<Box className="flex items-start mt-4 pb-4">
+												<ButtonComp
+													style="mb-0.5 mr-3"
+													size="small"
+													externalClicked={{ state: trainingPlanHasBurdenAndUnit, setState: setTrainingPlanHasBurdenAndUnit }}
+													content={trainingPlanHasBurdenAndUnit ? IconEnum.CHECK : IconEnum.CROSS}
+													onClick={() => setTrainingPlanHasBurdenAndUnit(!trainingPlanHasBurdenAndUnit)}
+												/>
+												<Typography>{trainingPlanHasBurdenAndUnit ? "Cviky mají zátěž a jednotku." : "Cviky nemají zátěž a jednotku."}</Typography>
+											</Box>
 
 											{trainingPlanHasBurdenAndUnit ? (
-												<Box className="flex  h-full items-center">
+												<Box
+													className={`flex  h-full items-center  
+														${context.windowWidth < 450 ? "ml-9 -mt-2" : "ml-4 mt-0"}`}>
 													<Typography className="font-light text-nowrap"> Ikona jednotky</Typography>
 													<Typography className={`opacity-50 font-light text-nowrap ml-3 mr-2`}>»</Typography>
 
@@ -1446,27 +1507,52 @@ const ManualCreation = (props: Props) => {
 											) : null}
 										</Box>
 
-										<Box className="flex ml-2 gap-4 items-center w-full ">
-											<Box className="flex items-center justify-center w-[16rem]">
-												<ButtonComp
-													content={showMoveAndDeleteButtons ? "Skrýt mazání a přesouvání" : "Zobrazit mazání a přesouvání"}
-													size="medium"
-													onClick={() => {
-														setShowMoveAndDeleteButtons(!showMoveAndDeleteButtons);
-													}}
-												/>
-											</Box>
-											{props.selectedSport.hasRecommendedValues ? (
-												<Box className="flex items-center justify-center w-[16rem]">
+										<Box
+											className={`flex  gap-6  w-full 
+														${context.windowWidth < 850 ? "flex-col items-end " : "flex-row items-center"}`}>
+											{context.windowWidth < 850 ? (
+												<Box className="flex items-center justify-center ">
 													<ButtonComp
-														content={showRecommendeValues ? "Skrýt doporučené hodnoty" : "Zobrazit doporučené hodnoty"}
+														content={
+															showMoveAndDeleteButtons
+																? props.selectedSport.hasRecommendedValues
+																	? "Skrýt mazání, přesouvání a doporučené hodnoty"
+																	: "Skrýt mazání a přesouvání"
+																: props.selectedSport.hasRecommendedValues
+																? "Zobrazit mazání, přesouvání a doporučené hodnoty"
+																: "Zobrazit mazání a přesouvání"
+														}
 														size="medium"
 														onClick={() => {
+															setShowMoveAndDeleteButtons(!showMoveAndDeleteButtons);
 															setShowRecommendeValues(!showRecommendeValues);
 														}}
 													/>
 												</Box>
-											) : null}
+											) : (
+												<Box className="flex ml-2 gap-6  w-full">
+													<Box className="flex items-center justify-center w-[16rem]">
+														<ButtonComp
+															content={showMoveAndDeleteButtons ? "Skrýt mazání a přesouvání" : "Zobrazit mazání a přesouvání"}
+															size="medium"
+															onClick={() => {
+																setShowMoveAndDeleteButtons(!showMoveAndDeleteButtons);
+															}}
+														/>
+													</Box>
+													{props.selectedSport.hasRecommendedValues ? (
+														<Box className="flex items-center justify-center w-[16rem]">
+															<ButtonComp
+																content={showRecommendeValues ? "Skrýt doporučené hodnoty" : "Zobrazit doporučené hodnoty"}
+																size="medium"
+																onClick={() => {
+																	setShowRecommendeValues(!showRecommendeValues);
+																}}
+															/>
+														</Box>
+													) : null}
+												</Box>
+											)}
 										</Box>
 									</Box>
 
@@ -1487,20 +1573,58 @@ const ManualCreation = (props: Props) => {
 												className={`flex w-full 
 													${index + 1 > 1 && "pt-5"}`}>
 												{/* ${showRecommendeValues && trainingPlanHasBurdenAndUnit ? "mr-[20.1rem]" : showRecommendeValues && !trainingPlanHasBurdenAndUnit ? "mr-[13.25rem]" : ""} */}
-												<Box className="flex items-center justify-center w-full h-12 ">
+												<Box
+													className={`flex items-center justify-center w-full 
+																${context.windowWidth < 850 ? "min-h-12 mt-3" : "h-12"}`}>
 													<Box
-														className={` flex items-center  w-full mr-1 -mt-4 ${!showRecommendeValues && "-mr-0.5"} ${
-															props.selectedSport.hasCategories && showRecommendeValues && !trainingPlanHasBurdenAndUnit
-																? "-ml-[9rem]"
-																: props.selectedSport.hasCategories && showRecommendeValues && trainingPlanHasBurdenAndUnit
-																? "-ml-[16rem]"
-																: ""
-														}
+														className={` flex   w-full mr-1 -mt-4 ${!showRecommendeValues && "-mr-0.5"}
+															${context.windowWidth < 850 ? "flex-col items-start" : "flex-row items-center"}
+															${
+																props.selectedSport.hasCategories && showRecommendeValues && !trainingPlanHasBurdenAndUnit && context.windowWidth >= 850
+																	? ""
+																	: props.selectedSport.hasCategories && showRecommendeValues && trainingPlanHasBurdenAndUnit && context.windowWidth >= 850
+																	? ""
+																	: ""
+															}
 																	${!trainingPlanHasBurdenAndUnit && showRecommendeValues ? "max-w-[60rem]" : "max-w-[60rem]"}`}>
-														<Typography className="text-[1.245rem] font-medium uppercase w-full ml-3 -mb-2 mt-1"> {`Den ${index + 1}.`} </Typography>
+														<Box className="flex items-center ">
+															{showMoveAndDeleteButtons && context.windowWidth < 850 && (
+																<Box className={`mr-0.5 mt-2.5 ml-3.5  `}>
+																	<MoveAndDeleteButtons nthDay={day.nthDay} />
+																</Box>
+															)}
+
+															<Typography
+																className={`text-[1.245rem] font-medium uppercase w-full -mb-2 mt-1
+																					${showMoveAndDeleteButtons && context.windowWidth < 850 ? "ml-0" : "ml-3"}`}>
+																{`Den ${index + 1}.`}{" "}
+															</Typography>
+														</Box>
+
+														{props.selectedSport.hasCategories && showMoveAndDeleteButtons && context.windowWidth < 850 ? (
+															<Box className={`ml-3.5 mt-5  mb-2.5 `}>
+																<MoveAndDeleteButtons
+																	onlyMoveButtons
+																	onlyUpButton
+																	nthDay={day.nthDay}
+																/>
+															</Box>
+														) : null}
 
 														{!props.selectedSport.hasCategories ? (
-															<Box className={`flex items-center h-full w-full justify-end mt-3 ${trainingPlanHasBurdenAndUnit && "pr-9"} `}>
+															<Box
+																className={`flex items-center h-full w-full justify-end mt-4 ${trainingPlanHasBurdenAndUnit && "pr-9"}
+																			${context.windowWidth < 850 ? "pb-2 ml-0.5" : ""} `}>
+																{showMoveAndDeleteButtons && context.windowWidth < 850 && (
+																	<Box className={`ml-3 mt-1  mr-auto  `}>
+																		<MoveAndDeleteButtons
+																			onlyMoveButtons
+																			onlyUpButton
+																			nthDay={day.nthDay}
+																		/>
+																	</Box>
+																)}
+
 																<Box className="flex w-16 justify-end  ">
 																	<Image
 																		className="size-6 "
@@ -1572,14 +1696,37 @@ const ManualCreation = (props: Props) => {
 															</Box>
 														) : null}
 
-														{showMoveAndDeleteButtons && (
+														{showMoveAndDeleteButtons && context.windowWidth < 850 && (
+															<Box className={`flex justify-end w-full mt-1 mb-3 `}>
+																<Box className={`ml-3.5 mt-1 mr-auto  `}>
+																	<MoveAndDeleteButtons
+																		onlyMoveButtons
+																		nthDay={day.nthDay}
+																	/>
+																</Box>
+
+																<ButtonComp
+																	justClick
+																	dontChangeOutline
+																	content={"Použít doporučené hodnoty dne"}
+																	secondContent={IconEnum.ARROW}
+																	secondContentStyle="rotate-90 mr-1"
+																	color="text-white"
+																	style=" mr-2.5"
+																	size="small"
+																	onClick={() => executeRecommendedDifficultyValsForDays(day.nthDay)}
+																/>
+															</Box>
+														)}
+
+														{showMoveAndDeleteButtons && context.windowWidth >= 850 && (
 															<Box className={`mr-0.5 mt-3  `}>
 																<MoveAndDeleteButtons nthDay={day.nthDay} />
 															</Box>
 														)}
 													</Box>
 
-													{showRecommendeValues && !props.selectedSport.hasCategories ? (
+													{showRecommendeValues && !props.selectedSport.hasCategories && context.windowWidth >= 850 ? (
 														<Box className={`flex items-center justify-start h-[3.05rem]  ml-7  -mt-2 ${trainingPlanHasBurdenAndUnit ? "w-72 min-w-72 max-w-72 pl-0.5" : "w-44  min-w-44 max-w-44 pl-0.5"}`}>
 															<ButtonComp
 																justClick
@@ -1662,14 +1809,15 @@ const ManualCreation = (props: Props) => {
 																) : null}
 															</Box>
 														</Box>
-													) : showRecommendeValues && props.selectedSport.hasCategories ? (
-														<Box className="pl-[1.8rem]">
+													) : showRecommendeValues && props.selectedSport.hasCategories && context.windowWidth >= 850 ? (
+														<Box className={`pl-[1.8rem] 
+																		${trainingPlanHasBurdenAndUnit ? "w-72 min-w-72 max-w-72 mr-7" : "w-44  min-w-44 max-w-44 mr-7"}`}>
 															<ButtonComp
 																justClick
 																dontChangeOutline
 																content={IconEnum.ARROW}
 																contentStyle="rotate-180"
-																color="text-blue-icon"
+																color="text-white"
 																style="ml-2"
 																size="small"
 																onClick={() => executeRecommendedDifficultyValsForDays(day.nthDay)}
@@ -1689,13 +1837,43 @@ const ManualCreation = (props: Props) => {
 																		${context.bgPrimaryColor} ${context.borderPrimaryColor} `}>
 															{props.selectedSport.hasCategories ? (
 																<Box
-																	className={`flex items-center  border-b-2   h-12
+																	className={`flex  items-center  border-b-2 
+																				${context.windowWidth < 850 ? "flex-col h-21" : "flex-row h-12"}
 																				${context.bgTertiaryColor} ${context.borderTertiaryColor}`}>
-																	<Box className="w-full h-full items-center flex">
-																		<Typography className="text-lg pl-3">{category.categoryName}</Typography>
+																	<Box
+																		className={`w-full  flex 
+																					${context.windowWidth < 850 ? "h-10 items-end mt-1" : "h-full items-center"}`}>
+																		{context.windowWidth < 850 && showMoveAndDeleteButtons ? (
+																			<Box className=" ml-3 mb-1">
+																				<MoveAndDeleteButtons
+																					nthDay={day.nthDay}
+																					nthCategory={category.nthCategory}
+																				/>
+																			</Box>
+																		) : null}
+
+																		<Typography
+																			className={`text-lg 
+																								${context.windowWidth < 850 && showMoveAndDeleteButtons ? "pl-0" : "pl-3"}`}>
+																			{category.categoryName}
+																		</Typography>
 																	</Box>
 
-																	<Box className={`flex items-center h-full w-full justify-end  ${trainingPlanHasBurdenAndUnit && "pr-9"}`}>
+																	<Box
+																		className={`flex items-center h-10 w-full justify-end 
+																					${context.windowWidth < 850 ? "mt-1" : "h-full items-center"}
+																					${trainingPlanHasBurdenAndUnit && "pr-9"}`}>
+																		{context.windowWidth < 850 && showMoveAndDeleteButtons ? (
+																			<Box className="mr-auto ml-3 mt-0.5 ">
+																				<MoveAndDeleteButtons
+																					nthDay={day.nthDay}
+																					onlyMoveButtons
+																					onlyUpButton
+																					nthCategory={category.nthCategory}
+																				/>
+																			</Box>
+																		) : null}
+
 																		<Box className="flex w-16 justify-end  ">
 																			<Image
 																				className="size-6 "
@@ -1765,9 +1943,35 @@ const ManualCreation = (props: Props) => {
 																			</Box>
 																		) : null}
 																	</Box>
-																	{showMoveAndDeleteButtons && (
+
+																	{context.windowWidth < 850 && showMoveAndDeleteButtons ? (
+																		<Box className="flex justify-between w-full  pr-3 pb-3.5 pt-1">
+																			<Box className="ml-3 mt-1">
+																				<MoveAndDeleteButtons
+																					nthDay={day.nthDay}
+																					onlyMoveButtons
+																					nthCategory={category.nthCategory}
+																				/>
+																			</Box>
+
+																			<ButtonComp
+																				justClick
+																				dontChangeOutline
+																				content={"Použít doporučené hodnoty kategorie"}
+																				secondContent={IconEnum.ARROW}
+																				secondContentStyle="rotate-90 mr-1"
+																				color="text-white"
+																				style=""
+																				size="small"
+																				onClick={() => executeRecommendedDifficultyValsForCategories(category.nthDay, category.nthCategory)}
+																			/>
+																		</Box>
+																	) : null}
+
+																	{showMoveAndDeleteButtons && context.windowWidth >= 850 && (
 																		<MoveAndDeleteButtons
 																			nthDay={day.nthDay}
+																			onlyMoveButtons
 																			nthCategory={category.nthCategory}
 																		/>
 																	)}
@@ -1778,11 +1982,15 @@ const ManualCreation = (props: Props) => {
 
 															<Box className="">
 																{category.exercises.map((exercise, index) => {
+																	const recommendedVals: { series: number; repetitions: number; burden: number } = findRecommendedDifficultyVal(exercise.exerciseId, category.categoryName);
+																	const unitCodeVal: number = findUnitCodeVal(exercise.exerciseId, category.categoryName);
+
 																	return (
 																		<Box
 																			key={exercise.nthExercise}
 																			id={`exercise-${exercise.nthDay}-${exercise.nthCategory}-${exercise.nthExercise}`}
-																			className={`flex items-center pl-3 py-2 border-b-2 min-h-[3.15rem]
+																			className={`flex  pl-3 py-2 border-b-2 min-h-[3.15rem]
+																				${context.windowWidth < 850 ? "flex-col items-end" : "flex-row items-center"}
 																					${context.borderPrimaryColor}
 																					${exercise.nthExercise % 2 === 0 && context.bgSecondaryColor} 
 																					transition-all duration-150 ease-in-out`}
@@ -1790,16 +1998,43 @@ const ManualCreation = (props: Props) => {
 																				opacity: exercise.isVisible ? 1 : 0,
 																				transform: exercise.isVisible ? "translateY(0)" : "translateY(-10px)",
 																			}}>
-																			<Typography className="font-light w-full">{exercise.exerciseName}</Typography>
+																			<Box
+																				className={`w-full  flex 
+																					${context.windowWidth < 850 ? " items-start mb-3 mt-2" : "h-full items-center"}`}>
+																				{showMoveAndDeleteButtons && context.windowWidth < 850 && (
+																					<Box className=" ">
+																						<MoveAndDeleteButtons
+																							nthDay={day.nthDay}
+																							nthCategory={category.nthCategory}
+																							nthExercise={exercise.nthExercise}
+																						/>
+																					</Box>
+																				)}
+																				<Typography className="font-light w-full">{exercise.exerciseName}</Typography>
+																			</Box>
 
-																			<Box className="flex items-center pr-2.5 ">
+																			<Box
+																				className={`flex items-center pr-2.5 justify-end
+																							${showMoveAndDeleteButtons && "w-full "}`}>
+																				{showMoveAndDeleteButtons && context.windowWidth < 850 && (
+																					<Box className="mr-auto">
+																						<MoveAndDeleteButtons
+																							nthDay={day.nthDay}
+																							onlyUpButton
+																							nthCategory={category.nthCategory}
+																							nthExercise={exercise.nthExercise}
+																							onlyMoveButtons
+																						/>
+																					</Box>
+																				)}
 																				<Box
-																					className={`flex items-center w-[9.5rem] 
-																								${trainingPlanHasBurdenAndUnit ? "justify-center" : "justify-end pr-2"}`}>
+																					className={`flex items-center w-[9.5rem]  mb-1
+																								${trainingPlanHasBurdenAndUnit ? "justify-center" : "justify-end pr-2 pb-1"}`}>
 																					<TextField
 																						value={exercise.series || ""}
 																						variant="standard"
 																						size="small"
+																						type="number"
 																						className="w-[2.2rem] p-0 -mt-1"
 																						InputProps={{
 																							classes: { input: "p-1 text-right pb-[0.08rem]" },
@@ -1825,6 +2060,7 @@ const ManualCreation = (props: Props) => {
 																						value={exercise.repetitions || ""}
 																						variant="standard"
 																						size="small"
+																						type="number"
 																						className="w-[2.2rem] p-0 -mt-1"
 																						InputProps={{
 																							classes: { input: "p-1  pb-[0.08rem]" },
@@ -1851,7 +2087,8 @@ const ManualCreation = (props: Props) => {
 																							value={exercise.burden || ""}
 																							variant="standard"
 																							size="small"
-																							className="w-[2.2rem] p-0 -mt-1 " // TODO kg 3rem, sec 2.8rem
+																							type="number"
+																							className="w-[2.2rem] p-0 -mt-2 " // TODO kg 3rem, sec 2.8rem
 																							InputProps={{
 																								classes: { input: "p-1  text-right pb-[0.08rem]" },
 																								inputProps: { min: 1, max: 999, step: 1 },
@@ -1906,14 +2143,15 @@ const ManualCreation = (props: Props) => {
 																										<Box
 																											className="flex items-center gap-2 ml-0.5 -mr-5  justify-between
 																									 h-full">
-																											<Typography className="w-[1.7rem]">{UnitShortcuts[value]}</Typography>
+																											<Typography className="w-[1.7rem] mb-1">{UnitShortcuts[value]}</Typography>
 																											<ButtonComp
 																												content={
 																													exerciseUnitCodeOpened.includes("D" + exercise.nthDay + "-C" + exercise.nthCategory + "-E" + exercise.nthExercise)
 																														? IconEnum.ARROW_DROP_UP
 																														: IconEnum.ARROW_DROP_DOWN
 																												}
-																												style="mt-0.5 ml-1  mr-1 py-0 "
+																												style=" ml-0.5 mr-0 mt-0 mb-1"
+																												size="small"
 																												color="text-[#fff]"
 																												externalClickedVal={exerciseUnitCodeOpened.includes(
 																													"D" + exercise.nthDay + "-C" + exercise.nthCategory + "-E" + exercise.nthExercise
@@ -1955,11 +2193,33 @@ const ManualCreation = (props: Props) => {
 																										<MenuItem
 																											key={index}
 																											value={item.key}
-																											sx={{ opacity: 0.95 }}
 																											disabled={item.key < 0}
-																											className={`w-full flex items-center justify-center transition-colors duration-150
-																												${item.key > 0 ? "py-1.5 hover:cursor-pointer px-3 " + context.bgSecondaryColor : "py-0.5" + context.bgPrimaryColor}`}>
-																											<Typography>{item.value}</Typography>
+																											sx={{
+																												opacity: 1,
+																												"&.Mui-selected": {
+																													backgroundColor:
+																														context.colorSchemeCode === "red"
+																															? "#4e3939"
+																															: context.colorSchemeCode === "blue"
+																															? "#313c49"
+																															: context.colorSchemeCode === "green"
+																															? "#284437"
+																															: "#414141",
+																												},
+																												"&.Mui-selected:hover": {
+																													backgroundColor:
+																														context.colorSchemeCode === "red"
+																															? "#4e3939"
+																															: context.colorSchemeCode === "blue"
+																															? "#313c49"
+																															: context.colorSchemeCode === "green"
+																															? "#284437"
+																															: "#414141",
+																												},
+																											}}
+																											className={`px-3 py-1.5 h-2 hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
+																												${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+																											<Typography >{item.value}</Typography>
 																										</MenuItem>
 																									))}
 																								</Select>
@@ -1969,12 +2229,91 @@ const ManualCreation = (props: Props) => {
 																				) : null}
 																			</Box>
 
-																			{showMoveAndDeleteButtons && (
-																				<MoveAndDeleteButtons
-																					nthDay={day.nthDay}
-																					nthCategory={category.nthCategory}
-																					nthExercise={exercise.nthExercise}
-																				/>
+																			{showRecommendeValues && context.windowWidth < 850 ? (
+																				<Box className="flex pt-3 pb-1.5 w-full">
+																					{showMoveAndDeleteButtons && context.windowWidth < 850 && (
+																						<Box className="mr-auto">
+																							<MoveAndDeleteButtons
+																								nthDay={day.nthDay}
+																								nthCategory={category.nthCategory}
+																								nthExercise={exercise.nthExercise}
+																								onlyMoveButtons
+																							/>
+																						</Box>
+																					)}
+
+																					{!trainingPlanHasBurdenAndUnit ? (
+																						<ButtonComp
+																							justClick
+																							dontChangeOutline
+																							disabled={recommendedVals.series < 1 && recommendedVals.repetitions < 1 && recommendedVals.burden < 1 && exercise.unitCode === 0}
+																							content={IconEnum.ARROW}
+																							contentStyle=""
+																							color="text-white"
+																							style="mr-3"
+																							size="small"
+																							onClick={() =>
+																								executeRecommendedDifficultyValsForExercise(
+																									exercise.nthDay,
+																									exercise.nthCategory,
+																									exercise.nthExercise,
+																									recommendedVals.series,
+																									recommendedVals.repetitions,
+																									recommendedVals.burden,
+																									unitCodeVal
+																								)
+																							}
+																						/>
+																					) : null}
+
+																					<Box className="flex items-center  justify-end ">
+																						<Box className={`flex items-center w-full  ${trainingPlanHasBurdenAndUnit ? "mr-1" : ""}`}>
+																							<Typography className="w-8 text-right mr-[0.3rem]">{recommendedVals.series > 0 ? recommendedVals.series : ""}</Typography>
+																							<Typography className="w-6 font-light text-center">x</Typography>
+																							<Typography className="w-12 ml-1">{recommendedVals.repetitions > 0 ? recommendedVals.repetitions : ""}</Typography>
+																						</Box>
+																						{trainingPlanHasBurdenAndUnit ? (
+																							<Box className="flex items-center  w-fit mr-0.5">
+																								<Typography className="w-14 mr-[0.6rem] text-right">{recommendedVals.burden > 0 ? recommendedVals.burden : ""}</Typography>
+																								<Typography className=" ml-2 font-light w-9">{UnitShortcuts[unitCodeVal]}</Typography>
+																							</Box>
+																						) : null}
+																					</Box>
+
+																					{trainingPlanHasBurdenAndUnit ? (
+																						<ButtonComp
+																							justClick
+																							dontChangeOutline
+																							disabled={recommendedVals.series < 1 && recommendedVals.repetitions < 1 && recommendedVals.burden < 1 && exercise.unitCode === 0}
+																							content={IconEnum.ARROW}
+																							contentStyle="-rotate-180"
+																							color="text-white"
+																							style="mr-3"
+																							size="small"
+																							onClick={() =>
+																								executeRecommendedDifficultyValsForExercise(
+																									exercise.nthDay,
+																									exercise.nthCategory,
+																									exercise.nthExercise,
+																									recommendedVals.series,
+																									recommendedVals.repetitions,
+																									recommendedVals.burden,
+																									unitCodeVal
+																								)
+																							}
+																						/>
+																					) : null}
+																				</Box>
+																			) : null}
+
+																			{showMoveAndDeleteButtons && context.windowWidth >= 850 && (
+																				<Box className="mr-auto mb-1">
+																					<MoveAndDeleteButtons
+																						nthDay={day.nthDay}
+																						nthCategory={category.nthCategory}
+																						nthExercise={exercise.nthExercise}
+																					/>
+																				</Box>
 																			)}
 																		</Box>
 																	);
@@ -1982,78 +2321,91 @@ const ManualCreation = (props: Props) => {
 															</Box>
 
 															<Box
-																className={`flex py-2 items-center pl-3 rounded-b-lg min-h-[3.15rem]
+																className={`flex   pl-3 rounded-b-lg min-h-[3.15rem]
 																	${category.exercises.length % 2 !== 0 && context.bgSecondaryColor}
+																	${context.windowWidth < 850 ? "flex-col h-21 py-2" : "flex-row items-center"}
+																	
 																`}>
-																<Autocomplete
-																	renderOption={(props, option) => (
-																		<li
-																			{...props}
-																			className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150
+																<Box
+																	className={`flex  w-full
+																				${context.windowWidth < 850 && "mt-1 pr-3"}`}>
+																	<Autocomplete
+																		renderOption={(props, option, index) => (
+																			<li
+																				{...props}
+																				className={`px-3 py-2.5 text-[1.1rem] hover:cursor-pointer transition-colors duration-150 
 																						${context.bgHoverTertiaryColor + context.borderHoverTertiaryColor}`}>
-																			{option}
-																		</li>
-																	)}
-																	className="w-full mr-2 font-bold"
-																	freeSolo
-																	onOpen={() => {
-																		setOverflowHidden((prev) => [...prev, `Cat-${category.nthCategory}`]);
-																	}}
-																	onClose={() => {
-																		setOverflowHidden((prev) => prev.filter((entity) => entity !== `Cat-${category.nthCategory}`));
-																	}}
-																	disableClearable
-																	value={exerciseSearchValue[`${day.nthDay}-${category.nthCategory}`] || ""}
-																	onChange={(event, newValue) => handleExerciseSearchChange(event, newValue, day.nthDay, category.nthCategory)}
-																	inputValue={exerciseSearchInputValue[`${day.nthDay}-${category.nthCategory}`] || ""}
-																	onInputChange={(event, newInputValue) => handleExerciseInputChange(event, newInputValue, day.nthDay, category.nthCategory)}
-																	options={
-																		props.selectedSport.hasCategories
-																			? exerciseOptions
-																					.filter((categoryWithExercises) => categoryWithExercises.category === category.categoryName) // Filtrujeme podle názvu kategorie
-																					.map((categoryWithExercises) => categoryWithExercises.exercises) // Mapujeme cvičení do pole
-																					.flat() // Sloučíme všechny cvičení do jednoho pole
-																			: exerciseOptionsWithoutCategory
-																	}
-																	renderInput={(params) => (
-																		<TextField
-																			{...params}
-																			variant="standard"
-																			placeholder="Přidat cvik"
-																			size="small"
-																			sx={{
-																				"& .MuiInputBase-input::placeholder": {
-																					color: "#969696",
-																					opacity: 1,
-																				},
-																			}}
-																			InputProps={{
-																				...params.InputProps,
-																				classes: { input: "text-[#E9E9E9] " },
-																			}}
-																		/>
-																	)}
-																	PaperComponent={(props) => (
-																		<Paper
-																			{...props}
-																			className={`text-[#E9E9E9] font-light border-2 rounded-xl mt-1 min-h-6
+																				{option}
+																			</li>
+																		)}
+																		className="w-full mr-2 font-bold"
+																		freeSolo
+																		onOpen={() => {
+																			setOverflowHidden((prev) => [...prev, `Cat-${category.nthCategory}`]);
+																		}}
+																		onClose={() => {
+																			setOverflowHidden((prev) => prev.filter((entity) => entity !== `Cat-${category.nthCategory}`));
+																		}}
+																		disableClearable
+																		value={exerciseSearchValue[`${day.nthDay}-${category.nthCategory}`] || ""}
+																		onChange={(event, newValue) => handleExerciseSearchChange(event, newValue, day.nthDay, category.nthCategory)}
+																		inputValue={exerciseSearchInputValue[`${day.nthDay}-${category.nthCategory}`] || ""}
+																		onInputChange={(event, newInputValue) => handleExerciseInputChange(event, newInputValue, day.nthDay, category.nthCategory)}
+																		options={
+																			props.selectedSport.hasCategories
+																				? exerciseOptions
+																						.filter((categoryWithExercises) => categoryWithExercises.category === category.categoryName) // Filtrujeme podle názvu kategorie
+																						.map((categoryWithExercises) => categoryWithExercises.exercises) // Mapujeme cvičení do pole
+																						.flat() // Sloučíme všechny cvičení do jednoho pole
+																				: exerciseOptionsWithoutCategory
+																		}
+																		renderInput={(params) => (
+																			<TextField
+																				{...params}
+																				inputRef={inputRef}
+																				variant="standard"
+																				placeholder="Přidat cvik"
+																				size="small"
+																				type="search"
+																				sx={{
+																					"& .MuiInputBase-input::placeholder": {
+																						color: "#969696",
+																						opacity: 1,
+																					},
+																					"& .MuiInputBase-root::-webkit-search-cancel-button": {
+																						display: "none", // Skrýt křížek
+																					},
+																				}}
+																				InputProps={{
+																					...params.InputProps,
+																					classes: { input: "text-[#E9E9E9] " },
+																				}}
+																			/>
+																		)}
+																		PaperComponent={(props) => (
+																			<Paper
+																				{...props}
+																				className={`text-[#E9E9E9] font-light border-2 rounded-xl mt-1 min-h-6
 																					${context.bgSecondaryColor} ${context.borderQuaternaryColor}`}
-																		/>
-																	)}
-																/>
+																			/>
+																		)}
+																	/>
 
-																<ButtonComp
-																	justClick
-																	dontChangeOutline
-																	content={IconEnum.PLUS}
-																	color="text-green-icon"
-																	style=" ml-1"
-																	size="small"
-																	onClick={() => addExercise(exerciseSearchInputValue[`${day.nthDay}-${category.nthCategory}`] || "", day.nthDay, category.nthCategory)}
-																/>
+																	<ButtonComp
+																		justClick
+																		dontChangeOutline
+																		content={IconEnum.PLUS}
+																		color="text-green-icon"
+																		style=" ml-1"
+																		size="small"
+																		onClick={() => addExercise(exerciseSearchInputValue[`${day.nthDay}-${category.nthCategory}`] || "", day.nthDay, category.nthCategory)}
+																	/>
+																</Box>
 
-																<Box className="flex items-center pr-2.5 opacity-50 ">
-																	<Box className={`flex items-center  ${trainingPlanHasBurdenAndUnit ? " w-[9.5rem] justify-center" : "w-[8rem] justify-end pr-2"} `}>
+																<Box
+																	className={`flex items-center pr-2.5 opacity-50 pb-1 pt-0.5
+																				${context.windowWidth < 850 ? "justify-end mt-2" : "flex-row h-12"}`}>
+																	<Box className={`flex items-center  ${trainingPlanHasBurdenAndUnit ? " w-[9.5rem] justify-center" : "w-[8rem] justify-end pr-2 pb-2"}`}>
 																		<TextField
 																			disabled
 																			value={""}
@@ -2165,8 +2517,9 @@ const ManualCreation = (props: Props) => {
 																								<Typography className="w-[1.7rem] ">{UnitShortcuts[props.selectedSport.unitCode]}</Typography>
 																								<ButtonComp
 																									content={IconEnum.ARROW_DROP_DOWN}
-																									style="mt-0.5 ml-1  mr-1 "
+																									style="mb-2 mt-2 ml-0.5   "
 																									color="text-[#fff]"
+																									size="small"
 																								/>
 																							</Box>
 																						)}
@@ -2195,7 +2548,7 @@ const ManualCreation = (props: Props) => {
 																	) : null}
 																</Box>
 
-																{showMoveAndDeleteButtons && (
+																{showMoveAndDeleteButtons && context.windowWidth >= 850 && (
 																	<MoveAndDeleteButtons
 																		nthDay={0}
 																		nthCategory={0}
@@ -2206,7 +2559,7 @@ const ManualCreation = (props: Props) => {
 															</Box>
 														</Box>
 
-														{showRecommendeValues && (
+														{showRecommendeValues && context.windowWidth >= 850 && (
 															<Box
 																key={"sec-" + category.nthCategory}
 																className={`ml-8 flex flex-col mt-3  overflow-hidden
@@ -2223,7 +2576,7 @@ const ManualCreation = (props: Props) => {
 																			dontChangeOutline
 																			content={IconEnum.ARROW}
 																			contentStyle="rotate-180"
-																			color="text-blue-icon"
+																			color="text-white"
 																			style="ml-2"
 																			size="small"
 																			onClick={() => executeRecommendedDifficultyValsForCategories(category.nthDay, category.nthCategory)}
@@ -2328,7 +2681,7 @@ const ManualCreation = (props: Props) => {
 																							disabled={recommendedVals.series < 1 && recommendedVals.repetitions < 1 && recommendedVals.burden < 1 && exercise.unitCode === 0}
 																							content={IconEnum.ARROW}
 																							contentStyle="rotate-180"
-																							color="text-blue-icon"
+																							color="text-white"
 																							style="ml-2"
 																							size="small"
 																							onClick={() =>
@@ -2364,7 +2717,7 @@ const ManualCreation = (props: Props) => {
 																						dontChangeOutline
 																						content={IconEnum.ARROW}
 																						contentStyle="rotate-180"
-																						color="text-blue-icon"
+																						color="text-white"
 																						style="ml-2"
 																						size="small"
 																						onClick={() => {}}
@@ -2387,71 +2740,84 @@ const ManualCreation = (props: Props) => {
 																			${context.borderPrimaryColor} ${context.bgTertiaryColor}`}>
 																<Box
 																	className={`flex items-center  border-b-2 min-h-[3.15rem]
+
 																				${context.borderTertiaryColor}`}>
 																	{props.selectedSport.hasCategories && (
-																		<Box className="w-full h-full items-center flex ">
-																			<Autocomplete
-																				renderOption={(props, option) => (
-																					<li
-																						{...props}
-																						className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150
+																		<Box
+																			className={`w-full h-full  flex 
+																						${context.windowWidth < 850 ? "flex-col h-21" : " items-center flex-row h-12"}`}>
+																			<Box
+																				className={`flex  w-full
+																				${context.windowWidth < 850 ? "mt-2  items-center h-10" : ""}`}>
+																				<Autocomplete
+																					disablePortal
+																					renderOption={(props, option) => (
+																						<li
+																							{...props}
+																							className={`px-3 py-2.5 text-[1.1rem] hover:cursor-pointer transition-colors duration-150
 																							${context.bgHoverTertiaryColor + context.borderHoverTertiaryColor}`}>
-																						{option}
-																					</li>
-																				)}
-																				className="w-full mr-2 ml-3 mt-0.5 font-bold"
-																				freeSolo
-																				onOpen={() => {
-																					setOverflowHidden((prev) => [...prev, `Day-${day.nthDay}`]);
-																				}}
-																				onClose={() => {
-																					setOverflowHidden((prev) => prev.filter((entity) => entity !== `Day-${day.nthDay}`));
-																				}}
-																				disableClearable
-																				noOptionsText="Žádná vhodná kategorie nenalezena"
-																				value={categorySearchValue[`${day.nthDay}`] || ""}
-																				onChange={(event, newValue) => handleCategorySearchChange(event, newValue, day.nthDay)}
-																				inputValue={categorySearchInputValue[`${day.nthDay}`] || ""}
-																				onInputChange={(event, newInputValue) => handleCategoryInputChange(event, newInputValue, day.nthDay)}
-																				options={categoryOptions} // Seznam kategorií
-																				renderInput={(params) => (
-																					<TextField
-																						{...params}
-																						variant="standard"
-																						placeholder="Přidat kategorii"
-																						size="small"
-																						sx={{
-																							"& .MuiInputBase-input::placeholder": {
-																								color: "#a6a6a6",
-																								opacity: 1,
-																							},
-																						}}
-																						InputProps={{
-																							...params.InputProps,
-																							classes: { input: "text-[#E9E9E9] text-lg" },
-																						}}
-																					/>
-																				)}
-																				PaperComponent={(props) => (
-																					<Paper
-																						{...props}
-																						className={`text-[#E9E9E9] font-light border-2 rounded-xl mt-1 min-h-6
+																							{option}
+																						</li>
+																					)}
+																					className="w-full mr-2 ml-3 mt-0.5 font-bold"
+																					freeSolo
+																					onOpen={() => {
+																						setOverflowHidden((prev) => [...prev, `Day-${day.nthDay}`]);
+																					}}
+																					onClose={() => {
+																						setOverflowHidden((prev) => prev.filter((entity) => entity !== `Day-${day.nthDay}`));
+																					}}
+																					disableClearable
+																					noOptionsText="Žádná vhodná kategorie nenalezena"
+																					value={categorySearchValue[`${day.nthDay}`] || ""}
+																					onChange={(event, newValue, reason) => handleCategorySearchChange(event, newValue, day.nthDay)}
+																					inputValue={categorySearchInputValue[`${day.nthDay}`] || ""}
+																					onInputChange={(event, newInputValue) => handleCategoryInputChange(event, newInputValue, day.nthDay)}
+																					options={categoryOptions} // Seznam kategorií
+																					renderInput={(params) => (
+																						<TextField
+																							{...params}
+																							inputRef={inputRef}
+																							variant="standard"
+																							type="search"
+																							placeholder="Přidat kategorii"
+																							size="small"
+																							sx={{
+																								"& .MuiInputBase-input::placeholder": {
+																									color: "#a6a6a6",
+																									opacity: 1,
+																								},
+																							}}
+																							InputProps={{
+																								...params.InputProps,
+																								classes: { input: "text-[#E9E9E9] text-lg" },
+																							}}
+																						/>
+																					)}
+																					PaperComponent={(props) => (
+																						<Paper
+																							{...props}
+																							className={`text-[#E9E9E9] font-light border-2 rounded-xl mt-1 min-h-6 
 																								${context.bgSecondaryColor} ${context.borderQuaternaryColor}`}
-																					/>
-																				)}
-																			/>
+																						/>
+																					)}
+																				/>
 
-																			<ButtonComp
-																				justClick
-																				dontChangeOutline
-																				content={IconEnum.PLUS}
-																				color="text-green-icon"
-																				style="mr-3 ml-1"
-																				size="small"
-																				onClick={() => addCategory(categorySearchInputValue[`${day.nthDay}`] || "", day.nthDay)}
-																			/>
+																				<ButtonComp
+																					justClick
+																					dontChangeOutline
+																					content={IconEnum.PLUS}
+																					color="text-green-icon"
+																					style="mr-3 ml-1"
+																					size="small"
+																					onClick={() => addCategory(categorySearchInputValue[`${day.nthDay}`] || "", day.nthDay)}
+																				/>
+																			</Box>
 
-																			<Box className={`flex items-center h-full  justify-end opacity-50  ${trainingPlanHasBurdenAndUnit && "pr-9"}`}>
+																			<Box
+																				className={`flex items-center   justify-end opacity-50 
+																							${context.windowWidth < 850 ? "h-21 py-2 mt-1" : "h-full"}
+																							${trainingPlanHasBurdenAndUnit && "pr-9"}`}>
 																				<Box className={`flex justify-end  ${trainingPlanHasBurdenAndUnit ? "w-[3.25rem]" : "w-[3.05rem]"}`}>
 																					<Image
 																						className="size-6 "
@@ -2521,7 +2887,7 @@ const ManualCreation = (props: Props) => {
 																					</Box>
 																				) : null}
 																			</Box>
-																			{showMoveAndDeleteButtons && (
+																			{showMoveAndDeleteButtons && context.windowWidth >= 850 && (
 																				<MoveAndDeleteButtons
 																					nthDay={0}
 																					nthCategory={0}
@@ -2535,7 +2901,7 @@ const ManualCreation = (props: Props) => {
 															</Box>
 														</Box>
 
-														{showRecommendeValues ? (
+														{showRecommendeValues && context.windowWidth >= 850 ? (
 															<Box
 																className={` ml-8 mt-3 rounded-t-xl overflow-hidden flex items-center justify-start gap-8  h-[3.1rem]  border-t-2 border-x-2 
 																			${trainingPlanHasBurdenAndUnit ? "w-72 min-w-72 max-w-72" : "w-44  min-w-44 max-w-44"}
@@ -2547,6 +2913,7 @@ const ManualCreation = (props: Props) => {
 																		<ButtonComp
 																			style="ml-2"
 																			content={IconEnum.ARROW}
+																			color="text-white"
 																			contentStyle="rotate-180"
 																			size="small"
 																			disabled

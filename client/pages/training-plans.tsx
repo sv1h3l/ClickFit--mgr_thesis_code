@@ -10,6 +10,7 @@ import SportDetails from "@/components/large/SportDetails";
 import TrainingPlanDaySelection from "@/components/large/TrainingPlanDaySelection";
 import TrainingPlansAndCreation, { TrainingPlan } from "@/components/large/TrainingPlansAndCreation";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
+import { useAppContext } from "@/utilities/Context";
 import { Box } from "@mui/material";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
@@ -49,6 +50,8 @@ function TrainingPlans(props: Props) {
 
 	const [selectedTrainingPlan, setSelectedTrainingPlan] = useState<TrainingPlan | null>(null);
 	const [trainingPlans, setTrainingPlans] = useState<TrainingPlan[]>(props.trainingPlans);
+
+	const context = useAppContext();
 
 	useEffect(() => {
 		setSelectedTrainingPlan(trainingPlans?.find((trainingPlan) => trainingPlan.trainingPlanId === clickedTrainingPlanId) || null);
@@ -99,6 +102,22 @@ function TrainingPlans(props: Props) {
 		};
 	}, [showFirstSectionSignal]);
 
+	const [isFirstSectionVisible, setIsFirstSectionVisible] = useState(true);
+	const [firstSectionHasFullWidth, setFirstSectionHasFullWidth] = useState(true);
+	const [isSecondSectionVisible, setIsSecondSectionVisible] = useState(false);
+
+	useEffect(() => {
+		if (context.activeSection === 1) {
+			setIsSecondSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(true), 200);
+			setTimeout(() => setIsFirstSectionVisible(true), 250);
+		} else {
+			setIsFirstSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(false), 200);
+			setTimeout(() => setIsSecondSectionVisible(true), 250);
+		}
+	}, [context.activeSection]);
+
 	return (
 		<>
 			<Head>
@@ -106,55 +125,71 @@ function TrainingPlans(props: Props) {
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth="w-9/24"
-				secondColumnWidth="w-15/24"
+				firstColumnWidth={context.isSmallDevice ? (firstSectionHasFullWidth ? "w-full" : "w-0") : "w-9/24"}
+				secondColumnWidth={context.isSmallDevice ? (!firstSectionHasFullWidth ? "w-full" : "w-0") : "w-15/24"}
 				firstColumnChildren={
-					<TrainingPlansAndCreation
-						cannotEdit={props.cannotEdit}
-						trainingPlans={trainingPlans}
-						selectedSport={{
-							state: selectedSport,
-							setState: setSelectedSport,
-						}}
-						sportsData={{
-							state: sportsData,
-							setState: setSportsData,
-						}}
-						showFirstSection={{
-							state: showFirstSection,
-							setState: setShowFirstSection,
-						}}
-						showFirstSectionSignal={{
-							state: showFirstSectionSignal,
-							setState: setShowFirstSectionSignal,
-						}}
-						clickedTrainingPlanId={{
-							state: clickedTrainingPlanId,
-							setState: setClickedTrainingPlanId,
-						}}
-					/>
+					!context.isSmallDevice || firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+										${isFirstSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							<TrainingPlansAndCreation
+								cannotEdit={props.cannotEdit}
+								trainingPlans={trainingPlans}
+								selectedSport={{
+									state: selectedSport,
+									setState: setSelectedSport,
+								}}
+								sportsData={{
+									state: sportsData,
+									setState: setSportsData,
+								}}
+								showFirstSection={{
+									state: showFirstSection,
+									setState: setShowFirstSection,
+								}}
+								showFirstSectionSignal={{
+									state: showFirstSectionSignal,
+									setState: setShowFirstSectionSignal,
+								}}
+								clickedTrainingPlanId={{
+									state: clickedTrainingPlanId,
+									setState: setClickedTrainingPlanId,
+								}}
+							/>
+						</Box>
+					) : (
+						<></>
+					)
 				}
 				secondColumnChildren={
-					<Box className={`h-full transition-opacity duration-200 ease-in-out ${showContent ? "opacity-100" : "opacity-0"}`}>
-						{showFirstSectionTimeout ? (
-							<TrainingPlanDaySelection
-								user={props.user}
-								trainingPlanExercises={trainingPlanExercises}
-								selectedTrainingPlan={{ state: selectedTrainingPlan, setState: setSelectedTrainingPlan }}
-								trainingPlans={{ state: trainingPlans, setState: setTrainingPlans }}
-							/>
-						) : (
-							<>
-								<SportDetails
-									selectedSport={{
-										state: selectedSport,
-										setState: setSelectedSport,
-									}}
-									cannotEdit={props.cannotEdit}
-								/>
-							</>
-						)}
-					</Box>
+					!context.isSmallDevice || !firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+							${isSecondSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							<Box className={`h-full transition-opacity duration-200 ease-in-out ${showContent ? "opacity-100" : "opacity-0"}`}>
+								{showFirstSectionTimeout ? (
+									<TrainingPlanDaySelection
+										user={props.user}
+										trainingPlanExercises={trainingPlanExercises}
+										selectedTrainingPlan={{ state: selectedTrainingPlan, setState: setSelectedTrainingPlan }}
+										trainingPlans={{ state: trainingPlans, setState: setTrainingPlans }}
+									/>
+								) : (
+									<>
+										<SportDetails
+											selectedSport={{
+												state: selectedSport,
+												setState: setSelectedSport,
+											}}
+											cannotEdit={props.cannotEdit}
+										/>
+									</>
+								)}
+							</Box>
+						</Box>
+					) : (
+						<></>
+					)
 				}
 			/>
 		</>

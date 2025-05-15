@@ -71,7 +71,7 @@ const NewPassword = () => {
 			</Head>
 
 			<OneColumnPage
-				firstColumnWidth="w-7/24 "
+				firstColumnWidth="w-full max-w-lg"
 				firstColumnHeight="h-fit"
 				firstColumnChildren={
 					<>
@@ -146,8 +146,9 @@ const NewPassword = () => {
 							isOpen={isModalOpen}
 							title="Heslo bylo změněno"
 							hideBackButton
+							style="w-full px-4 max-w-md"
 							children={
-								<Box className=" mb-4 max-w-md">
+								<Box className=" mb-4 ">
 									<Typography className="">Nové heslo bylo úspěšně nastaveno.</Typography>
 									<Typography className="mt-3">Nyní se můžete přihlásit ke svému účtu.</Typography>
 

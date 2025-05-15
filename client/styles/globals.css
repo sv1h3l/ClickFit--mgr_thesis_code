@@ -29,24 +29,24 @@
 }
 
 .text_size-small {
-	font-size: 10px;
+	font-size: 12px;
 }
 
 @media (min-width: 640px) {
 	.text_size-small {
-		font-size: 11px;
+		font-size: 12.5px;
 	}
 }
 
 @media (min-width: 768px) {
 	.text_size-small {
-		font-size: 12px;
+		font-size: 13px;
 	}
 }
 
 @media (min-width: 1024px) {
 	.text_size-small {
-		font-size: 13px;
+		font-size: 13.5px;
 	}
 }
 
@@ -63,24 +63,24 @@
 }
 
 .text_size-medium {
-	font-size: 11px;
+	font-size: 13px;
 }
 
 @media (min-width: 640px) {
 	.text_size-medium {
-		font-size: 12px;
+		font-size: 13.5px;
 	}
 }
 
 @media (min-width: 768px) {
 	.text_size-medium {
-		font-size: 13px;
+		font-size: 14px;
 	}
 }
 
 @media (min-width: 1024px) {
 	.text_size-medium {
-		font-size: 14px;
+		font-size: 14.5px;
 	}
 }
 
@@ -97,24 +97,24 @@
 }
 
 .text_size-large {
-	font-size: 12px;
+	font-size: 14px;
 }
 
 @media (min-width: 640px) {
 	.text_size-large {
-		font-size: 13px;
+		font-size: 14.5px;
 	}
 }
 
 @media (min-width: 768px) {
 	.text_size-large {
-		font-size: 14px;
+		font-size: 15px;
 	}
 }
 
 @media (min-width: 1024px) {
 	.text_size-large {
-		font-size: 15px;
+		font-size: 15.5px;
 	}
 }
 
@@ -130,7 +130,24 @@
 	}
 }
 
-/* TOHLE potom vložit do media queries. bay šlo na telefonu scrollovat. */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+	-webkit-appearance: none;
+}
+
+input[type="number"] {
+	-moz-appearance: textfield;
+  }
+  
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+  }
+
+/* XXX TOHLE potom vložit do media queries. bay šlo na telefonu scrollovat. */
 html,
 body,
 #__next {
@@ -148,12 +165,12 @@ body,
 }
 
 ::-webkit-scrollbar-thumb {
-	background: #505050;
+	background: var(--scrollbar-thumb-color);
 	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: #606060;
+	background: var(--scrollbar-thumb-hover-color);
 }
 
 /*body {
@@ -196,7 +213,7 @@ body,
 	background-color: #373737;
 }
 .bg-quaternary_color-gray {
-	background-color: #414141;
+	background-color: rgb(65, 65, 65);
 }
 
 .border-primary_color-gray {
@@ -240,7 +257,7 @@ body,
 	background-color: #442f2f;
 }
 .bg-quaternary_color-red {
-	background-color: #4e3939;
+	background-color: rgb(78, 57, 57);
 }
 
 .border-primary_color-red {
@@ -284,7 +301,7 @@ body,
 	background-color: #27323f;
 }
 .bg-quaternary_color-blue {
-	background-color: #313c49;
+	background-color: rgb(49, 60, 73);
 }
 
 .border-primary_color-blue {
@@ -328,7 +345,7 @@ body,
 	background-color: #1e3a2d;
 }
 .bg-quaternary_color-green {
-	background-color: #284437;
+	background-color: rgb(40, 67, 54);
 }
 
 .border-primary_color-green {

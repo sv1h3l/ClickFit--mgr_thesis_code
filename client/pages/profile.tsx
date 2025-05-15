@@ -9,9 +9,11 @@ import AllSportDetails, { SportDetailLabAndVal } from "@/components/large/AllSpo
 import PersonalData from "@/components/large/PersonalData";
 import { SportDifficulty } from "@/components/large/SportDescriptionAndSettings";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
+import { useAppContext } from "@/utilities/Context";
+import { Box } from "@mui/material";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const cookie = require("cookie");
 
@@ -27,6 +29,24 @@ interface Props {
 function Profile(props: Props) {
 	const [editing, setEditing] = useState<boolean>(false);
 
+	const context = useAppContext();
+
+	const [isFirstSectionVisible, setIsFirstSectionVisible] = useState(true);
+	const [firstSectionHasFullWidth, setFirstSectionHasFullWidth] = useState(true);
+	const [isSecondSectionVisible, setIsSecondSectionVisible] = useState(false);
+
+	useEffect(() => {
+		if (context.activeSection === 1) {
+			setIsSecondSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(true), 200);
+			setTimeout(() => setIsFirstSectionVisible(true), 250);
+		} else {
+			setIsFirstSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(false), 200);
+			setTimeout(() => setIsSecondSectionVisible(true), 250);
+		}
+	}, [context.activeSection]);
+
 	return (
 		<>
 			<Head>
@@ -34,24 +54,43 @@ function Profile(props: Props) {
 			</Head>
 
 			<TwoColumnsPage
+							firstColumnWidth={context.isSmallDevice ? (firstSectionHasFullWidth ? "w-full" : "w-0") : "w-1/2"}
+							secondColumnWidth={context.isSmallDevice ? (!firstSectionHasFullWidth ? "w-full" : "w-0") : "w-1/2"}
 				firstColumnChildren={
-					<PersonalData
-						cannotEdit={props.cannotEdit}
-						editing={{ state: editing, setState: setEditing }}
-						user={props.user}
-					/>
+					!context.isSmallDevice || firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+										${isFirstSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							<PersonalData
+								cannotEdit={props.cannotEdit}
+								editing={{ state: editing, setState: setEditing }}
+								user={props.user}
+							/>
+						</Box>
+					) : (
+						<></>
+					)
 				}
 				secondColumnChildren={
-					<AllSportDetails
-						editing={{
-							state: editing,
-							setState: setEditing,
-						}}
-						user={props.user}
-						sportsData={props.sportsData}
-						sportDetails={props.sportDetails}
-						sportDifficulties={props.sportDifficulties}
-					/>
+					!context.isSmallDevice || !firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+							${isSecondSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							<AllSportDetails
+								editing={{
+									state: editing,
+									setState: setEditing,
+								}}
+								cannotEdit={props.cannotEdit}
+								user={props.user}
+								sportsData={props.sportsData}
+								sportDetails={props.sportDetails}
+								sportDifficulties={props.sportDifficulties}
+							/>
+						</Box>
+					) : (
+						<></>
+					)
 				}
 			/>
 		</>

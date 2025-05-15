@@ -624,6 +624,8 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 		<>
 			<GeneralCard
 				height="h-full"
+				showBackButton={context.isSmallDevice}
+				backButtonClick={() => context.setActiveSection(1)}
 				showFirstSection={{ state: props.isActiveFirstChildren.state, setState: props.isActiveFirstChildren.setState }}
 				firstTitle="Popis"
 				firstChildren={

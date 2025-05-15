@@ -21,7 +21,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import SportsMartialArtsRoundedIcon from "@mui/icons-material/SportsMartialArtsRounded";
-
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 
 import { Box, Button, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -54,6 +54,7 @@ export enum IconEnum {
 	QUESTION = 19,
 	TRAININGS = 20,
 	SHARE = 21,
+	MENU = 22,
 }
 
 interface Props {
@@ -109,6 +110,7 @@ const ButtonComp = (props: Props) => {
 		[IconEnum.QUESTION]: QuestionMarkIcon,
 		[IconEnum.TRAININGS]: SportsMartialArtsRoundedIcon,
 		[IconEnum.SHARE]: NoteAddIcon,
+		[IconEnum.MENU]: MenuRoundedIcon,
 	};
 
 	const context = useAppContext();

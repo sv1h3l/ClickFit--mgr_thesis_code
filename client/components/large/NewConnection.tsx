@@ -6,7 +6,7 @@ import { Box, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import CustomModal from "../small/CustomModal";
-import GeneralCard from "./GeneralCard";
+import { useAppContext } from "@/utilities/Context";
 
 interface Props {
 	connectionCode: number;
@@ -153,6 +153,8 @@ const NewConnection = (props: Props) => {
 	const [modalCode, setModalCode] = useState(0);
 	const [connectionString, setConnectionString] = useState("");
 
+	const context = useAppContext();
+
 	useEffect(() => {
 		if (props.modalCode) {
 			setModalCode(props.modalCode || 0);
@@ -171,125 +173,119 @@ const NewConnection = (props: Props) => {
 
 	return (
 		<>
-			<GeneralCard
-				firstTitle="Nová spojení"
-				height="h-full"
-				firstChildren={
-					<Box className="flex flex-col items-center gap-2 ">
-						<Typography className="font-light text-lg">Se svými sparingy, trenéry nebo klienty se můžete snadno spojit. Stačí naskenovat QR kód pomocí telefonu nebo ručně zadat 12ciferný kód do vyhledávače.</Typography>
+			<Box className="flex flex-col items-center gap-2 ">
+				<Typography className="font-light text-lg">Se svými sparingy, trenéry nebo klienty se můžete snadno spojit. Stačí naskenovat QR kód pomocí telefonu nebo ručně zadat 12ciferný kód do vyhledávače.</Typography>
 
-						{props.qrCode && (
-							<Box className="w-44 h-auto mr-4 mt-8">
-								{props.qrCode ? (
-									<img
-										src={props.qrCode}
-										alt="QR kód pro nová spojení"
-									/>
-								) : null}
-							</Box>
-						)}
-
-						<Typography className="text-lg mr-4">{formatConnectionCode(props.connectionCode)}</Typography>
-
-						<Typography className="text-xl font-light mt-6 mr-4 mb-1">Vyhledávač</Typography>
-
-						<Box className="flex gap-0.5 ml-4 mb-2">
-							<TextField
-								className="w-12"
-								id="part1"
-								value={code.part1}
-								onChange={(e) => handleChange(e, "part1")}
-								onKeyDown={(e) => handleKeyDown(e, "part1")}
-								variant="standard"
-								InputProps={{
-									sx: {
-										"& input::placeholder": {
-											fontWeight: "300",
-											textAlign: "center",
-										},
-									},
-								}}
-								inputProps={{
-									style: {
-										padding: 0,
-										paddingInline: 5,
-										paddingBottom: 0.75,
-									},
-									maxLength: 4,
-								}}
+				{props.qrCode && (
+					<Box className={` h-auto mr-2 mt-8 ${context.isSmallDevice ? "w-56" : "w-44"}`}>
+						{props.qrCode ? (
+							<img
+								src={props.qrCode}
+								alt="QR kód pro nová spojení"
 							/>
-							<Typography>-</Typography>
-							<TextField
-								className="w-12"
-								id="part2"
-								value={code.part2}
-								onChange={(e) => handleChange(e, "part2")}
-								onKeyDown={(e) => handleKeyDown(e, "part2")}
-								variant="standard"
-								InputProps={{
-									sx: {
-										"& input::placeholder": {
-											fontWeight: "300",
-											textAlign: "center",
-										},
-									},
-								}}
-								inputProps={{
-									style: {
-										padding: 0,
-										paddingInline: 5,
-										paddingBottom: 0.75,
-									},
-									maxLength: 4,
-								}}
-							/>
-							<Typography>-</Typography>
-							<TextField
-								className="w-12"
-								id="part3"
-								value={code.part3}
-								onChange={(e) => handleChange(e, "part3")}
-								onKeyDown={(e) => handleKeyDown(e, "part3")}
-								variant="standard"
-								InputProps={{
-									sx: {
-										"& input::placeholder": {
-											fontWeight: "300",
-										},
-									},
-								}}
-								inputProps={{
-									style: {
-										padding: 0,
-										paddingInline: 5,
-										paddingBottom: 0.75,
-									},
-									maxLength: 4,
-								}}
-							/>
-
-							<ButtonComp
-								style="mt-0.5 ml-3"
-								disabled={code["part1"].length < 4 || code["part2"].length < 4 || code["part3"].length < 4}
-								dontChangeOutline
-								justClick
-								contentStyle="scale-[1.4]"
-								content={IconEnum.PLUS}
-								onClick={() => {
-									handleCreateConnection(code["part1"] + code["part2"] + code["part3"]);
-								}}
-							/>
-						</Box>
+						) : null}
 					</Box>
-				}
-			/>
+				)}
+
+				<Typography className="text-lg mr-2">{formatConnectionCode(props.connectionCode)}</Typography>
+
+				<Typography className="text-xl font-light mt-6 mr-2 mb-1">Vyhledávač</Typography>
+
+				<Box className="flex gap-0.5 ml-6 mb-2">
+					<TextField
+						className="w-12"
+						id="part1"
+						value={code.part1}
+						onChange={(e) => handleChange(e, "part1")}
+						onKeyDown={(e) => handleKeyDown(e, "part1")}
+						variant="standard"
+						InputProps={{
+							sx: {
+								"& input::placeholder": {
+									fontWeight: "300",
+									textAlign: "center",
+								},
+							},
+						}}
+						inputProps={{
+							style: {
+								padding: 0,
+								paddingInline: 5,
+								paddingBottom: 0.75,
+							},
+							maxLength: 4,
+						}}
+					/>
+					<Typography>-</Typography>
+					<TextField
+						className="w-12"
+						id="part2"
+						value={code.part2}
+						onChange={(e) => handleChange(e, "part2")}
+						onKeyDown={(e) => handleKeyDown(e, "part2")}
+						variant="standard"
+						InputProps={{
+							sx: {
+								"& input::placeholder": {
+									fontWeight: "300",
+									textAlign: "center",
+								},
+							},
+						}}
+						inputProps={{
+							style: {
+								padding: 0,
+								paddingInline: 5,
+								paddingBottom: 0.75,
+							},
+							maxLength: 4,
+						}}
+					/>
+					<Typography>-</Typography>
+					<TextField
+						className="w-12"
+						id="part3"
+						value={code.part3}
+						onChange={(e) => handleChange(e, "part3")}
+						onKeyDown={(e) => handleKeyDown(e, "part3")}
+						variant="standard"
+						InputProps={{
+							sx: {
+								"& input::placeholder": {
+									fontWeight: "300",
+								},
+							},
+						}}
+						inputProps={{
+							style: {
+								padding: 0,
+								paddingInline: 5,
+								paddingBottom: 0.75,
+							},
+							maxLength: 4,
+						}}
+					/>
+
+					<ButtonComp
+						style="mt-0.5 ml-3"
+						disabled={code["part1"].length < 4 || code["part2"].length < 4 || code["part3"].length < 4}
+						dontChangeOutline
+						justClick
+						contentStyle="scale-[1.4]"
+						content={IconEnum.PLUS}
+						onClick={() => {
+							handleCreateConnection(code["part1"] + code["part2"] + code["part3"]);
+						}}
+					/>
+				</Box>
+			</Box>
 
 			<CustomModal
 				isOpen={isModalOpen}
 				title={modalCode < 2 ? "Nové spojení navázáno" : "Nové spojení nenavázáno"}
 				hideBackButton
 				children={
-					<Box className=" mb-4 max-w-md">
+					<Box className=" mb-4 max-w-md px-4">
 						<Typography className="">
 							{modalCode === 1
 								? `Spojení s uživatelem ${connectionString} je úspěšně navázáno.`

@@ -9,10 +9,11 @@ import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import CustomModal from "../small/CustomModal";
 import Navigation from "./Navigation";
+import NavigationMobile from "./NavigationMobile";
 
 const cookie = require("cookie");
 
-function Header() {
+function HeaderTablet() {
 	const router = useRouter();
 	const [user, setUser] = useState<any>(null);
 	const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString("cs-CZ"));
@@ -47,16 +48,14 @@ function Header() {
 			const cookies = cookie.parse(document.cookie);
 			const authToken = cookies.authToken || null;
 
-			if (authToken !== null) {
-				const settings = await getUserSettingsReq({ authToken });
+			const settings = await getUserSettingsReq({ authToken });
 
-				if (settings.status === 200 && settings.data) {
-					const textSizeCode = settings.data.textSizeCode;
-					const colorSchemeCode = settings.data.colorSchemeCode;
+			if (settings.status === 200 && settings.data) {
+				const textSizeCode = settings.data.textSizeCode;
+				const colorSchemeCode = settings.data.colorSchemeCode;
 
-					setSelectedColorScheme(colorSchemeCode === 2 ? "red" : colorSchemeCode === 3 ? "blue" : colorSchemeCode === 4 ? "green" : "gray");
-					setSelectedTextSize(textSizeCode === 2 ? "text_size-small" : textSizeCode === 4 ? "text_size-large" : "text_size-medium");
-				}
+				setSelectedColorScheme(colorSchemeCode === 2 ? "red" : colorSchemeCode === 3 ? "blue" : colorSchemeCode === 4 ? "green" : "gray");
+				setSelectedTextSize(textSizeCode === 2 ? "text_size-small" : textSizeCode === 4 ? "text_size-large" : "text_size-medium");
 			}
 		};
 
@@ -150,58 +149,11 @@ function Header() {
 
 	return user ? (
 		<AppBar className="bg-transparent shadow-none text-center relative ">
-			<Box className="justify-center mx-2">
+			<Box className="justify-center px-1">
 				<Box className="flex w-full max-w-content shadow-black shadow-md rounded-3xl">
-					<Box className={`w-1/6 justify-center items-center flex border-l-[3px] border-b-[3px] rounded-bl-3xl h-28 ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
-						<Image
-							className="w-auto h-[5.2rem]"
-							src={context.logoColor}
-							alt="Logo"
-							width={150}
-							height={150}
-							priority
-						/>
-					</Box>
-					<Box className={` flex flex-col w-5/6 rounded-br-3xl h-28 ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
-						<Box className="flex items-center ">
-							<Typography className="w-full text-center text-[3rem] -mt-1 h-16 font-audiowide tracking-widest">KlikFit</Typography>
-
-							<Box className={`w-6/24 h-full flex items-center justify-center border-r-[3px] mt-0.5  ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
-								{user && (
-									<Box className="flex w-full justify-end px-6 gap-6 ">
-										<ButtonComp
-											style="cursor-pointer"
-											size="medium"
-											content={IconEnum.PROFILE}
-											externalClicked={{ state: externalClicked, setState: setExternalClicked }}
-											onClick={
-												!externalClicked
-													? () => {
-															if (!externalClicked) router.push(`/profile`);
-													  }
-													: undefined
-											}
-										/>
-
-										<ButtonComp
-											style=""
-											size="medium"
-											externalClicked={{ state: externalSettingsClicked, setState: setExternalSettingsClicked }}
-											content={IconEnum.SETTINGS}
-											onClick={handleOpenModal}
-										/>
-
-										<ButtonComp
-											style=""
-											size="medium"
-											content={IconEnum.LOGOUT}
-											onClick={handleLogout}
-										/>
-									</Box>
-								)}
-							</Box>
-						</Box>
-						<Box className="w-full flex justify-center mt-[0.15rem]">{user && <Navigation externalClicked={{ state: externalClicked, setState: setExternalClicked }} />}</Box>
+					<Box className={`w-full justify-center items-center flex border-[3px] rounded-b-3xl h-14 ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
+					<Box className="w-full flex justify-center mt-[0.15rem]">{user && <NavigationMobile externalClicked={{ state: externalClicked, setState: setExternalClicked }} />}</Box>
+						
 					</Box>
 				</Box>
 			</Box>
@@ -211,7 +163,7 @@ function Header() {
 				onClose={handleCloseModal}
 				paddingTop
 				title="Nastavení"
-				style="max-w-md px-4">
+				style="w-1/4">
 				<Box>
 					<Box className="flex mt-6 ml-2">
 						<Typography className="mr-2 text-lg">Velikost písma:</Typography>
@@ -398,7 +350,7 @@ function Header() {
 	) : (
 		<Box className="flex flex-col w-full max-w-content justify-center items-center mt-8">
 			<Image
-				className="h-[6rem] w-auto mr-1"
+				className="h-[5.2rem] mr-1"
 				src="/icons/logo-gray.webp"
 				alt="Logo"
 				width={150}
@@ -410,4 +362,4 @@ function Header() {
 	);
 }
 
-export default Header;
+export default HeaderTablet;

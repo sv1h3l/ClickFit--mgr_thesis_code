@@ -90,7 +90,7 @@ function GeneralCard({
 				overflowY: "auto",
 				scrollbarGutter: "stable",
 			}}
-			className={`flex flex-col bg-primary-color-neutral overflow-auto  rounded-3xl border-[3px]  overflow-x-hidden gutter shadow-black shadow-md
+			className={`flex flex-col overflow-auto  rounded-3xl border-[3px]  overflow-x-hidden gutter shadow-black shadow-md
 						${context.bgPrimaryColor} ${context.borderPrimaryColor}
 						${!zeroXPadding && "px-5"}
 						${!zeroYPadding && "pb-6"}
@@ -171,7 +171,7 @@ function GeneralCard({
 			{!dontShowHr ? (
 				<Box className="relative w-full ">
 					<Box
-						className={`w-[110%] absolute  border-t-[3px] -left-5 
+						className={`w-[120%] absolute  border-t-[3px] -left-5 
 					 ${context.borderPrimaryColor}`}
 					/>
 				</Box>

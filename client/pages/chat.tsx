@@ -164,7 +164,7 @@ const Chat = (props: Props) => {
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth="w-1/2 items-center "
+				firstColumnWidth="w-full max-w-[60rem] items-center "
 				firstColumnHeight="h-full"
 				secondColumnWidth="w-0"
 				firstColumnChildren={
@@ -174,77 +174,148 @@ const Chat = (props: Props) => {
 							zeroXPadding
 							zeroChildrenPadding
 							dontShowHr
-							style="h-[3rem] mb-[0.5rem] w-full overflow-x-hidden"
+							style={` mb-[0.5rem] w-full overflow-x-hidden
+									${context.windowWidth < 768 ? "h-[5rem]" : "h-[3rem]"}`}
 							firstChildren={
-								<Box className="flex justify-between  items-center h-full">
-									<Box className="ml-5 mr-auto">
-										<ButtonComp
-											size="small"
-											color="text-[#eDeDeD]"
-											justClick
-											dontChangeOutline
-											contentStyle="rotate-180 scale-[1.2]"
-											content={IconEnum.ARROW}
-											onClick={() => {
-												router.push(`/connection`);
-											}}
-										/>
+								context.windowWidth < 768 ? (
+									<Box className="flex flex-col justify-center  items-center h-full">
+										<Box className="flex justify-between w-full -mt-1">
+											<Box className="ml-3 mr-auto">
+												<ButtonComp
+													size="small"
+													color="text-[#eDeDeD]"
+													justClick
+													dontChangeOutline
+													contentStyle="rotate-180 scale-[1.2]"
+													content={IconEnum.ARROW}
+													onClick={() => {
+														router.push(`/connection`);
+													}}
+												/>
+											</Box>
+											<Box className="mr-3 ml-auto flex gap-4">
+												{props.ownedSports.length > 0 ? (
+													<ButtonComp
+														size="small"
+														justClick
+														dontChangeOutline
+														contentStyle="scale-[1.1]"
+														content={IconEnum.SHARE}
+														onClick={() => {
+															setIsModalOpened(true);
+														}}
+													/>
+												) : null}
+
+												<ButtonComp
+													size="small"
+													justClick
+													dontChangeOutline
+													contentStyle="scale-[1.1]"
+													content={IconEnum.TRAININGS}
+													onClick={() => {
+														document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+														router.push("/training-plans");
+													}}
+												/>
+												<ButtonComp
+													size="small"
+													justClick
+													dontChangeOutline
+													contentStyle="scale-[1.1]"
+													content={IconEnum.CHART}
+													onClick={() => {
+														document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+														router.push("/diary");
+													}}
+												/>
+												<ButtonComp
+													size="small"
+													justClick
+													dontChangeOutline
+													contentStyle="scale-[1.1]"
+													content={IconEnum.PROFILE}
+													onClick={() => {
+														document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+														router.push("/profile");
+													}}
+												/>
+											</Box>
+										</Box>
+
+										<Typography className="-mb-2 mt-2 text-xl font-audiowide">{props.connectedUser.connectedUserFirstName + " " + props.connectedUser.connectedUserLastName}</Typography>
 									</Box>
-									<Typography className="ml-10 text-xl font-audiowide">{props.connectedUser.connectedUserFirstName + " " + props.connectedUser.connectedUserLastName}</Typography>
-									<Box className="mr-5 ml-auto flex gap-4">
-										{props.ownedSports.length > 0 ? (
+								) : (
+									<Box className="flex justify-between  items-center h-full">
+										<Box className="ml-5 mr-auto">
+											<ButtonComp
+												size="small"
+												color="text-[#eDeDeD]"
+												justClick
+												dontChangeOutline
+												contentStyle="rotate-180 scale-[1.2]"
+												content={IconEnum.ARROW}
+												onClick={() => {
+													router.push(`/connection`);
+												}}
+											/>
+										</Box>
+										<Typography className="ml-28 text-xl font-audiowide">{props.connectedUser.connectedUserFirstName + " " + props.connectedUser.connectedUserLastName}</Typography>
+										<Box className="mr-5 ml-auto flex gap-4">
+											{props.ownedSports.length > 0 ? (
+												<ButtonComp
+													size="small"
+													justClick
+													dontChangeOutline
+													contentStyle="scale-[1.1]"
+													content={IconEnum.SHARE}
+													onClick={() => {
+														setIsModalOpened(true);
+													}}
+												/>
+											) : null}
+
 											<ButtonComp
 												size="small"
 												justClick
 												dontChangeOutline
 												contentStyle="scale-[1.1]"
-												content={IconEnum.SHARE}
+												content={IconEnum.TRAININGS}
 												onClick={() => {
-													setIsModalOpened(true);
+													document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+													router.push("/training-plans");
 												}}
 											/>
-										) : null}
-
-										<ButtonComp
-											size="small"
-											justClick
-											dontChangeOutline
-											contentStyle="scale-[1.1]"
-											content={IconEnum.TRAININGS}
-											onClick={() => {
-												document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
-												router.push("/training-plans");
-											}}
-										/>
-										<ButtonComp
-											size="small"
-											justClick
-											dontChangeOutline
-											contentStyle="scale-[1.1]"
-											content={IconEnum.CHART}
-											onClick={() => {
-												document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
-												router.push("/diary");
-											}}
-										/>
-										<ButtonComp
-											size="small"
-											justClick
-											dontChangeOutline
-											contentStyle="scale-[1.1]"
-											content={IconEnum.PROFILE}
-											onClick={() => {
-												document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
-												router.push("/profile");
-											}}
-										/>
+											<ButtonComp
+												size="small"
+												justClick
+												dontChangeOutline
+												contentStyle="scale-[1.1]"
+												content={IconEnum.CHART}
+												onClick={() => {
+													document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+													router.push("/diary");
+												}}
+											/>
+											<ButtonComp
+												size="small"
+												justClick
+												dontChangeOutline
+												contentStyle="scale-[1.1]"
+												content={IconEnum.PROFILE}
+												onClick={() => {
+													document.cookie = `view_tmp=${btoa(props.connectedUser.connectedUserId.toString()!)}; path=/; max-age=1200; `;
+													router.push("/profile");
+												}}
+											/>
+										</Box>
 									</Box>
-								</Box>
+								)
 							}
 						/>
 
 						<GeneralCard
-							style="h-[calc(100%-11.25rem)] mb-[0.5rem] w-full overflow-x-hidden py-2 px-1"
+							style={` mb-[0.5rem] w-full overflow-x-hidden py-2 px-1 ${context.windowWidth < 768 ? "h-[calc(100%-13.25rem)]" : "h-[calc(100%-11.25rem)]"}`}
 							zeroYPadding
 							zeroXPadding
 							zeroChildrenPadding
@@ -366,10 +437,11 @@ const Chat = (props: Props) => {
 						<CustomModal
 							isOpen={isModalOpened}
 							title="Sdílení sportu"
+							style="w-full px-4 max-w-md"
 							paddingTop
 							onClose={() => setIsModalOpened(false)}
 							children={
-								<Box className=" mb-4 max-w-md">
+								<Box className=" mb-4  ">
 									<Typography className="mb-6">{`S uživatelem ${props.connectedUser.connectedUserFirstName + " " + props.connectedUser.connectedUserLastName} je možné sdílet následující sporty.`}</Typography>
 
 									{props.ownedSports.map((sport) => {

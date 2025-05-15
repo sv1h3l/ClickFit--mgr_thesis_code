@@ -36,6 +36,8 @@ interface Props {
 	sportsData: Sport[];
 	user: User;
 
+	cannotEdit?: boolean;
+
 	editing: StateAndSet<boolean>;
 }
 
@@ -403,7 +405,8 @@ const AllSportsAndHealthData = (props: Props) => {
 		const LocalLabAndValVisual = ({ labAndVal }: { labAndVal: SportDetailLabAndVal }) => {
 			return (
 				<Box className="flex gap-3  ">
-					<Typography className="font-light text-nowrap">{labAndVal.orderNumber % 2 !== 0 ? "Minimální" : "Maximální"} počet</Typography>
+					<Typography className={`font-light text-nowrap 
+											${labAndVal.orderNumber % 2 !== 0 && context.windowWidth < 540? "ml-1" : ""}`}>{labAndVal.orderNumber % 2 !== 0 ? "Minimální" : "Maximální"} počet</Typography>
 					<Typography className={`opacity-50 font-light text-nowrap`}>»</Typography>
 
 					{props.editing.state ? (
@@ -473,7 +476,8 @@ const AllSportsAndHealthData = (props: Props) => {
 						: ""}
 				</Typography>
 
-				<Box className={`flex  pt-3 pl-4 h-7 items-center gap-20 `}>
+				<Box className={`flex pt-3 pl-4 h-7  gap-20
+								${context.windowWidth < 540 ? "flex-col gap-3 mb-9 items-start" : "flex-row items-center"}`}>
 					<LocalLabAndValVisual
 						labAndVal={sportDetailLabsAndVals.find((detail) => detail.sportId === localProps.sportId)?.sportDetails.find((labAndVal) => labAndVal.orderNumber === localProps.labAndVal.orderNumber - 1) || localProps.labAndVal}
 					/>
@@ -481,8 +485,13 @@ const AllSportsAndHealthData = (props: Props) => {
 				</Box>
 
 				{props.editing.state && localProps.labAndVal.orderNumber === 6 ? (
-					<Box className="mt-5">
-						<Typography className={`opacity-60 font-light   mr-2`}>* Počty ovlivňují automatickou tvorbu, pokud to povaha sportu dovoluje.</Typography>
+					<Box className={`mt-5 flex ${context.windowWidth < 540 ? "pt-5" : ""}`}>
+						<Typography className={`opacity-60 font-light   mr-2`}>*</Typography>
+						<Typography
+							className={`opacity-60 font-light   mr-2
+											`}>
+							Počty ovlivňují automatickou tvorbu, pokud to povaha sportu dovoluje.
+						</Typography>
 					</Box>
 				) : null}
 			</Box>
@@ -496,9 +505,25 @@ const AllSportsAndHealthData = (props: Props) => {
 	return (
 		<GeneralCard
 			height="h-full"
-			firstTitle="Sportovní údaje"
+			showBackButton={context.isSmallDevice}
+			backButtonClick={() => context.setActiveSection(1)}
+			firstTitle={context.windowWidth < 485 ? "Sport" : "Sportovní údaje"}
 			firstChildren={
 				<Box className=" h-full ml-2 ">
+					<Box className="flex justify-center w-full">
+						{context.isSmallDevice && !props.cannotEdit ? (
+							<ButtonComp
+								content={"Úprava sportovních údajů"}
+								secondContent={IconEnum.EDIT}
+								size="medium"
+								style="mb-3 mt-3"
+								secondContentStyle="mr-1"
+								externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+								onClick={() => props.editing.setState(!props.editing.state)}
+							/>
+						) : null}
+					</Box>
+
 					{sportDetailLabsAndVals.map(
 						(sportDetail, index) =>
 							(sportDetail.sportDetails.length > 9 ||
@@ -516,7 +541,8 @@ const AllSportsAndHealthData = (props: Props) => {
 												className="ml-2"
 												key={index}>
 												{labAndVal.orderNumber > 7 ? (
-													<Box className={`flex py-2 ${""}`}>
+													<Box className={`flex py-2
+														${context.windowWidth < 450 ? "flex-col gap-2 mb-3" : "flex-row"}`}>
 														<LabelAndValue
 															noPaddingTop
 															mainStyle={`w-full  mr-5`}
@@ -538,7 +564,7 @@ const AllSportsAndHealthData = (props: Props) => {
 													</Box>
 												) : labAndVal.orderNumber === 7 ? (
 													!sportsData.find((sport) => sport.sportId === sportDetail.sportId)?.hasDifficulties ? null : (
-														<Box className={` mb-1.5 ${sportsData.find((sport) => sport.sportId === sportDetail.sportId)?.hasAutomaticPlanCreation ? "mt-4" : "mt-1"}`}>
+														<Box className={` mb-1.5 ${sportsData.find((sport) => sport.sportId === sportDetail.sportId)?.hasAutomaticPlanCreation ? "mt-4" : "mt-1"} ${context.windowWidth < 450 ? "mb-4": ""}`}>
 															<Box className={`flex  pl-2 h-7 items-center py-4`}>
 																<Typography className="font-light text-nowrap ">{labAndVal.label}</Typography>
 																<Typography className={`opacity-50 font-light text-nowrap ml-3 mr-2`}>»</Typography>
@@ -552,10 +578,14 @@ const AllSportsAndHealthData = (props: Props) => {
 																)}
 															</Box>
 															{props.editing.state ? (
-																<Box className="mt-1">
-																	<Typography className={`opacity-60 font-light  ml-2 mr-2`}>* Obtížnost cviků ovlivňuje, jaké cviky mohou být použity během tvorby.</Typography>
-																	<Typography className={`opacity-60 font-light  ml-5 mr-2`}>Při volbě nižší obtížnosti nelze použít cviky vyšší obtížnosti.</Typography>
-																	<Typography className={`opacity-60 font-light  ml-5 mr-2 mb-6`}>Při volbě vyšší obtížnosti je možné použít i cviky nižší obtížnosti.</Typography>
+																<Box className="flex mt-1">
+																	<Typography className={`opacity-60 font-light  ml-2 mr-2`}>*</Typography>
+
+																	<Box>
+																		<Typography className={`opacity-60 font-light   mr-2`}>Obtížnost cviků ovlivňuje, jaké cviky mohou být použity během tvorby.</Typography>
+																		<Typography className={`opacity-60 font-light   mr-2`}>Při volbě nižší obtížnosti nelze použít cviky vyšší obtížnosti.</Typography>
+																		<Typography className={`opacity-60 font-light   mr-2 mb-6`}>Při volbě vyšší obtížnosti je možné použít i cviky nižší obtížnosti.</Typography>
+																	</Box>
 																</Box>
 															) : null}
 														</Box>
@@ -576,7 +606,7 @@ const AllSportsAndHealthData = (props: Props) => {
 										<TextFieldWithIcon
 											disableSaveAnimation
 											placeHolder="Přidat sportovní údaj"
-											style="w-2/5 ml-4 pt-2 "
+											style="w-full pr-2 ml-2 pt-2 "
 											onClick={(value) => handleCreateSportDetailLab(value, sportDetail.sportId)}
 										/>
 									) : null}
@@ -585,9 +615,23 @@ const AllSportsAndHealthData = (props: Props) => {
 					)}
 				</Box>
 			}
-			secondTitle="Zdravotní údaje"
+			secondTitle={context.windowWidth < 485 ? "Zdraví" : "Zdravotní údaje"}
 			secondChildren={
 				<Box className="mt-3">
+					<Box className="flex justify-center w-full">
+						{context.isSmallDevice && !props.cannotEdit ? (
+							<ButtonComp
+								content={"Úprava zdravotních údajů"}
+								secondContent={IconEnum.EDIT}
+								size="medium"
+								style="mb-6"
+								secondContentStyle="mr-1"
+								externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+								onClick={() => props.editing.setState(!props.editing.state)}
+							/>
+						) : null}
+					</Box>
+
 					{props.editing.state ? (
 						<Box className="relative">
 							<TextField

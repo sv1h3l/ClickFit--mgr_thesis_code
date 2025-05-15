@@ -60,13 +60,16 @@ function Layout({ children }: { children: ReactNode }) {
 		// Mapa barev pro každé téma
 		const colorMap: Record<string, string> = {
 			"outer_content-color-gray": "#141414",
-			"outer_content-color-red": "#330000",
-			"outer_content-color-green": "#002a00",
-			"outer_content-color-blue": "#001f33",
+			"outer_content-color-red": "#1e1111",
+			"outer_content-color-green": "#0a1510",
+			"outer_content-color-blue": "#111117",
 		};
 
 		const color = colorMap[context.outerContentColor.trim()] || "#141414";
 		metaThemeColor.setAttribute("content", color);
+
+		// Přímé nastavení backgroundColor pro html (pro mobily)
+		document.documentElement.style.backgroundColor = color;
 	}, [context.outerContentColor]);
 
 	useEffect(() => {
@@ -99,6 +102,20 @@ function Layout({ children }: { children: ReactNode }) {
 		fetchSettings();
 	}, []);
 
+	useEffect(() => {
+		const setAppHeight = () => {
+			const appHeight = window.innerHeight;
+			document.documentElement.style.setProperty("--app-height", `${appHeight}px`);
+		};
+
+		setAppHeight();
+		window.addEventListener("resize", setAppHeight);
+
+		return () => {
+			window.removeEventListener("resize", setAppHeight);
+		};
+	}, []);
+
 	return (
 		<>
 			<Head>
@@ -108,12 +125,12 @@ function Layout({ children }: { children: ReactNode }) {
 				/>
 			</Head>
 
-			<Box className={`${context.outerContentColor}`}>
+			<Box className={`${context.outerContentColor} h-[100dvh]`}>
 				<div className="flex justify-center">
 					<Box className="max-w-content w-full hidden lg:block">
 						<Header />
 					</Box>
-					<Box className="max-w-content w-full block lg:hidden">
+					<Box className="max-w-content  w-full block lg:hidden ">
 						<HeaderMobile />
 					</Box>
 				</div>

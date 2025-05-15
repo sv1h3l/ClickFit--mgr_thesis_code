@@ -364,7 +364,8 @@ const Sports = (props: Props) => {
 		const LocalLabAndValVisual = ({ labAndVal }: { labAndVal: SportDetailLabAndVal }) => {
 			return (
 				<Box className="flex gap-3  ">
-					<Typography className="font-light text-nowrap">{labAndVal.orderNumber % 2 !== 0 ? "Minimální" : "Maximální"} počet</Typography>
+					<Typography className={`font-light text-nowrap 
+											${labAndVal.orderNumber % 2 !== 0 && context.windowWidth < 540? "ml-1" : ""}`}>{labAndVal.orderNumber % 2 !== 0 ? "Minimální" : "Maximální"} počet</Typography>
 					<Typography className={`opacity-50 font-light text-nowrap`}>»</Typography>
 
 					{editing ? (
@@ -427,14 +428,21 @@ const Sports = (props: Props) => {
 						: ""}
 				</Typography>
 
-				<Box className={`flex  pt-3 pl-4 h-7 items-center gap-20 `}>
+				<Box
+					className={`flex pt-3 pl-4 h-7  gap-20
+								${context.windowWidth < 540 ? "flex-col gap-3 mb-9 items-start" : "flex-row items-center"}`}>
 					<LocalLabAndValVisual labAndVal={sportDetailLabsAndVals.find((labAndVal) => labAndVal.orderNumber === localProps.labAndVal.orderNumber - 1) || localProps.labAndVal} />
 					<LocalLabAndValVisual labAndVal={localProps.labAndVal} />
 				</Box>
 
 				{editing && localProps.labAndVal.orderNumber === 6 ? (
-					<Box className="mt-5">
-						<Typography className={`opacity-60 font-light   mr-2`}>* Počty ovlivňují automatickou tvorbu, pokud to povaha sportu dovoluje.</Typography>
+					<Box className={`mt-5 flex ${context.windowWidth < 540 ? "pt-5" : ""}`}>
+						<Typography className={`opacity-60 font-light   mr-2`}>*</Typography>
+						<Typography
+							className={`opacity-60 font-light   mr-2
+											`}>
+							Počty ovlivňují automatickou tvorbu, pokud to povaha sportu dovoluje.
+						</Typography>
 					</Box>
 				) : null}
 			</Box>
@@ -445,6 +453,8 @@ const Sports = (props: Props) => {
 
 	return (
 		<GeneralCard
+			showBackButton={context.isSmallDevice}
+			backButtonClick={() => context.setActiveSection(1)}
 			disabled={!props.selectedSport.state}
 			height="h-full"
 			firstTitle="Sportovní údaje"
@@ -468,12 +478,15 @@ const Sports = (props: Props) => {
 						return (
 							<Box key={index}>
 								{labAndVal.orderNumber > 7 ? (
-									<Box className="flex py-2">
+									<Box
+										className={`flex py-2
+													${context.windowWidth < 450 ? "flex-col gap-2 mb-3" : "flex-row"}`}>
 										<LabelAndValue
 											noPaddingTop
 											mainStyle={`w-full  mr-5`}
 											label={labAndVal.label}
 											textFieldValue={labAndVal.value}
+											textFieldStyle="w-1/2"
 											value={labAndVal.value}
 											notFilledIn={!labAndVal.value}
 											textFieldOnClick={editing ? (value) => handleChangeSportDetailVal(value, labAndVal.sportDetailValId) : undefined}
@@ -489,17 +502,21 @@ const Sports = (props: Props) => {
 									</Box>
 								) : labAndVal.orderNumber === 7 ? (
 									!props.selectedSport.state?.hasDifficulties ? null : (
-										<Box className={`mb-1.5 ${props.selectedSport.state.hasAutomaticPlanCreation ? "mt-4 " : "mt-2"}`}>
+										<Box className={`mb-1.5 ${props.selectedSport.state.hasAutomaticPlanCreation ? "mt-4 " : "mt-2"} ${context.windowWidth < 450 ? "mb-4": ""}`}>
 											<Box className={`flex  pl-2 h-7 items-center py-4`}>
 												<Typography className="font-light text-nowrap ">{labAndVal.label}</Typography>
 												<Typography className={`opacity-50 font-light text-nowrap ml-3 mr-2`}>»</Typography>
 												{editing ? <SelectComp labAndVal={labAndVal} /> : <Typography className="">{labAndVal.value}</Typography>}
 											</Box>
 											{editing ? (
-												<Box className="mt-1">
-													<Typography className={`opacity-60 font-light  ml-2 mr-2`}>* Obtížnost cviků ovlivňuje, jaké cviky mohou být použity během tvorby.</Typography>
-													<Typography className={`opacity-60 font-light  ml-5 mr-2`}>Při volbě nižší obtížnosti nelze použít cviky vyšší obtížnosti.</Typography>
-													<Typography className={`opacity-60 font-light  ml-5 mr-2 mb-6`}>Při volbě vyšší obtížnosti je možné použít i cviky nižší obtížnosti.</Typography>
+												<Box className="flex mt-1">
+													<Typography className={`opacity-60 font-light  ml-2 mr-2`}>*</Typography>
+
+													<Box>
+														<Typography className={`opacity-60 font-light   mr-2`}>Obtížnost cviků ovlivňuje, jaké cviky mohou být použity během tvorby.</Typography>
+														<Typography className={`opacity-60 font-light   mr-2`}>Při volbě nižší obtížnosti nelze použít cviky vyšší obtížnosti.</Typography>
+														<Typography className={`opacity-60 font-light   mr-2 mb-6`}>Při volbě vyšší obtížnosti je možné použít i cviky nižší obtížnosti.</Typography>
+													</Box>
 												</Box>
 											) : null}
 										</Box>
@@ -515,7 +532,7 @@ const Sports = (props: Props) => {
 						<TextFieldWithIcon
 							disableSaveAnimation
 							placeHolder="Přidat sportovní údaj"
-							style="w-2/5 ml-2 pt-2 "
+							style="w-full pr-2 ml-2 pt-2 "
 							onClick={(value) => handleCreateSportDetailLab(value)}
 						/>
 					)}
@@ -523,7 +540,8 @@ const Sports = (props: Props) => {
 					{!!props.selectedSport.state ? (
 						<Box
 							className={`absolute bottom-8 left-1 px-7  w-full flex  transition-all duration-200
-										${props.selectedSport.state?.hasAutomaticPlanCreation ? "justify-between" : "justify-end"}
+										${context.windowWidth < 400 ? "flex-col gap-4 " : "flex-row"}
+										${props.selectedSport.state?.hasAutomaticPlanCreation && context.windowWidth >= 400 ? "justify-between" : "items-end justify-end"}
 										${editing && "opacity-0"}`}>
 							{props.selectedSport.state?.hasAutomaticPlanCreation ? (
 								<ButtonComp

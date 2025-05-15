@@ -100,7 +100,7 @@ function LabelAndValue({
 						${onClick && !disableSelection ? "items-center" : "items-start"}
 						${mainStyle} ${!noPaddingLeft && "pl-2"}  ${!spaceBetween && "gap-3"} ${!noPaddingTop && "mt-4"} 
 						${
-							!disableSelection && onClick && isSelected
+							!disableSelection && onClick && isSelected && !context.isSmallDevice
 								? `border-[0.125rem] rounded-xl min-h-8  ${context.bgQuaternaryColor} ${context.borderQuaternaryColor} ${secondClick && "cursor-pointer"}`
 								: !disableSelection && onClick
 								? `cursor-pointer border-[0.125rem] rounded-xl min-h-8 ${context.bgSecondaryColor + context.borderSecondaryColor + context.bgHoverTertiaryColor + context.borderHoverTertiaryColor}`

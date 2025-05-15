@@ -10,6 +10,7 @@ import { Exercise, getExercisesReq } from "@/api/get/getExercisesReq";
 import { Sport } from "@/api/get/getSportsReq";
 import { moveCategoryReq } from "@/api/move/moveCategoryReq";
 import { moveExerciseReq } from "@/api/move/moveExerciseReq";
+import { useAppContext } from "@/utilities/Context";
 import { StateAndSet, StateAndSetFunction } from "@/utilities/generalInterfaces";
 import { Box, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -60,6 +61,8 @@ export function isExercise(obj: Sport | Exercise | null): obj is Exercise {
 }
 
 const SportsAndExercises = ({ props }: { props: SportsProps }) => {
+	const context = useAppContext();
+
 	useEffect(() => {
 		props.editing.setState(false);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -356,9 +359,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 			const response = await deleteExerciseReq({ props: { sportId, categoryId, exerciseId, orderNumber, orderNumberWithoutCategories } });
 
 			if (response.status === 201) {
-				
-				if(isExercise(props.selectedSportOrExercise.state) && exerciseId === props.selectedSportOrExercise.state.exerciseId)
-				{
+				if (isExercise(props.selectedSportOrExercise.state) && exerciseId === props.selectedSportOrExercise.state.exerciseId) {
 					props.selectedSportOrExercise.setState(props.selectedSport.state);
 				}
 			}
@@ -778,28 +779,24 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 							label={sport.sportName}
 							value={sport.userName}
 							isSelected={sport.sportId == props.selectedSport.state?.sportId}
-							onClick={
-								sport.sportId != props.selectedSport.state?.sportId
-									? () => {
-											props.selectedCategory.setState(null);
+							onClick={() => {
+								props.selectedCategory.setState(null);
 
-											props.selectedSport.setState(sport);
-											props.selectedSportOrExercise.setState(sport);
+								props.selectedSport.setState(sport);
+								props.selectedSportOrExercise.setState(sport);
 
-											if (sport.hasCategories) {
-												getCategoriesAndExercises(sport.sportId);
-											} else {
-												getExercises(sport.sportId);
-											}
+								if (sport.hasCategories) {
+									getCategoriesAndExercises(sport.sportId);
+								} else {
+									getExercises(sport.sportId);
+								}
 
-											getExerciseInformationLabels(sport.sportId);
+								getExerciseInformationLabels(sport.sportId);
 
-											{
-												props.dontShow && props.showFirstSection.setState(false); // XXX potom smazat!
-											}
-									  }
-									: () => {}
-							}
+								{
+									props.dontShow && props.showFirstSection.setState(false); // XXX potom smazat!
+								}
+							}}
 						/>
 					))}
 
@@ -830,6 +827,8 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 							onClick={() => {
 								props.selectedCategory.setState(null);
 								props.selectedSportOrExercise.setState(props.selectedSport.state);
+								
+								context.setActiveSection(2);
 							}}
 							label={props.selectedSport.state?.sportName}
 						/>
@@ -886,6 +885,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 											<LabelAndValue
 												secondClick
 												noPaddingTop
+												canWrap
 												firstTypographyStyle="text-lg"
 												label={category.categoryName}
 												isSelected={category.categoryId === props.selectedCategory.state?.categoryId}
@@ -895,6 +895,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 
 													props.selectedSportOrExercise.setState(null);
 													props.selectedCategory.setState(category);
+													context.setActiveSection(2);
 												}}
 											/>
 
@@ -926,6 +927,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 																		onClick={() => {
 																			props.selectedCategory.setState(null);
 																			props.selectedSportOrExercise.setState(exercise);
+																			context.setActiveSection(2);
 																		}}
 																	/>
 																	{props.editing.state && (

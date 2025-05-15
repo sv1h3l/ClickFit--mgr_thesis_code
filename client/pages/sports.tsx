@@ -4,9 +4,11 @@ import ExerciseInformation, { ExerciseInformationLabel } from "@/components/larg
 import SportDescriptionAndSettings, { SportDifficulty } from "@/components/large/SportDescriptionAndSettings";
 import SportsAndExercises, { isExercise, isSport } from "@/components/large/SportsAndExercises";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
+import { useAppContext } from "@/utilities/Context";
+import { Box } from "@mui/material";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Category } from "../api/get/getCategoriesWithExercisesReq";
 import { Exercise } from "../api/get/getExercisesReq";
 import { Sport, getSportsReq } from "../api/get/getSportsReq";
@@ -16,6 +18,8 @@ const cookie = require("cookie");
 //import * as cookie from "cookie";
 
 const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[]; userId: number }) => {
+	const context = useAppContext();
+
 	const [sportsData, setSportsData] = useState<Sport[]>(initialSportsData ?? []);
 
 	const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
@@ -33,6 +37,22 @@ const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[];
 	const [isActiveFirstChildren, setIsActiveFirstChildren] = useState<boolean>(true);
 	const [showFirstSection, setShowFirstSection] = useState<boolean>(true);
 
+	const [isFirstSectionVisible, setIsFirstSectionVisible] = useState(true);
+	const [firstSectionHasFullWidth, setFirstSectionHasFullWidth] = useState(true);
+	const [isSecondSectionVisible, setIsSecondSectionVisible] = useState(false);
+
+	useEffect(() => {
+		if (context.activeSection === 1) {
+			setIsSecondSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(true), 200);
+			setTimeout(() => setIsFirstSectionVisible(true), 250);
+		} else {
+			setIsFirstSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(false), 200);
+			setTimeout(() => setIsSecondSectionVisible(true), 250);
+		}
+	}, [context.activeSection]);
+
 	return (
 		<>
 			<Head>
@@ -40,153 +60,34 @@ const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[];
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth="w-9/24"
-				secondColumnWidth="w-15/24"
+				firstColumnWidth={context.isSmallDevice ? (firstSectionHasFullWidth ? "w-full" : "w-0") : "w-9/24"}
+				secondColumnWidth={context.isSmallDevice ? (!firstSectionHasFullWidth ? "w-full" : "w-0") : "w-15/24"}
 				firstColumnChildren={
-					<SportsAndExercises
-						props={{
-							userId: userId,
-							exercisesDatabase: true,
-							sportsData: {
-								state: sportsData,
-								setState: setSportsData,
-							},
-
-							selectedSport: {
-								state: selectedSport,
-								setState: setSelectedSport,
-							},
-							selectedCategory: {
-								state: selectedCategory,
-								setState: setSelectedCategory,
-							},
-							selectedSportOrExercise: {
-								state: selectedSportOrExercise,
-								setState: setSelectedSportOrExercise,
-							},
-
-							exercisesData: {
-								state: exercisesData,
-								setState: setExercisesData,
-							},
-							categoriesData: {
-								state: categoriesData,
-								setState: setCategoriesData,
-							},
-							sportDifficultiesData: {
-								state: sportDifficultiesData,
-								setState: setSportDifficultiesData,
-							},
-
-							exerciseInformationLabelsData: {
-								state: exerciseInformationLabelsData,
-								setState: setExerciseInformationLabelsData,
-							},
-
-							editing: {
-								state: editing,
-								setState: setEditing,
-							},
-							dontShow: true,
-							showFirstSection: {
-								state: showFirstSection,
-								setState: setShowFirstSection,
-							},
-						}}
-					/>
-				}
-				secondColumnChildren={
-					<>
-						{selectedCategory !== null ? (
-							<CategoryInformations
-								categoriesData={{
-									state: categoriesData,
-									setState: setCategoriesData,
-								}}
-								selectedCategory={{ state: selectedCategory, setState: setSelectedCategory }}
-								selectedSport={{
-									state: selectedSport,
-									setState: setSelectedSport,
-								}}
-								editing={{
-									state: editing,
-									setState: setEditing,
-								}}
-								isActiveFirstChildren={{
-									state: isActiveFirstChildren,
-									setState: setIsActiveFirstChildren,
-								}}
-							/>
-						) : isSport(selectedSportOrExercise) ? (
-							<SportDescriptionAndSettings
-								sportsData={{
-									state: sportsData,
-									setState: setSportsData,
-								}}
-								sportDifficultiesData={{
-									state: sportDifficultiesData,
-									setState: setSportDifficultiesData,
-								}}
-								selectedSport={{
-									state: selectedSport,
-									setState: setSelectedSport,
-								}}
-								selectedSportOrExercise={{
-									state: selectedSportOrExercise,
-									setState: setSelectedSportOrExercise,
-								}}
-								exercisesData={{
-									state: exercisesData,
-									setState: setExercisesData,
-								}}
-								categoriesData={{
-									state: categoriesData,
-									setState: setCategoriesData,
-								}}
-								editing={{
-									state: editing,
-									setState: setEditing,
-								}}
-								isActiveFirstChildren={{
-									state: isActiveFirstChildren,
-									setState: setIsActiveFirstChildren,
-								}}
-								showFirstSection={{
-									state: showFirstSection,
-									setState: setShowFirstSection,
-								}}
-
-								sportName={selectedSport?.sportName || ""}
-							/>
-						) : isExercise(selectedSportOrExercise) ? (
-							<ExerciseInformation
+					!context.isSmallDevice || firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+										${isFirstSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							<SportsAndExercises
 								props={{
-									exerciseCategory: selectedSport?.hasCategories ? categoriesData.find((category) => category.categoryId === selectedSportOrExercise.categoryId)?.categoryName || "" : "",
-									exerciseName: selectedSportOrExercise.exerciseName,
-									exerciseDescription: selectedSportOrExercise.description,
-									exerciseYoutubeLink: selectedSportOrExercise.youtubeLink,
+									userId: userId,
+									exercisesDatabase: true,
+									sportsData: {
+										state: sportsData,
+										setState: setSportsData,
+									},
 
 									selectedSport: {
 										state: selectedSport,
 										setState: setSelectedSport,
 									},
-
-									selectedExercise: {
+									selectedCategory: {
+										state: selectedCategory,
+										setState: setSelectedCategory,
+									},
+									selectedSportOrExercise: {
 										state: selectedSportOrExercise,
 										setState: setSelectedSportOrExercise,
 									},
-
-									sportDifficultiesData: {
-										state: sportDifficultiesData,
-										setState: setSportDifficultiesData,
-									},
-
-									exerciseOrderNumberWithoutCategories: selectedSportOrExercise.orderNumberWithoutCategories,
-									exerciseOrderNumber: selectedSportOrExercise.orderNumber,
-									sportId: selectedSport?.sportId || -1,
-									difficultyId: selectedSport?.hasDifficulties ? selectedSportOrExercise.sportDifficultyId : -1,
-									categoryId: selectedSport?.hasCategories ? selectedSportOrExercise.categoryId : -1,
-									exerciseId: selectedSportOrExercise.exerciseId,
 
 									exercisesData: {
 										state: exercisesData,
@@ -195,6 +96,10 @@ const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[];
 									categoriesData: {
 										state: categoriesData,
 										setState: setCategoriesData,
+									},
+									sportDifficultiesData: {
+										state: sportDifficultiesData,
+										setState: setSportDifficultiesData,
 									},
 
 									exerciseInformationLabelsData: {
@@ -206,15 +111,143 @@ const SportsPage = ({ initialSportsData, userId }: { initialSportsData: Sport[];
 										state: editing,
 										setState: setEditing,
 									},
-
-									isActiveFirstChildren: {
-										state: isActiveFirstChildren,
-										setState: setIsActiveFirstChildren,
+									dontShow: true,
+									showFirstSection: {
+										state: showFirstSection,
+										setState: setShowFirstSection,
 									},
 								}}
 							/>
-						) : null}
-					</>
+						</Box>
+					) : (
+						<></>
+					)
+				}
+				secondColumnChildren={
+					!context.isSmallDevice || !firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+							${isSecondSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							{selectedCategory !== null ? (
+								<CategoryInformations
+									categoriesData={{
+										state: categoriesData,
+										setState: setCategoriesData,
+									}}
+									selectedCategory={{ state: selectedCategory, setState: setSelectedCategory }}
+									selectedSport={{
+										state: selectedSport,
+										setState: setSelectedSport,
+									}}
+									editing={{
+										state: editing,
+										setState: setEditing,
+									}}
+									isActiveFirstChildren={{
+										state: isActiveFirstChildren,
+										setState: setIsActiveFirstChildren,
+									}}
+								/>
+							) : isSport(selectedSportOrExercise) ? (
+								<SportDescriptionAndSettings
+									sportsData={{
+										state: sportsData,
+										setState: setSportsData,
+									}}
+									sportDifficultiesData={{
+										state: sportDifficultiesData,
+										setState: setSportDifficultiesData,
+									}}
+									selectedSport={{
+										state: selectedSport,
+										setState: setSelectedSport,
+									}}
+									selectedSportOrExercise={{
+										state: selectedSportOrExercise,
+										setState: setSelectedSportOrExercise,
+									}}
+									exercisesData={{
+										state: exercisesData,
+										setState: setExercisesData,
+									}}
+									categoriesData={{
+										state: categoriesData,
+										setState: setCategoriesData,
+									}}
+									editing={{
+										state: editing,
+										setState: setEditing,
+									}}
+									isActiveFirstChildren={{
+										state: isActiveFirstChildren,
+										setState: setIsActiveFirstChildren,
+									}}
+									showFirstSection={{
+										state: showFirstSection,
+										setState: setShowFirstSection,
+									}}
+									sportName={selectedSport?.sportName || ""}
+								/>
+							) : isExercise(selectedSportOrExercise) ? (
+								<ExerciseInformation
+									props={{
+										exerciseCategory: selectedSport?.hasCategories ? categoriesData.find((category) => category.categoryId === selectedSportOrExercise.categoryId)?.categoryName || "" : "",
+										exerciseName: selectedSportOrExercise.exerciseName,
+										exerciseDescription: selectedSportOrExercise.description,
+										exerciseYoutubeLink: selectedSportOrExercise.youtubeLink,
+
+										selectedSport: {
+											state: selectedSport,
+											setState: setSelectedSport,
+										},
+
+										selectedExercise: {
+											state: selectedSportOrExercise,
+											setState: setSelectedSportOrExercise,
+										},
+
+										sportDifficultiesData: {
+											state: sportDifficultiesData,
+											setState: setSportDifficultiesData,
+										},
+
+										exerciseOrderNumberWithoutCategories: selectedSportOrExercise.orderNumberWithoutCategories,
+										exerciseOrderNumber: selectedSportOrExercise.orderNumber,
+										sportId: selectedSport?.sportId || -1,
+										difficultyId: selectedSport?.hasDifficulties ? selectedSportOrExercise.sportDifficultyId : -1,
+										categoryId: selectedSport?.hasCategories ? selectedSportOrExercise.categoryId : -1,
+										exerciseId: selectedSportOrExercise.exerciseId,
+
+										exercisesData: {
+											state: exercisesData,
+											setState: setExercisesData,
+										},
+										categoriesData: {
+											state: categoriesData,
+											setState: setCategoriesData,
+										},
+
+										exerciseInformationLabelsData: {
+											state: exerciseInformationLabelsData,
+											setState: setExerciseInformationLabelsData,
+										},
+
+										editing: {
+											state: editing,
+											setState: setEditing,
+										},
+
+										isActiveFirstChildren: {
+											state: isActiveFirstChildren,
+											setState: setIsActiveFirstChildren,
+										},
+									}}
+								/>
+							) : null}
+						</Box>
+					) : (
+						<></>
+					)
 				}
 			/>
 		</>

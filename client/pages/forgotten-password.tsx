@@ -54,7 +54,7 @@ function ForgotPassword() {
 			</Head>
 
 			<OneColumnPage
-				firstColumnWidth="w-7/24 "
+				firstColumnWidth="w-full max-w-lg"
 				firstColumnHeight="h-fit"
 				firstColumnChildren={
 					<>
@@ -111,9 +111,10 @@ function ForgotPassword() {
 						<CustomModal
 							isOpen={isModalOpen}
 							title="Odesláno"
+							style="w-full px-4 max-w-md"
 							hideBackButton
 							children={
-								<Box className=" mb-4 max-w-md">
+								<Box className=" mb-4 ">
 									<Typography className="">Na zadaný e-mail byl odeslán odkaz pro obnovu hesla.</Typography>
 									<Typography className="mt-3">Po kliknutí na odkaz si lze nastavit nové heslo.</Typography>
 

@@ -125,7 +125,7 @@ function Login() {
 			</Head>
 
 			<OneColumnPage
-				firstColumnWidth="w-7/24 "
+				firstColumnWidth="w-full max-w-lg"
 				firstColumnHeight="h-fit"
 				firstColumnChildren={
 					<>
@@ -194,8 +194,9 @@ function Login() {
 							isOpen={isModalOpen}
 							title="Potvrzovací e-mail odeslán"
 							hideBackButton
+							style="w-full px-4 max-w-md"
 							children={
-								<Box className=" mb-4 max-w-md">
+								<Box className=" mb-4 ">
 									<Typography className="">Na zadaný e-mail byl odeslán potvrzovací odkaz.</Typography>
 									<Typography className="mt-3">Pro vstup do aplikace KlikFit je potřeba registraci potvrdit.</Typography>
 
@@ -216,8 +217,9 @@ function Login() {
 							isOpen={isConnectionModalOpen}
 							title="Navázání spojení"
 							hideBackButton
+							style="w-full px-4 max-w-md"
 							children={
-								<Box className=" mb-4 max-w-md">
+								<Box className=" mb-4 ">
 									<Typography className="">Pro navázání nového spojení je nutné se přihlásit.</Typography>
 
 									<ButtonComp

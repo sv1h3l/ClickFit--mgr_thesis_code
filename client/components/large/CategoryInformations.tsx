@@ -10,7 +10,7 @@ import { Category } from "@/api/get/getCategoriesWithExercisesReq";
 import { Sport } from "@/api/get/getSportsReq";
 import { useAppContext } from "@/utilities/Context";
 import { StateAndSet, StateAndSetFunction } from "@/utilities/generalInterfaces";
-import { Autocomplete, Box, Checkbox, ClickAwayListener, FormControlLabel, Paper, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, ClickAwayListener, Paper, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
@@ -20,9 +20,9 @@ import TextFieldWithIcon from "../small/TextFieldWithIcon";
 import Title from "../small/Title";
 
 import { changeCategoryNameReq } from "@/api/change/changeCategoryNameReq";
-import GeneralCard from "./GeneralCard";
 import CustomModal from "../small/CustomModal";
 import { RemarkEntitiesDescription } from "./DiaryAndGraphs";
+import GeneralCard from "./GeneralCard";
 
 interface Props {
 	selectedSport: StateAndSet<Sport | null>;
@@ -466,23 +466,24 @@ const CategoryInformations = (props: Props) => {
 						<Typography className="text-lg">Opakovatelnost</Typography>
 						<Box className="ml-4">
 							<Typography className=" font-light">Určuje, zda a maximálně kolikrát se daná kategorie může v rámci tréninku opakovat.</Typography>
-							<Box className="flex items-center mt-3">
-								{props.editing.state ? (
-									<FormControlLabel
-										className=""
-										control={
-											<Checkbox
-												checked={props.selectedCategory.state?.hasRepeatability}
-												onChange={handleChangeHasRepeatability}
-											/>
+							<Box
+								className={`flex  mt-3 h-10
+											${context.windowWidth < 560 ? "flex-col gap-1" : "flex-row items-center"}`}>
+								<Box className={`flex  gap-2 ${""}`}>
+									<ButtonComp
+										content={props.selectedCategory.state?.hasRepeatability ? IconEnum.CHECK : IconEnum.CROSS}
+										size="small"
+										onClick={
+											props.editing.state
+												? () => {
+														handleChangeHasRepeatability();
+												  }
+												: undefined
 										}
-										label={props.selectedCategory.state?.hasRepeatability ? "Kategorie se může opakovat." : "Kategorie se nesmí opakovat."}
+										externalClickedVal={props.selectedCategory.state?.hasRepeatability}
 									/>
-								) : props.selectedCategory.state?.hasRepeatability ? (
-									<Typography className=" py-2">Kategorie se může opakovat maximálně {props.selectedCategory.state?.repeatabilityQuantity} krát.</Typography>
-								) : (
-									<Typography className="py-2">Kategorie se nesmí opakovat.</Typography>
-								)}
+									<Typography>{props.selectedCategory.state?.hasRepeatability ? "Kategorie se může opakovat." : "Kategorie se nesmí opakovat."}</Typography>
+								</Box>
 
 								{props.editing.state && props.selectedCategory.state?.hasRepeatability ? (
 									<Box className="ml-6 flex items-center">
@@ -515,7 +516,7 @@ const CategoryInformations = (props: Props) => {
 						</Box>
 					</Box>
 
-					<Box className="space-y-2">
+					<Box className={`space-y-2 ${context.windowWidth < 560 ? "pt-3" : ""}`}>
 						<Typography className="text-lg">Volná návaznost</Typography>
 						<Box className="ml-4">
 							<Typography className=" font-light">Zvyšuje pravděpodobnost, že po této kategorii budou následovat vybrané kategorie.</Typography>
@@ -648,7 +649,9 @@ const CategoryInformations = (props: Props) => {
 								Zajišťuje, že po této kategorii bude vždy následovat vybraná kategorie. Jestliže je vybrána kategorie pro pevnou návaznost, tak není možné vybírat kategorie pro volnou návaznost. Pokud by přidání vybrané kategorie
 								s pevnou navázností bylo přes maximální hranici počtu kategorií, tak se nepřidá.
 							</Typography>
-							<Box className="flex mt-3 h-10 gap-2 items-center">
+							<Box
+								className={`flex mt-3 h-10 gap-2 
+											${context.windowWidth < 560 ? "flex-col mb-9" : "items-center"}`}>
 								{props.editing.state ? (
 									<Typography>Vybraná kategorie s pevnou návazností:</Typography>
 								) : props.selectedCategory.state?.tightConnection ? (
@@ -933,12 +936,28 @@ const CategoryInformations = (props: Props) => {
 	return (
 		<>
 			<GeneralCard
+				showBackButton={context.isSmallDevice}
+				backButtonClick={() => context.setActiveSection(1)}
 				showFirstSection={{ state: props.isActiveFirstChildren.state, setState: props.isActiveFirstChildren.setState }}
 				secondTitle="Podrobnosti"
 				firstTitle="Popis"
 				height="h-full"
 				secondChildren={
 					<Box className="flex flex-col  mt-3">
+						<Box className="flex justify-center w-full">
+							{context.isSmallDevice ? (
+								<ButtonComp
+									content={"Úprava podrobností"}
+									secondContent={IconEnum.EDIT}
+									size="medium"
+									style="mb-6"
+									secondContentStyle="mr-1"
+									externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+									onClick={() => props.editing.setState(!props.editing.state)}
+								/>
+							) : null}
+						</Box>
+
 						{props.editing.state && props.selectedCategory.state?.orderNumber !== 0 ? (
 							<Box className=" flex items-start mr-3">
 								<LabelAndValue
@@ -997,6 +1016,20 @@ const CategoryInformations = (props: Props) => {
 				firstChildren={
 					<Box className="h-full">
 						<Box className="mt-3">
+							<Box className="flex justify-center w-full">
+								{context.isSmallDevice ? (
+									<ButtonComp
+										content={"Úprava popisu"}
+										secondContent={IconEnum.EDIT}
+										size="medium"
+										style="mb-6"
+										secondContentStyle="mr-1"
+										externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+										onClick={() => props.editing.setState(!props.editing.state)}
+									/>
+								) : null}
+							</Box>
+
 							{!props.editing.state && descriptionValue.length < 1 ? (
 								<Typography className="text-lg font-light ml-4">Pro vybranou kategorii neexistuje popis.</Typography>
 							) : props.editing.state ? (

@@ -346,20 +346,21 @@ function PersonalData(props: Props) {
 									mainStyle=" "
 									noPaddingTop
 									label="Email"
-									middleArrowStyle="ml-[0.65rem]"
+									middleArrowStyle={context.isSmallDevice ? "ml-[1.1rem]" : "ml-[0.65rem]"}
 									value={user.email}
 								/>
 							</Box>
 						)}
 
-						<Box className="flex ">
-							<Box className="flex w-1/2 ">
+						<Box className={`flex ${context.isSmallDevice ? "flex-col gap-5" : ""} `}>
+							<Box className={`flex  ${context.isSmallDevice ? "w-full" : "w-1/2"}`}>
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6"
+										middleArrowStyle={context.isSmallDevice ? "ml-2" : ""}
 										label="Jméno"
 										fontLight
 										maxLength={20}
+										textFieldStyle={`w-full pr-[6.5rem] ${""}`}
 										placeHolder="Zadejte jméno"
 										textFieldValue={user.firstName}
 										textFieldOnClick={(value) => {
@@ -387,17 +388,19 @@ function PersonalData(props: Props) {
 									/>
 								) : (
 									<LabelAndValue
+									middleArrowStyle={context.isSmallDevice ? "ml-2" : ""}
 										label="Jméno"
 										value={user.firstName}
 									/>
 								)}
 							</Box>
-							<Box className="flex w-1/2">
+							<Box className={`flex  ${context.isSmallDevice ? "w-full" : "w-1/2"}`}>
 								{props.editing.state ? (
 									<LabelAndValue
 										mainStyle=""
 										label="Příjmení"
 										fontLight
+										textFieldStyle="w-full pr-[6.5rem]"
 										maxLength={20}
 										placeHolder="Zadejte příjmení"
 										textFieldValue={user.lastName}
@@ -432,16 +435,17 @@ function PersonalData(props: Props) {
 								)}
 							</Box>
 						</Box>
-						<Box className="flex">
-							<Box className="flex w-1/2">
+						<Box className={`flex ${context.isSmallDevice ? "flex-col gap-5" : ""} `}>
+							<Box className={`flex  ${context.isSmallDevice ? "w-full" : "w-1/2"}`}>
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6 "
-										middleArrowStyle="ml-[0.5rem]"
+										mainStyle=" "
+										middleArrowStyle={context.isSmallDevice ? "ml-[1rem]" : "ml-[0.5rem]"}
 										label="Výška"
 										fontLight
 										placeHolder="Zadejte výšku"
 										onlyNumbers
+										textFieldStyle="w-full pr-[4.5rem]"
 										unit="cm"
 										maxLength={4}
 										textFieldValue={user.height ? user.height.toString() : ""}
@@ -453,19 +457,19 @@ function PersonalData(props: Props) {
 									/>
 								) : (
 									<LabelAndValue
-										middleArrowStyle="ml-[0.5rem]"
+									middleArrowStyle={context.isSmallDevice ? "ml-[1rem]" : "ml-[0.5rem]"}
 										label="Výška"
 										notFilledIn={!user.height}
 										value={user.height ? user.height + " cm" : ""}
 									/>
 								)}
 							</Box>
-							<Box className="flex w-1/2">
+							<Box className={`flex  ${context.isSmallDevice ? "w-full" : "w-1/2"}`}>
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6 "
 										middleArrowStyle="ml-[1.4rem]"
 										label="Váha"
+										textFieldStyle="w-full pr-[4.4rem]"
 										fontLight
 										placeHolder="Zadejte váhu"
 										onlyNumbers
@@ -480,7 +484,7 @@ function PersonalData(props: Props) {
 									/>
 								) : (
 									<LabelAndValue
-										middleArrowStyle="ml-[1.4rem]"
+										middleArrowStyle={"ml-[1.4rem]"}
 										label="Váha"
 										notFilledIn={!user.weight}
 										value={user.weight ? user.weight + " kg" : ""}
@@ -488,16 +492,16 @@ function PersonalData(props: Props) {
 								)}
 							</Box>
 						</Box>
-						<Box className="flex">
-							<Box className="flex w-1/2">
+						<Box className={`flex ${context.isSmallDevice ? "flex-col gap-5" : ""} `}>
+							<Box className={`flex  ${context.isSmallDevice ? "w-full" : "w-1/2"}`}>
 								{props.editing.state ? (
 									<LabelAndValue
-										mainStyle="mr-6 "
-										middleArrowStyle="ml-[1.5rem]"
+										middleArrowStyle={context.isSmallDevice ? "ml-[2rem]" : "ml-[1.5rem]"}
 										label="Věk"
 										fontLight
 										placeHolder="Zadejte věk"
 										onlyNumbers
+										textFieldStyle="w-full pr-[4.5rem]"
 										unit="let"
 										maxLength={4}
 										textFieldValue={user.age ? user.age.toString() : ""}
@@ -509,7 +513,7 @@ function PersonalData(props: Props) {
 									/>
 								) : (
 									<LabelAndValue
-										middleArrowStyle="ml-[1.5rem]"
+									middleArrowStyle={context.isSmallDevice ? "ml-[2rem]" : "ml-[1.5rem]"}
 										label="Věk"
 										notFilledIn={!user.age}
 										value={user.age ? (user.age === 1 ? user.age + " rok" : user.age < 5 ? user.age + " roky" : user.age + " let") : ""}
@@ -597,6 +601,18 @@ function PersonalData(props: Props) {
 								</Box>
 							</Box>
 						)}
+
+						{context.isSmallDevice ? (
+							<Box className="absolute bottom-7 left-0 w-full flex justify-center">
+								<ButtonComp
+									content={"Zobrazit sportovní a zdravotní údaje"}
+									size="medium"
+									onClick={() => {
+										context.setActiveSection(2);
+									}}
+								/>
+							</Box>
+						) : null}
 					</Box>
 				}
 			/>

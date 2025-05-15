@@ -43,6 +43,8 @@ module.exports = {
 
 			screens: {
 				"max-content": "1600px",
+				"450px" : "450px",
+				"850px" : "850px",
 			},
 			colors: {
 				"blue-icon": blueIcon,

@@ -97,6 +97,8 @@ const MarkdownComp = ({ value }: { value: string }) => {
 };
 
 export const RemarkEntitiesDescription = () => {
+	const context = useAppContext();
+
 	return (
 		<Box className="w-full flex flex-col gap-8 mb-4 ">
 			<Box className="flex items-center  w-full gap-8">
@@ -118,9 +120,9 @@ export const RemarkEntitiesDescription = () => {
 			</Box>
 
 			<Box className="flex items-center w-full gap-8">
-				<Typography className=" text-right w-1/2 font-light">Libovolný souvislý text.</Typography>
+				<Typography className=" text-right w-1/2 font-light">základní text</Typography>
 				<Typography className="font-light opacity-50">»</Typography>
-				<MarkdownComp value="Libovolný souvislý text." />
+				<MarkdownComp value="základní text" />
 			</Box>
 
 			<Box className="flex items-center w-full gap-8">
@@ -135,27 +137,7 @@ export const RemarkEntitiesDescription = () => {
 				<MarkdownComp value="**tučný text**" />
 			</Box>
 
-			<Box className="flex items-center w-full gap-8">
-				<Box className="flex flex-col w-1/2 -mt-4">
-					<Typography className=" text-right font-light">- položka seznamu</Typography>
-					<Typography className=" text-right font-light">- položka seznamu</Typography>
-					<Typography className=" text-right font-light">- položka seznamu</Typography>
-				</Box>
-				<Typography className="font-light opacity-50 -mt-4">»</Typography>
-				<MarkdownComp value={`- položka seznamu\n- položka seznamu\n- položka seznamu`} />
-			</Box>
-
-			<Box className="flex items-center w-full gap-8 -mt-4">
-				<Box className="flex flex-col w-1/2 -mt-4">
-					<Typography className=" text-right font-light">1. položka seznamu</Typography>
-					<Typography className=" text-right font-light">2. položka seznamu</Typography>
-					<Typography className=" text-right font-light">3. položka seznamu</Typography>
-				</Box>
-				<Typography className="font-light opacity-50 -mt-4">»</Typography>
-				<MarkdownComp value={`1. položka seznamu\n2. položka seznamu\n3. položka seznamu`} />
-			</Box>
-
-			<Box className="flex items-center w-full gap-8 -mt-6">
+			<Box className="flex items-center w-full gap-8 ">
 				<Box className={`flex w-1/2 justify-end`}>
 					<Typography className=" text-right font-light opacity-50 mr-2">(oddělovací čára)</Typography>
 					<Typography className=" text-right font-light">-</Typography>
@@ -164,6 +146,46 @@ export const RemarkEntitiesDescription = () => {
 				</Box>
 				<Typography className="font-light opacity-50">»</Typography>
 				<MarkdownComp value="---" />
+			</Box>
+
+			<Box
+				className={`flex items-center w-full gap-8
+							${context.windowWidth < 450 ? "flex-col mt-2" : "-mt-2"}`}>
+				<Box
+					className={`flex flex-col  -mt-4
+								${context.windowWidth < 450 ? "w-full" : "w-1/2"}`}>
+					<Typography className={`font-light ${context.windowWidth < 450 ? "text-center " : "text-right "}`}>- položka seznamu</Typography>
+					<Typography className={`font-light ${context.windowWidth < 450 ? "text-center " : "text-right "}`}>- položka seznamu</Typography>
+					<Typography className={`font-light ${context.windowWidth < 450 ? "text-center " : "text-right "}`}>- položka seznamu</Typography>
+				</Box>
+				<Typography
+					className={`font-light opacity-50 -mt-4 
+								${context.windowWidth < 450 ? "rotate-90 -mb-4" : ""}`}>
+					»
+				</Typography>
+				<Box className={` -mt-1 ${context.windowWidth < 450 ? "-ml-10  " : "w-1/2"}`}>
+					<MarkdownComp value={`- položka seznamu\n- položka seznamu\n- položka seznamu`} />
+				</Box>
+			</Box>
+
+			<Box
+				className={`flex items-center w-full gap-8
+							${context.windowWidth < 450 ? "flex-col mt-2" : "-mt-2"}`}>
+				<Box
+					className={`flex flex-col  -mt-4 
+								${context.windowWidth < 450 ? "w-full " : "w-1/2"}`}>
+					<Typography className={`font-light ${context.windowWidth < 450 ? "text-center " : "text-right "}`}>1. položka seznamu</Typography>
+					<Typography className={`font-light ${context.windowWidth < 450 ? "text-center " : "text-right "}`}>2. položka seznamu</Typography>
+					<Typography className={`font-light ${context.windowWidth < 450 ? "text-center " : "text-right "}`}>3. položka seznamu</Typography>
+				</Box>
+				<Typography
+					className={`font-light opacity-50 -mt-4 
+								${context.windowWidth < 450 ? "rotate-90 -mb-4" : ""}`}>
+					»
+				</Typography>
+				<Box className={`${context.windowWidth < 450 ? "-ml-10 -mt-1" : " w-1/2"}`}>
+					<MarkdownComp value={`1. položka seznamu\n2. položka seznamu\n3. položka seznamu`} />
+				</Box>
 			</Box>
 		</Box>
 	);
@@ -895,7 +917,7 @@ const DiaryAndGraphs = (props: Props) => {
 					}}
 					IconComponent={() => null}
 					renderValue={(value) => (
-						<Box className="flex items-center gap-2 ml-0.5 -mr-5 ">
+						<Box className="flex items-center gap-2 ml-0.5 -mr-6 ">
 							<Typography
 								className="text-lg"
 								sx={{ opacity: 1 }}>
@@ -1044,11 +1066,13 @@ const DiaryAndGraphs = (props: Props) => {
 	return (
 		<GeneralCard
 			height="h-full "
+			showBackButton={context.isSmallDevice}
+			backButtonClick={() => context.setActiveSection(1)}
 			disabled={!props.selectedSport.state}
 			showFirstSection={{ state: showFirstSection, setState: setShowFirstSection }}
 			firstTitle={props.cannotEdit ? "" : "Deník"}
 			firstSideContent={
-				props.selectedSport.state && !props.cannotEdit
+				props.selectedSport.state && !props.cannotEdit && showFirstSection
 					? [
 							<ButtonComp
 								key={"edit"}
@@ -1506,7 +1530,7 @@ const DiaryAndGraphs = (props: Props) => {
 						</Box>
 					) : (
 						<Box className="h-full">
-							<Box className="flex justify-end">
+							<Box>
 								{menuItems.length > 0 ? (
 									/*
 									<FormControl
@@ -1612,10 +1636,21 @@ const DiaryAndGraphs = (props: Props) => {
 											) : null}
 										</Select>
 									</FormControl>*/
+									<Box className={`flex ${context.isSmallDevice && menuItems.length > 0 ? "justify-between" : "justify-end"}`}>
+										{context.isSmallDevice ? (
+											<ButtonComp
+												content={"Upravit záznamy"}
+												justClick
+												dontChangeOutline
+												onClick={() => context.setActiveSection(3)}
+												size="medium"
+											/>
+										) : null}
 
-									<SelectComp />
+										<SelectComp />
+									</Box>
 								) : !props.cannotEdit ? (
-									<Box className="flex gap-4">
+									<Box className="flex justify-end gap-4">
 										<ButtonComp
 											content={"Nový graf"}
 											size="medium"
@@ -1646,11 +1681,12 @@ const DiaryAndGraphs = (props: Props) => {
 								{props.selectedGraph.state?.graphValues && props.selectedGraph.state?.graphValues.length > 1 ? (
 									props.selectedGraph.state.hasDate ? (
 										<ResponsiveContainer
+										className={`pt-4`}
 											height="98%"
 											width="100%">
 											<LineChart
 												data={formattedData}
-												margin={{ top: 10, right: 50, bottom: 10, left: 30 }}>
+												margin={{ top: 10, right: 30, bottom: 10, left: 25 }}>
 												<CartesianGrid
 													stroke={cartesianStroke}
 													strokeDasharray="10 25"
@@ -1730,11 +1766,12 @@ const DiaryAndGraphs = (props: Props) => {
 										</ResponsiveContainer>
 									) : (
 										<ResponsiveContainer
+										className={`pt-4`}
 											height="98%"
 											width="100%">
 											<LineChart
 												data={props.selectedGraph.state?.graphValues || []}
-												margin={{ top: 10, right: 50, bottom: 10, left: 30 }}>
+												margin={{ top: 10, right: 30, bottom: 10, left: 25 }}>
 												<CartesianGrid
 													stroke={cartesianStroke}
 													strokeDasharray="10 25"

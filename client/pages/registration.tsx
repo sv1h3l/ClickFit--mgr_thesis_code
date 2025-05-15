@@ -98,7 +98,7 @@ function Registration() {
 			</Head>
 
 			<OneColumnPage
-				firstColumnWidth="w-7/24 "
+				firstColumnWidth="w-full max-w-lg"
 				firstColumnHeight="h-fit"
 				firstColumnChildren={
 					<>
@@ -255,8 +255,9 @@ function Registration() {
 							isOpen={isModalOpen}
 							title="Registrace byla úspěšná"
 							hideBackButton
+							style="w-full px-4 max-w-md"
 							children={
-								<Box className=" mb-4 max-w-md">
+								<Box className=" mb-4">
 									<Typography className="">Na zadaný e-mail byl odeslán potvrzovací odkaz.</Typography>
 									<Typography className="mt-3">Pro vstup do aplikace KlikFit je potřeba registraci potvrdit.</Typography>
 

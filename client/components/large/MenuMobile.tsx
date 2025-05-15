@@ -1,71 +1,42 @@
 import { changeUserSettingsReq } from "@/api/change/changeUserSettingsReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
-import { getUserSettingsReq } from "@/api/get/getUserSettingsReq";
 import { TextSize, useAppContext } from "@/utilities/Context";
-import { AppBar, Box, FormControl, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
+import { StateAndSet } from "@/utilities/generalInterfaces";
+import EditNoteRoundedIcon from "@mui/icons-material/EditNoteRounded";
+import FitnessCenterRoundedIcon from "@mui/icons-material/FitnessCenterRounded";
+import PolylineRoundedIcon from "@mui/icons-material/PolylineRounded";
+import SportsMartialArtsRoundedIcon from "@mui/icons-material/SportsMartialArtsRounded";
+import { Backdrop, Box, Button, FormControl, MenuItem, Select, SelectChangeEvent, Typography } from "@mui/material";
 import Image from "next/image";
-import { useRouter } from "next/router";
+import router from "next/router";
 import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import CustomModal from "../small/CustomModal";
-import Navigation from "./Navigation";
+import { getUserSettingsReq } from "@/api/get/getUserSettingsReq";
 
-const cookie = require("cookie");
+interface Props {
+	externalClicked: StateAndSet<boolean>;
+	style?: string;
 
-function Header() {
-	const router = useRouter();
-	const [user, setUser] = useState<any>(null);
-	const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString("cs-CZ"));
-	const [externalClicked, setExternalClicked] = useState(false);
+	user : StateAndSet<any>;
+}
+
+function MenuMobile(props: Props) {
+	const context = useAppContext();
+
+	const cookie = require("cookie");
+
+	const navigate = (link: string) => {
+		props.externalClicked.setState(false);
+		context.setActiveSection(1);
+		router.push(`/${link}`);
+	};
 
 	const [externalSettingsClicked, setExternalSettingsClicked] = useState(false);
 
-	const context = useAppContext();
-
-	useEffect(() => {
-		const checkUserCookie = () => {
-			const cookies = cookie.parse(document.cookie);
-			const authToken = cookies.authToken || null;
-
-			if (authToken) {
-				setUser(authToken);
-			}
-		};
-
-		checkUserCookie();
-
-		const interval = setInterval(checkUserCookie, 10);
-		return () => clearInterval(interval);
-	}, []);
-
-	useEffect(() => {
-		router.pathname === "/profile" ? setExternalClicked(true) : setExternalClicked(false);
-	}, [router.pathname]);
-
-	useEffect(() => {
-		const fetchSettings = async () => {
-			const cookies = cookie.parse(document.cookie);
-			const authToken = cookies.authToken || null;
-
-			if (authToken !== null) {
-				const settings = await getUserSettingsReq({ authToken });
-
-				if (settings.status === 200 && settings.data) {
-					const textSizeCode = settings.data.textSizeCode;
-					const colorSchemeCode = settings.data.colorSchemeCode;
-
-					setSelectedColorScheme(colorSchemeCode === 2 ? "red" : colorSchemeCode === 3 ? "blue" : colorSchemeCode === 4 ? "green" : "gray");
-					setSelectedTextSize(textSizeCode === 2 ? "text_size-small" : textSizeCode === 4 ? "text_size-large" : "text_size-medium");
-				}
-			}
-		};
-
-		fetchSettings();
-	});
-
 	const handleLogout = () => {
 		document.cookie = "authToken=; max-age=0; path=/"; // Vymazání cookie
-		setUser(null);
+		props.user.setState(null);
 		router.push("/");
 	};
 
@@ -148,62 +119,147 @@ function Header() {
 		handleCloseTextSize();
 	};
 
-	return user ? (
-		<AppBar className="bg-transparent shadow-none text-center relative ">
-			<Box className="justify-center mx-2">
-				<Box className="flex w-full max-w-content shadow-black shadow-md rounded-3xl">
-					<Box className={`w-1/6 justify-center items-center flex border-l-[3px] border-b-[3px] rounded-bl-3xl h-28 ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
-						<Image
-							className="w-auto h-[5.2rem]"
-							src={context.logoColor}
-							alt="Logo"
-							width={150}
-							height={150}
-							priority
-						/>
-					</Box>
-					<Box className={` flex flex-col w-5/6 rounded-br-3xl h-28 ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
-						<Box className="flex items-center ">
-							<Typography className="w-full text-center text-[3rem] -mt-1 h-16 font-audiowide tracking-widest">KlikFit</Typography>
+	useEffect(() => {
+		const fetchSettings = async () => {
+			const cookies = cookie.parse(document.cookie);
+			const authToken = cookies.authToken || null;
 
-							<Box className={`w-6/24 h-full flex items-center justify-center border-r-[3px] mt-0.5  ${context.bgPrimaryColor} ${context.borderPrimaryColor}`}>
-								{user && (
-									<Box className="flex w-full justify-end px-6 gap-6 ">
-										<ButtonComp
-											style="cursor-pointer"
-											size="medium"
-											content={IconEnum.PROFILE}
-											externalClicked={{ state: externalClicked, setState: setExternalClicked }}
-											onClick={
-												!externalClicked
-													? () => {
-															if (!externalClicked) router.push(`/profile`);
-													  }
-													: undefined
-											}
-										/>
+			if(authToken !== null )
+			{
+				const settings = await getUserSettingsReq({ authToken });
 
-										<ButtonComp
-											style=""
-											size="medium"
-											externalClicked={{ state: externalSettingsClicked, setState: setExternalSettingsClicked }}
-											content={IconEnum.SETTINGS}
-											onClick={handleOpenModal}
-										/>
+				if (settings.status === 200 && settings.data) {
+					const textSizeCode = settings.data.textSizeCode;
+					const colorSchemeCode = settings.data.colorSchemeCode;
+	
+					setSelectedColorScheme(colorSchemeCode === 2 ? "red" : colorSchemeCode === 3 ? "blue" : colorSchemeCode === 4 ? "green" : "gray");
+					setSelectedTextSize(textSizeCode === 2 ? "text_size-small" : textSizeCode === 4 ? "text_size-large" : "text_size-medium");
+				}
+			}
+			
+		};
 
-										<ButtonComp
-											style=""
-											size="medium"
-											content={IconEnum.LOGOUT}
-											onClick={handleLogout}
-										/>
-									</Box>
-								)}
-							</Box>
-						</Box>
-						<Box className="w-full flex justify-center mt-[0.15rem]">{user && <Navigation externalClicked={{ state: externalClicked, setState: setExternalClicked }} />}</Box>
-					</Box>
+		fetchSettings();
+	});
+
+	const pages = [
+		{ path: "training-plans", label: "Tréninky", icon: SportsMartialArtsRoundedIcon },
+		{ path: "diary", label: "Deník", icon: EditNoteRoundedIcon },
+		{ path: "sports", label: "Sporty", icon: FitnessCenterRoundedIcon },
+		{ path: "connection", label: "Spojení", icon: PolylineRoundedIcon },
+	];
+
+	return (
+		<>
+			<Backdrop
+				open={props.externalClicked.state}
+				sx={{
+					zIndex: -10,
+					backgroundColor: "rgba(0, 0, 0, 0.6)",
+				}}
+				onClick={() => props.externalClicked.setState(false)}
+			/>
+
+			{/* Menu */}
+			<Box
+				sx={{
+					overflowY: "auto",
+					scrollbarGutter: "stable",
+				}}
+				className={`flex flex-col justify-around items-center overflow-auto overflow-x-hidden gutter
+							rounded-b-3xl border-[3px] shadow-black shadow-md
+							absolute right-5 top-12 -z-10 px-1 pt-9 gap-4
+							${context.bgPrimaryColor + context.borderPrimaryColor}
+							${props.style}
+							transition-all duration-300 ease-out transform
+							${props.externalClicked.state ? "translate-y-0" : "translate-y-[-100%]"}`}>
+				<Box className="flex w-full justify-around mb-1 px-2 ">
+					<ButtonComp
+						style="cursor-pointer"
+						size="large"
+						content={IconEnum.PROFILE}
+						onClick={
+							router.pathname !== `/profile`
+								? () => {
+										props.externalClicked.setState(false);
+
+										document.cookie = cookie.serialize("view_tmp", "", {
+											path: "/",
+											maxAge: 0,
+										});
+										router.push(`/profile`);
+										context.setActiveSection(1);
+								  }
+								: () => props.externalClicked.setState(false)
+						}
+						justClick
+						dontChangeOutline
+					/>
+
+					<ButtonComp
+						style=""
+						size="large"
+						externalClicked={{ state: externalSettingsClicked, setState: setExternalSettingsClicked }}
+						content={IconEnum.SETTINGS}
+						onClick={handleOpenModal}
+					/>
+
+					<ButtonComp
+						style=""
+						size="large"
+						content={IconEnum.LOGOUT}
+						onClick={handleLogout}
+						justClick
+						dontChangeOutline
+					/>
 				</Box>
+
+				{pages.map(({ path, label, icon: IconComponent }, index) => {
+					const isActive = router.pathname === `/${path}`;
+
+					return (
+						<Box
+							key={index}
+							className="flex justify-center ">
+							<Button
+								onClick={() => {
+									if (!isActive) {
+										document.cookie = cookie.serialize("view_tmp", "", {
+											path: "/",
+											maxAge: 0,
+										});
+
+										navigate(path);
+									}
+
+									props.externalClicked.setState(false);
+								}}
+								className=" normal-case"
+								disableRipple>
+								<Typography className={`text-[1.5rem] font-audiowide tracking-wide  ease-in-out pl-2 pr-3 text-nowrap`}>
+									{IconComponent && (
+										<IconComponent
+											style={{
+												filter: "drop-shadow(3px 3px 3px #00000060)",
+											}}
+											className={`mr-2 ${IconComponent === EditNoteRoundedIcon ? "size-[2.3rem] -mt-1.5 " : "size-[1.9rem] -mt-0.5 "}`}
+										/>
+									)}
+									{label}
+								</Typography>
+							</Button>
+						</Box>
+					);
+				})}
+
+				<Image
+					className="w-28 h-auto mb-4"
+					src={context.logoColor}
+					alt="Logo"
+					width={150}
+					height={150}
+					priority
+				/>
 			</Box>
 
 			<CustomModal
@@ -211,7 +267,7 @@ function Header() {
 				onClose={handleCloseModal}
 				paddingTop
 				title="Nastavení"
-				style="max-w-md px-4">
+				style="w-full max-w-md px-4">
 				<Box>
 					<Box className="flex mt-6 ml-2">
 						<Typography className="mr-2 text-lg">Velikost písma:</Typography>
@@ -294,7 +350,7 @@ function Header() {
 										key={item.value}
 										value={item.value}
 										className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
-													${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+																${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
 										<Typography sx={{ opacity: 0.95 }}>{item.label}</Typography>
 									</MenuItem>
 								))}
@@ -385,7 +441,7 @@ function Header() {
 										key={item.value}
 										value={item.value}
 										className={`px-3 py-1.5  hover:cursor-pointer transition-colors duration-150 w-full flex justify-center
-													${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
+																${context.bgSecondaryColor + context.bgHoverTertiaryColor}`}>
 										<Typography sx={{ opacity: 0.95 }}>{item.label}</Typography>
 									</MenuItem>
 								))}
@@ -394,20 +450,8 @@ function Header() {
 					</Box>
 				</Box>
 			</CustomModal>
-		</AppBar>
-	) : (
-		<Box className="flex flex-col w-full max-w-content justify-center items-center mt-8">
-			<Image
-				className="h-[6rem] w-auto mr-1"
-				src="/icons/logo-gray.webp"
-				alt="Logo"
-				width={150}
-				height={150}
-				priority
-			/>
-			<Typography className="text-[3.1rem] mt-2 h-16 font-audiowide tracking-widest">KlikFit</Typography>
-		</Box>
+		</>
 	);
 }
 
-export default Header;
+export default MenuMobile;

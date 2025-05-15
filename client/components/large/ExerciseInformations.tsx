@@ -26,18 +26,18 @@ import { moveExerciseInformationLabReq } from "@/api/move/moveExerciseInformatio
 import { Unit } from "@/pages/training-plan";
 import { useAppContext } from "@/utilities/Context";
 import { StateAndSet, StateAndSetFunction } from "@/utilities/generalInterfaces";
-import { Autocomplete, Box, Checkbox, ClickAwayListener, FormControl, FormControlLabel, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, ClickAwayListener, FormControl, MenuItem, Paper, Select, SelectChangeEvent, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
+import CustomModal from "../small/CustomModal";
 import LabelAndValue from "../small/LabelAndValue";
 import TextFieldWithIcon from "../small/TextFieldWithIcon";
 import Title from "../small/Title";
+import { RemarkEntitiesDescription } from "./DiaryAndGraphs";
 import GeneralCard from "./GeneralCard";
 import { SportDifficulty } from "./SportDescriptionAndSettings";
-import CustomModal from "../small/CustomModal";
-import { RemarkEntitiesDescription } from "./DiaryAndGraphs";
 
 export interface ExerciseInformationLabel {
 	exerciseInformationLabelId: number;
@@ -757,7 +757,9 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 
 									<Typography>{sportDifficulty.difficultyName}</Typography>
 
-									<Box className="ml-3 flex justify-between w-3/4 ">
+									<Box
+										className={`ml-3  justify-between w-4/5
+													${context.isSmallDevice ? "" : "flex"}`}>
 										{props.editing.state ? (
 											<Box className="flex items-end ">
 												<LabelAndValue
@@ -1342,8 +1344,10 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 						<Typography className="text-lg">Opakovatelnost</Typography>
 						<Box className="ml-4">
 							<Typography className=" font-light">Určuje, zda a maximálně kolikrát se daný cvik může v rámci tréninku opakovat.</Typography>
-							<Box className="flex items-center mt-3">
-								{props.editing.state ? (
+							<Box
+								className={`flex  mt-3 h-10
+											${context.windowWidth < 560 ? "flex-col gap-1" : "flex-row items-center"}`}>
+								{/*props.editing.state ? (
 									<FormControlLabel
 										className=""
 										control={
@@ -1358,10 +1362,26 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 									<Typography className=" py-2">Cvik se může opakovat maximálně {props.selectedExercise.state.repeatabilityQuantity} krát.</Typography>
 								) : (
 									<Typography className="py-2">Cvik se nesmí opakovat.</Typography>
-								)}
+								)*/}
+
+								<Box className={`flex  gap-2 ${""}`}>
+									<ButtonComp
+										content={props.selectedExercise.state.hasRepeatability ? IconEnum.CHECK : IconEnum.CROSS}
+										size="small"
+										onClick={
+											props.editing.state
+												? () => {
+														handleChangeExerciseHasRepeatability();
+												  }
+												: undefined
+										}
+										externalClickedVal={props.selectedExercise.state.hasRepeatability}
+									/>
+									<Typography>{props.selectedExercise.state.hasRepeatability ? "Cvik se může opakovat." : "Cvik se nesmí opakovat."}</Typography>
+								</Box>
 
 								{props.editing.state && props.selectedExercise.state.hasRepeatability ? (
-									<Box className="ml-6 flex items-center">
+									<Box className="ml-6 mt-1  flex items-center">
 										<LabelAndValue
 											noPaddingTop
 											label="Maximální počet opakování"
@@ -1379,7 +1399,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 											onClickForBlur
 											withoutIcon
 											cantBeZero
-											style="w-16"
+											style="w-12"
 											icon={IconEnum.CHECK}
 											maxLength={2}
 											previousValue={props.selectedExercise.state.repeatabilityQuantity.toString()}
@@ -1393,7 +1413,7 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 						</Box>
 					</Box>
 
-					<Box className="space-y-2">
+					<Box className={`space-y-2 ${context.windowWidth < 560 ? "pt-3" : ""}`}>
 						<Typography className="text-lg">Volná návaznost</Typography>
 						<Box className="ml-4">
 							<Typography className=" font-light">Zvyšuje pravděpodobnost, že po tomto cviku budou následovat vybrané cviky.</Typography>
@@ -1525,7 +1545,9 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 								Zajišťuje, že po tomto cviku bude vždy následovat vybraný cvik. Jestliže je vybrán cvik pro pevnou návaznost, tak není možné vybírat cviky pro volnou návaznost. Pokud by přidání vybraného cviku s pevnou navázností
 								bylo přes maximální hranici počtu cviků, tak se nepřidá.
 							</Typography>
-							<Box className="flex mt-3 h-10 gap-2 items-center">
+							<Box
+								className={`flex mt-3 h-10 gap-2 
+											${context.windowWidth < 560 ? "flex-col mb-9" : "items-center"}`}>
 								{props.editing.state ? (
 									<Typography>Vybraný cvik s pevnou návazností:</Typography>
 								) : props.selectedExercise.state.tightConnection ? (
@@ -2015,6 +2037,8 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 	return (
 		<>
 			<GeneralCard
+				showBackButton={context.isSmallDevice}
+				backButtonClick={() => context.setActiveSection(1)}
 				key={props.exerciseId}
 				showFirstSection={{ state: props.isActiveFirstChildren.state, setState: props.isActiveFirstChildren.setState }}
 				secondTitle="Podrobnosti"
@@ -2023,13 +2047,27 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 				style={overflowHidden ? "overflow-hidden" : ""}
 				secondChildren={
 					<Box className="flex flex-col  mt-3 gap-2">
+						<Box className="flex justify-center w-full">
+							{context.isSmallDevice ? (
+								<ButtonComp
+									content={"Úprava podrobností"}
+									secondContent={IconEnum.EDIT}
+									size="medium"
+									style="mb-6"
+									secondContentStyle="mr-1"
+									externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+									onClick={() => props.editing.setState(!props.editing.state)}
+								/>
+							) : null}
+						</Box>
+
 						{props.editing.state ? (
 							<Box className=" flex items-start mr-3">
 								<LabelAndValue
 									label="Název cviku"
 									noPaddingTop
 									maxLength={75}
-									mainStyle="w-full "
+									mainStyle={`w-full ${context.windowWidth < 768 ? "pr-2" : ""}`}
 									textFieldValue={props.selectedExercise.state.exerciseName}
 									textFieldOnClick={(value) => handleChangeExerciseName(value)}
 									icon={IconEnum.CHECK}
@@ -2219,7 +2257,8 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 							? props.exerciseInformationLabelsData.state.map((label) => {
 									return (
 										<Box
-											className=" flex items-end "
+											className={` flex items-end
+														${context.windowWidth < 768 ? "flex-col gap-2" : "flex-row"}`}
 											key={label.exerciseInformationLabelId}>
 											<LabelAndValue
 												label={label.label}
@@ -2231,10 +2270,12 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 												icon={IconEnum.CHECK}
 											/>
 
-											<MoveAndDeleteButtons
-												exerciseInformationLabelId={label.exerciseInformationLabelId}
-												orderNumber={label.orderNumber}
-											/>
+											<Box className={`${context.windowWidth < 768 ? "mr-2" : ""}`}>
+												<MoveAndDeleteButtons
+													exerciseInformationLabelId={label.exerciseInformationLabelId}
+													orderNumber={label.orderNumber}
+												/>
+											</Box>
 										</Box>
 									);
 							  })
@@ -2253,14 +2294,18 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 							  })}
 
 						{props.editing.state && (
-							<Box className="max-w-full flex items-end pr-[7.35rem]">
+							<Box
+								className={`max-w-full flex items-end 
+											${context.windowWidth < 768 ? "flex-col gap-3" : "flex-row pr-[7.35rem]"}`}>
 								<TextFieldWithIcon
 									placeHolder="Přidat informaci o cviku"
 									style="w-full ml-2 pt-4 pr-5"
 									onClick={handleCreateExerciseInformationLabel}
 								/>
 
-								<Box className="-mb-1">
+								<Box
+									className={`-mb-1
+												${context.windowWidth < 768 ? "mr-2" : ""}`}>
 									<MoveAndDeleteButtons
 										exerciseInformationLabelId={-1}
 										orderNumber={-1}
@@ -2274,7 +2319,9 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 							<Box className="mt-4">
 								{props.selectedExercise.state.series > 0 || props.selectedExercise.state.repetitions > 0 || props.selectedExercise.state.burden > 0 || props.editing.state ? <Title title="Doporučené hodnoty" /> : <></>}
 
-								<Box className="flex justify-between ml-4 w-3/4">
+								<Box
+									className={` justify-between ml-4 w-4/5
+												${context.isSmallDevice ? "" : "flex"}`}>
 									{props.editing.state ? (
 										<Box className="flex items-end">
 											<LabelAndValue
@@ -2374,6 +2421,20 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 				}
 				firstChildren={
 					<Box className="h-full  pt-3">
+						<Box className="flex justify-center w-full">
+							{context.isSmallDevice ? (
+								<ButtonComp
+									content={"Úprava popisu"}
+									secondContent={IconEnum.EDIT}
+									size="medium"
+									style="mb-6"
+									secondContentStyle="mr-1"
+									externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+									onClick={() => props.editing.setState(!props.editing.state)}
+								/>
+							) : null}
+						</Box>
+
 						{!props.editing.state && youtubeLinkValue.length < 1 && descriptionValue.length < 1 ? (
 							<Typography className="text-lg font-light ml-4">Pro vybraný cvik neexistuje popis.</Typography>
 						) : (

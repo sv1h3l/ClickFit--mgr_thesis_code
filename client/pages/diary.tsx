@@ -3,9 +3,11 @@ import { getVisitedUserSportsReq } from "@/api/get/getVisitedUserSportsReq";
 import DiaryAndGraphs, { Graph } from "@/components/large/DiaryAndGraphs";
 import SportsAndValues from "@/components/large/SportsAndValues";
 import TwoColumnsPage from "@/components/large/TwoColumnsPage";
+import { useAppContext } from "@/utilities/Context";
+import { Box } from "@mui/material";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const cookie = require("cookie");
 
@@ -18,6 +20,8 @@ interface Props {
 }
 
 const Diary = (props: Props) => {
+	const context = useAppContext();
+
 	const [sportsData, setSportsData] = useState<Sport[]>(props.sports ?? []);
 
 	const [selectedSport, setSelectedSport] = useState<Sport | null>(props.selectedSport);
@@ -26,6 +30,22 @@ const Diary = (props: Props) => {
 	const [isSelectedFirstSection, setIsSelectedFirstSection] = useState(true);
 	const [isDisabledFirstSection, setIsDisabledFirstSection] = useState(false);
 
+	const [isFirstSectionVisible, setIsFirstSectionVisible] = useState(true);
+	const [firstSectionHasFullWidth, setFirstSectionHasFullWidth] = useState(true);
+	const [isSecondSectionVisible, setIsSecondSectionVisible] = useState(false);
+
+	useEffect(() => {
+		if (context.activeSection === 1 || context.activeSection === 3) {
+			setIsSecondSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(true), 200);
+			setTimeout(() => setIsFirstSectionVisible(true), 250);
+		} else {
+			setIsFirstSectionVisible(false);
+			setTimeout(() => setFirstSectionHasFullWidth(false), 200);
+			setTimeout(() => setIsSecondSectionVisible(true), 250);
+		}
+	}, [context.activeSection]);
+
 	return (
 		<>
 			<Head>
@@ -33,41 +53,57 @@ const Diary = (props: Props) => {
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth="w-9/24"
-				secondColumnWidth="w-15/24"
+				firstColumnWidth={context.isSmallDevice ? (firstSectionHasFullWidth ? "w-full" : "w-0") : "w-9/24"}
+				secondColumnWidth={context.isSmallDevice ? (!firstSectionHasFullWidth ? "w-full" : "w-0") : "w-15/24"}
 				firstColumnChildren={
-					<SportsAndValues
-						cannotEdit={props.cannotEdit}
-						isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
-						isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
-						selectedSport={{
-							state: selectedSport,
-							setState: setSelectedSport,
-						}}
-						sportsData={{
-							state: sportsData,
-							setState: setSportsData,
-						}}
-						selectedGraph={{
-							state: selectedGraph,
-							setState: setSelectedGraph,
-						}}
-					/>
+					!context.isSmallDevice || firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+										${isFirstSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							<SportsAndValues
+								cannotEdit={props.cannotEdit}
+								isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
+								isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
+								selectedSport={{
+									state: selectedSport,
+									setState: setSelectedSport,
+								}}
+								sportsData={{
+									state: sportsData,
+									setState: setSportsData,
+								}}
+								selectedGraph={{
+									state: selectedGraph,
+									setState: setSelectedGraph,
+								}}
+							/>
+						</Box>
+					) : (
+						<></>
+					)
 				}
 				secondColumnChildren={
-					<DiaryAndGraphs
-						cannotEdit={props.cannotEdit}
-						isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
-						isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
-						selectedSport={{
-							state: selectedSport,
-							setState: setSelectedSport,
-						}}
-						selectedGraph={{
-							state: selectedGraph,
-							setState: setSelectedGraph,
-						}}
-					/>
+					!context.isSmallDevice || !firstSectionHasFullWidth ? (
+						<Box
+							className={`transition-all duration-200 h-full
+							${isSecondSectionVisible || !context.isSmallDevice ? "opacity-100" : "opacity-0"}`}>
+							<DiaryAndGraphs
+								cannotEdit={props.cannotEdit}
+								isSelectedFirstSection={{ state: isSelectedFirstSection, setState: setIsSelectedFirstSection }}
+								isDisabledFirstSection={{ state: isDisabledFirstSection, setState: setIsDisabledFirstSection }}
+								selectedSport={{
+									state: selectedSport,
+									setState: setSelectedSport,
+								}}
+								selectedGraph={{
+									state: selectedGraph,
+									setState: setSelectedGraph,
+								}}
+							/>
+						</Box>
+					) : (
+						<></>
+					)
 				}
 			/>
 		</>
@@ -93,7 +129,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 			const sports = resVisitedUser.data || [];
 
 			const firstSport = sports.length > 0 ? sports[0] : null;
-
 
 			return { props: { sports: resVisitedUser.data, selectedSport: firstSport, cannotEdit: true } };
 		}
