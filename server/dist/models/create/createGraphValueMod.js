@@ -16,7 +16,7 @@ const createGraphValueMod = async (props) => {
     }
     catch (error) {
         console.error("Database error: " + error);
-        return { status: GenResEnum_1.GenEnum.FAILURE, message: "Nastala chyba během vytváření uživatelského grafu" };
+        return { status: GenResEnum_1.GenEnum.FAILURE, message: "Nastala chyba během vytváření záznam grafu" };
     }
 };
 exports.createGraphValueMod = createGraphValueMod;

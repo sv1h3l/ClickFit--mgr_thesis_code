@@ -19,7 +19,7 @@ const deleteGraphCont = async (req, res) => {
         return;
     }
     const checkRes = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: graphId, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.GRAPH_EDIT });
-    if (checkRes.status !== GenResEnum_1.GenEnum.SUCCESS && checkRes.data) {
+    if (checkRes.status !== GenResEnum_1.GenEnum.SUCCESS) {
         res.status(checkRes.status).json({ message: checkRes.message });
         return;
     }

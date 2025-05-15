@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDifficultiesCont = void 0;
 const getDifficultiesMod_1 = require("../../models/get/getDifficultiesMod");
+const GenResEnum_1 = require("../../utilities/GenResEnum");
+const checkAuthorizationCont_1 = require("../residue/checkAuthorizationCont");
 const getDifficultiesCont = async (req, res) => {
     const { sportId } = req.query;
     if (!sportId) {
@@ -13,11 +15,13 @@ const getDifficultiesCont = async (req, res) => {
         res.status(400).json({ message: "ID sportu musí být číslo", data: [] });
         return;
     }
-    /* TODO
-    const checkRes = await checkAuthorizationController(req, sportIdNumber, CheckAuthorizationCodeEnum.SPORT_VIEW);
-    if (!checkRes.authorized) {
-        res.status(401).json({ message: checkRes.message });
-    }*/
+    const authToken = req.headers["authorization"]?.split(" ")[1];
+    const checkResView = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_VIEW, authToken: authToken ? authToken : undefined });
+    const checkResEdit = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_EDIT, authToken: authToken ? authToken : undefined });
+    if (checkResView.status !== GenResEnum_1.GenEnum.SUCCESS && checkResEdit.status !== GenResEnum_1.GenEnum.SUCCESS) {
+        res.status(checkResView.status).json({ message: checkResView.message });
+        return;
+    }
     try {
         const dbRes = await (0, getDifficultiesMod_1.getDifficultiesMod)({ sportId: sportIdNumber });
         let difficulties;

@@ -18,10 +18,18 @@ const getSportDetailLabsAndValsCont = async (req, res) => {
         return;
     }
     const authToken = req.headers["authorization"]?.split(" ")[1];
-    const checkRes = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_VIEW, authToken }); // TODO předělat na SPORT_VIEW
-    if (checkRes.status !== GenResEnum_1.GenEnum.SUCCESS || !checkRes.data?.userId) {
-        res.status(checkRes.status).json({ message: checkRes.message });
+    const checkSportView = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_VIEW, authToken }); // TODO předělat na SPORT_VIEW
+    const checkSportEdit = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_EDIT, authToken }); // TODO předělat na SPORT_VIEW
+    if (checkSportView.status !== GenResEnum_1.GenEnum.SUCCESS && checkSportEdit.status !== GenResEnum_1.GenEnum.SUCCESS) {
+        res.status(checkSportView.status).json({ message: checkSportView.message });
         return;
+    }
+    let userId = -1;
+    if (checkSportView.status === GenResEnum_1.GenEnum.SUCCESS) {
+        userId = checkSportView.data?.userId || -1;
+    }
+    else {
+        userId = checkSportEdit.data?.userId || -1;
     }
     try {
         const resLabs = await (0, getSportDetailLabsMod_1.getSportDetailLabsMod)({ sportId: sportIdNumber });
@@ -29,7 +37,7 @@ const getSportDetailLabsAndValsCont = async (req, res) => {
             res.status(resLabs.status).json({ message: resLabs.message, data: [] });
             return;
         }
-        let resVals = await (0, getSportDetailValsMod_1.getSportDetailValsMod)({ sportId: sportIdNumber, userId: checkRes.data.userId });
+        let resVals = await (0, getSportDetailValsMod_1.getSportDetailValsMod)({ sportId: sportIdNumber, userId });
         if (resVals.status === GenResEnum_1.GenEnum.FAILURE) {
             res.status(resVals.status).json({ message: resVals.message, data: [] });
             return;
@@ -46,12 +54,12 @@ const getSportDetailLabsAndValsCont = async (req, res) => {
             const missingSportDetailIds = missingLabels.map((lab) => {
                 return { sportDetailLabelId: lab.sport_detail_label_id, orderNumber: lab.order_number };
             });
-            const resCreateVals = await (0, createMissingSportDetailValsMod_1.createMissingSportDetailValsMod)({ sportId: sportIdNumber, missingSportDetailIds, userId: checkRes.data.userId });
+            const resCreateVals = await (0, createMissingSportDetailValsMod_1.createMissingSportDetailValsMod)({ sportId: sportIdNumber, missingSportDetailIds, userId });
             if (resCreateVals.status === GenResEnum_1.GenEnum.FAILURE) {
                 res.status(resCreateVals.status).json({ message: resCreateVals.message, data: [] });
                 return;
             }
-            resVals = await (0, getSportDetailValsMod_1.getSportDetailValsMod)({ sportId: sportIdNumber, userId: checkRes.data.userId });
+            resVals = await (0, getSportDetailValsMod_1.getSportDetailValsMod)({ sportId: sportIdNumber, userId });
         }
         const labsAndVals = resLabs.data
             .map((lab) => {

@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getGraphValuesCont = void 0;
 const getGraphValuesMod_1 = require("../../models/get/getGraphValuesMod");
-const getUserAtrFromAuthTokenMod_1 = require("../../models/get/getUserAtrFromAuthTokenMod");
 const GenResEnum_1 = require("../../utilities/GenResEnum");
+const checkAuthorizationCont_1 = require("../residue/checkAuthorizationCont");
 const getGraphValuesCont = async (req, res) => {
     const { graphId, defaultGraph } = req.query;
     if (!graphId) {
@@ -20,12 +20,12 @@ const getGraphValuesCont = async (req, res) => {
     }
     const defaultGraphBool = defaultGraph === "true";
     try {
-        const userAtrs = await (0, getUserAtrFromAuthTokenMod_1.getUserAtrFromAuthTokenMod)({ req });
-        if (userAtrs.status !== GenResEnum_1.GenEnum.SUCCESS || !userAtrs.data) {
-            res.status(userAtrs.status).json({ message: userAtrs.message });
+        const checkRes = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: graphIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.GRAPH_EDIT });
+        if (checkRes.status !== GenResEnum_1.GenEnum.SUCCESS) {
+            res.status(checkRes.status).json({ message: checkRes.message });
             return;
         }
-        const dbResDefGraphValues = await (0, getGraphValuesMod_1.getGraphValuesMod)({ graphId: graphIdNumber, defaultGraph: defaultGraphBool, userId: userAtrs.data.userId });
+        const dbResDefGraphValues = await (0, getGraphValuesMod_1.getGraphValuesMod)({ graphId: graphIdNumber, defaultGraph: defaultGraphBool, userId: checkRes.data?.userId });
         let formattedValues = [];
         if (dbResDefGraphValues.status === GenResEnum_1.GenEnum.SUCCESS && dbResDefGraphValues.data) {
             dbResDefGraphValues.data.forEach((value) => {

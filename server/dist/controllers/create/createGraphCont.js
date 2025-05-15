@@ -68,23 +68,31 @@ const createGraphCont = async (req, res) => {
         return;
     }
     try {
-        const checkRes = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportId, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_VIEW });
-        if (checkRes.status !== GenResEnum_1.GenEnum.SUCCESS) {
-            res.status(checkRes.status).json({ message: checkRes.message });
+        const checkSportView = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportId, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_VIEW }); // TODO předělat na SPORT_VIEW
+        const checkSportEdit = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportId, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_EDIT }); // TODO předělat na SPORT_VIEW
+        if (checkSportView.status !== GenResEnum_1.GenEnum.SUCCESS && checkSportEdit.status !== GenResEnum_1.GenEnum.SUCCESS) {
+            res.status(checkSportView.status).json({ message: checkSportView.message });
             return;
         }
+        let userId = -1;
+        if (checkSportView.status === GenResEnum_1.GenEnum.SUCCESS) {
+            userId = checkSportView.data?.userId || -1;
+        }
+        else {
+            userId = checkSportEdit.data?.userId || -1;
+        }
         let highestOrderNumber = 0;
-        const resHighestDefaultOrderNumber = await (0, getHighestDefaultGraphsOrderNumberModNEW_1.getHighestDefaultGraphsOrderNumberModNEW)({ userId: checkRes.data?.userId });
-        const resHighestUserOrderNumber = await (0, getHighestGraphsOrderNumberMod_1.getHighestGraphsOrderNumberMod)({ userId: checkRes.data?.userId });
+        const resHighestDefaultOrderNumber = await (0, getHighestDefaultGraphsOrderNumberModNEW_1.getHighestDefaultGraphsOrderNumberModNEW)({ userId });
+        const resHighestUserOrderNumber = await (0, getHighestGraphsOrderNumberMod_1.getHighestGraphsOrderNumberMod)({ userId });
         highestOrderNumber = resHighestDefaultOrderNumber.data?.highestOrderNumber + resHighestUserOrderNumber.data?.highestOrderNumber + 1;
         let dbResult;
         let defaultGraphOnId = undefined;
         if (createDefGraph) {
             dbResult = await (0, createDefaultGraphMod_1.createDefaultGraphMod)({ sportId, graphLabel, hasDate, xAxisLabel, yAxisLabel, unit, hasGoals });
-            defaultGraphOnId = await (0, createDefaultGraphOrderNumberMod_1.createDefaultGraphOrderNumberMod)({ userId: checkRes.data?.userId, graphId: dbResult.data?.graphId, highestOrderNumber });
+            defaultGraphOnId = await (0, createDefaultGraphOrderNumberMod_1.createDefaultGraphOrderNumberMod)({ userId, graphId: dbResult.data?.graphId, highestOrderNumber });
         }
         else {
-            dbResult = await (0, createGraphMod_1.createGraphMod)({ sportId, userId: checkRes.data?.userId, graphLabel, orderNumber: highestOrderNumber, hasDate, xAxisLabel, yAxisLabel, unit, hasGoals });
+            dbResult = await (0, createGraphMod_1.createGraphMod)({ sportId, userId, graphLabel, orderNumber: highestOrderNumber, hasDate, xAxisLabel, yAxisLabel, unit, hasGoals });
         }
         res.status(dbResult.status).json({ message: dbResult.message, data: { graphId: dbResult.data?.graphId, defaultGraphOnId: defaultGraphOnId?.data?.defaultGraphOrderNumberId, orderNumber: highestOrderNumber } });
     }

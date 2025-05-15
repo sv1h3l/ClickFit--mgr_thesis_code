@@ -59,9 +59,6 @@ const checkAuthorizationCont = async (props) => {
             case CheckAuthorizationCodeEnum.TRAINING_PLAN_VIEW:
                 dbRes = await (0, checkTrainingPlanViewMod_1.checkTrainingPlanViewMod)({ userId, trainingPlanId: props.id });
                 break;
-            case CheckAuthorizationCodeEnum.TRAINING_PLAN_VIEW:
-                dbRes = await (0, checkTrainingPlanViewMod_1.checkTrainingPlanViewMod)({ userId, trainingPlanId: props.id });
-                break;
             case CheckAuthorizationCodeEnum.SPORT_VIEW:
                 dbRes = await (0, checkSharedSportMod_1.checkSharedSportMod)({ userId, sharedSportId: props.id });
                 break;
@@ -79,7 +76,7 @@ const checkAuthorizationCont = async (props) => {
                 return { status: GenResEnum_1.GenEnum.UNAUTHORIZED, message: "Zadán neexistující autorizační kód" };
         }
         if (dbRes.status === GenResEnum_1.GenEnum.SUCCESS) {
-            return { status: GenResEnum_1.GenEnum.SUCCESS, message: "Přístup povolen", data: { userId: dbUserAtr.data.userId, userEmail: dbUserAtr.data.userEmail } };
+            return { status: GenResEnum_1.GenEnum.SUCCESS, message: "Přístup povolen", data: { userId, userEmail: dbUserAtr.data.userEmail } };
         }
         else {
             return { status: GenResEnum_1.GenEnum.UNAUTHORIZED, message: "Přístup zamítnut" };

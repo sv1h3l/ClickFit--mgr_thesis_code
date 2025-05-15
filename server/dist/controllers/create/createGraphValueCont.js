@@ -4,6 +4,7 @@ exports.createGraphValueCont = void 0;
 const createGraphValueMod_1 = require("../../models/create/createGraphValueMod");
 const getHighestGraphValuesOrderNumberMod_1 = require("../../models/get/getHighestGraphValuesOrderNumberMod");
 const GenResEnum_1 = require("../../utilities/GenResEnum");
+const checkAuthorizationCont_1 = require("../residue/checkAuthorizationCont");
 const createGraphValueCont = async (req, res) => {
     const { graphId, yAxisValue, xAxisValue, isGoal, isDefaultGraphValue } = req.body;
     if (!graphId || graphId === -1) {
@@ -15,19 +16,16 @@ const createGraphValueCont = async (req, res) => {
         return;
     }
     try {
-        /* FIXME předělat to, jestli uživatel může přidat hodnotu.
-
-        const checkRes = await checkAuthorizationCont({ req, id: sportId, checkAuthorizationCode: CheckAuthorizationCodeEnum.SPORT_EDIT });
-        if (checkRes.status !== GenEnum.SUCCESS) {
+        const checkRes = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: graphId, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.GRAPH_EDIT });
+        if (checkRes.status !== GenResEnum_1.GenEnum.SUCCESS) {
             res.status(checkRes.status).json({ message: checkRes.message });
             return;
-        }*/
-        /* TODO udělat to i pro default grafy */
-        const resHighestUserOrderNumber = await (0, getHighestGraphValuesOrderNumberMod_1.getHighestGraphValuesOrderNumberMod)({ userId: 2, graphId, isDefaultGraphValue });
+        }
+        const resHighestUserOrderNumber = await (0, getHighestGraphValuesOrderNumberMod_1.getHighestGraphValuesOrderNumberMod)({ userId: checkRes.data?.userId, graphId, isDefaultGraphValue });
         let highestOrderNumber = 1;
         if (resHighestUserOrderNumber.status === GenResEnum_1.GenEnum.SUCCESS && resHighestUserOrderNumber.data?.highestOrderNumber)
             highestOrderNumber = resHighestUserOrderNumber.data?.highestOrderNumber + 1;
-        const dbResult = await (0, createGraphValueMod_1.createGraphValueMod)({ graphId, userId: 2, yAxisValue, xAxisValue, isGoal, isDefaultGraphValue, orderNumber: highestOrderNumber });
+        const dbResult = await (0, createGraphValueMod_1.createGraphValueMod)({ graphId, userId: checkRes.data?.userId, yAxisValue, xAxisValue, isGoal, isDefaultGraphValue, orderNumber: highestOrderNumber });
         res.status(dbResult.status).json({ message: dbResult.message, data: { graphValueId: dbResult.data?.graphValueId, orderNumber: highestOrderNumber } });
     }
     catch (error) {

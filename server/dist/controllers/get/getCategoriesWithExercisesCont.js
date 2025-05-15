@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCategoriesWithExercisesCont = void 0;
 const getCategoriesAndExercisesMod_1 = require("../../models/get/getCategoriesAndExercisesMod");
 const getExercisesMod_1 = require("../../models/get/getExercisesMod");
+const GenResEnum_1 = require("../../utilities/GenResEnum");
+const checkAuthorizationCont_1 = require("../residue/checkAuthorizationCont");
 const getCategoriesWithExercisesCont = async (req, res) => {
     const { sportId } = req.query;
     if (!sportId) {
@@ -13,6 +15,13 @@ const getCategoriesWithExercisesCont = async (req, res) => {
     if (isNaN(sportIdNumber)) {
         // Kontrola, jestli to je validní číslo
         res.status(400).json({ message: "ID sportu musí být číslo", data: [] });
+        return;
+    }
+    const authToken = req.headers["authorization"]?.split(" ")[1];
+    const checkResView = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_VIEW, authToken: authToken ? authToken : undefined });
+    const checkResEdit = await (0, checkAuthorizationCont_1.checkAuthorizationCont)({ req, id: sportIdNumber, checkAuthorizationCode: checkAuthorizationCont_1.CheckAuthorizationCodeEnum.SPORT_EDIT, authToken: authToken ? authToken : undefined });
+    if (checkResView.status !== GenResEnum_1.GenEnum.SUCCESS && checkResEdit.status !== GenResEnum_1.GenEnum.SUCCESS) {
+        res.status(checkResView.status).json({ message: checkResView.message });
         return;
     }
     try {

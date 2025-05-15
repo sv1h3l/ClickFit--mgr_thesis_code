@@ -6,7 +6,7 @@ const GenResEnum_1 = require("../../utilities/GenResEnum");
 const cookie = require("cookie");
 const getUserAtrFromAuthTokenMod = async (props) => {
     let concreteAuthToken;
-    if (props.authToken) {
+    if (props.authToken && props.authToken !== "undefined") {
         concreteAuthToken = props.authToken;
     }
     else {

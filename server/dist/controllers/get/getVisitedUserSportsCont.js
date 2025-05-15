@@ -35,6 +35,7 @@ const getVisitedUserSportsCont = async (req, res) => {
                 hasDifficulties: sport.has_difficulties,
                 hasRecommendedValues: sport.has_recommended_values,
                 hasRecommendedDifficultyValues: sport.has_recommended_difficulty_values,
+                hasAutomaticPlanCreation: sport.has_automatic_plan_creation,
                 unitCode: sport.unit_code,
                 description: sport.description,
             }));

@@ -76,7 +76,7 @@ const getGraphsCont = async (req, res) => {
                 formattedGraphs.push(newGraph);
             });
         }
-        formattedGraphs.sort((a, b) => a.orderNumber - b.orderNumber);
+        formattedGraphs.sort((a, b) => b.orderNumber - a.orderNumber);
         res.status(200).json({ message: "Grafy předány", data: formattedGraphs });
     }
     catch (error) {

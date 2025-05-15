@@ -16,7 +16,7 @@ const createTrainingPlanCont = async (req, res) => {
         const dateOfCreation = `${today.getDate()}. ${today.getMonth() + 1}. ${today.getFullYear()}`;
         const dbResult = await (0, createTrainingPlanMod_1.createTrainingPlanMod)({
             authorId: userAtrs.data.userId,
-            ownerId: props.ownerId,
+            ownerId: props.ownerId === -1 ? userAtrs.data.userId : props.ownerId,
             sportId: props.sportId,
             trainingPlanName: props.trainingPlanName,
             canOwnerEdit: props.canOwnerEdit,
