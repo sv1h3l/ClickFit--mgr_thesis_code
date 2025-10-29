@@ -90,7 +90,7 @@ function GeneralCard({
 				overflowY: "auto",
 				scrollbarGutter: "stable",
 			}}
-			className={`flex flex-col overflow-auto  rounded-3xl border-[3px]  overflow-x-hidden gutter shadow-black shadow-md
+			className={`flex flex-col overflow-auto  rounded-3xl border-[3px]  overflow-x-hidden gutter shadow-black shadow-md 
 						${context.bgPrimaryColor} ${context.borderPrimaryColor}
 						${!zeroXPadding && "px-5"}
 						${!zeroYPadding && "pb-6"}
@@ -102,11 +102,12 @@ function GeneralCard({
 							${!removeJustifyBetween && "justify-between"} ${!zeroYPadding && (secondGeneralCard ? "pt-11" : prolog ? "pt-10" : "pt-3")}`}>
 				{/* První title */}
 				<Box className={`flex items-center ${centerFirstTitle && "justify-center w-full"}`}>
+					{/* HACK style */}
 					{showBackButton ? (
 						<ButtonComp
 							content={IconEnum.ARROW}
 							color="text-white"
-							style="mr-4"
+							style={`mr-4 ${!firstTitle && !secondTitle ? "mt-[0.45rem]" : ""}`}
 							onClick={backButtonClick}
 							contentStyle="rotate-180"
 							size="small"

@@ -945,7 +945,8 @@ const CategoryInformations = (props: Props) => {
 				secondChildren={
 					<Box className="flex flex-col  mt-3">
 						<Box className="flex justify-center w-full">
-							{context.isSmallDevice ? (
+							{/* HACK && props.selectedSport.state?.canUserEdit */}
+							{context.isSmallDevice && props.selectedSport.state?.canUserEdit ? (
 								<ButtonComp
 									content={"Úprava podrobností"}
 									secondContent={IconEnum.EDIT}
@@ -1017,7 +1018,8 @@ const CategoryInformations = (props: Props) => {
 					<Box className="h-full">
 						<Box className="mt-3">
 							<Box className="flex justify-center w-full">
-								{context.isSmallDevice ? (
+								{/* HACK && props.selectedSport.state?.canUserEdit */}
+								{context.isSmallDevice && props.selectedSport.state?.canUserEdit ? (
 									<ButtonComp
 										content={"Úprava popisu"}
 										secondContent={IconEnum.EDIT}

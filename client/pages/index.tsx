@@ -27,7 +27,7 @@ function Index() {
 			</Head>
 
 			<OneColumnPage
-				firstColumnWidth="w-full max-w-lg"
+				firstColumnWidth="w-full max-w-2xl" // HACK tady to opravit v linuxu
 				firstColumnHeight="h-fit"
 				firstColumnChildren={
 					<GeneralCard

@@ -1,29 +1,31 @@
-import genericApiResponse from "../GenericApiResponse";
+import { GenericResponse } from "../GenericApiResponse";
 
-export const verifyEmailRequest = async (token: string) => {
+export const verifyEmailRequest = async (token: string): Promise<GenericResponse<null>> => {
+
+// HACK complete
 	const serverIp = process.env.NEXT_PUBLIC_SERVER_IP || "localhost:5000";
+	try {
+		const response = await fetch(`http://${serverIp}/api/verify-email?token=${token}`, {
+			method: "GET",
+			credentials: "include",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
 
+		const responseData = await response.json().catch(() => ({
+			message: "Server returned an invalid response format",
+		}));
 
-	const response = await fetch(`http://${serverIp}/api/verify-email?token=${token}`, {
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
-
-	if (!response.ok) {
-		const error = new Error(`Error - ${response.status}`);
-		console.error(error);
-		throw error;
+		return {
+			status: response.status,
+			message: responseData.message,
+			data: responseData.data || [],
+		};
+	} catch {
+		return {
+			status: 500,
+			message: "Network error or server unreachable",
+		};
 	}
-
-	const data = await response.json();
-
-	if (!("status" in data) || !("message" in data)) {
-		throw new Error("Invalid API response format");
-	} else{
-		console.log(data.status + ": " + data.message);
-	}
-
-	return data as genericApiResponse<null>; // FIXME
 };

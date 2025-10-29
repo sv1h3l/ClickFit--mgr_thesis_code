@@ -2,6 +2,7 @@ import { Request } from "express";
 import { RowDataPacket } from "mysql2";
 import { db } from "../../server"; // Import připojení k DB
 import { GenEnum, GenRes } from "../../utilities/GenResEnum";
+
 const cookie = require("cookie");
 
 interface Props {

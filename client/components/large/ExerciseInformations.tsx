@@ -18,6 +18,7 @@ import { createExerciseInformationsValReq } from "@/api/create/createExerciseInf
 import { deleteExerciseInformationLabReq } from "@/api/delete/deleteExerciseInformationLabReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { Category } from "@/api/get/getCategoriesWithExercisesReq";
+import { getDifficultiesReq } from "@/api/get/getDifficultiesReq";
 import { getExerciseDifficultiesReq } from "@/api/get/getExerciseDifficultiesReq";
 import { getExerciseInformationValsReq } from "@/api/get/getExerciseInformationValsReq";
 import { Exercise } from "@/api/get/getExercisesReq";
@@ -90,6 +91,8 @@ interface ExerciseInformationProps {
 	editing: StateAndSet<boolean>;
 
 	isActiveFirstChildren: StateAndSet<boolean>;
+
+	onClick?: StateAndSet<boolean>;
 }
 
 const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) => {
@@ -109,6 +112,27 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 	const extractWatchParams = (url: string) => {
 		const match = url.match(/watch\?v=([^&]+)/);
 		return match ? match[1] : "";
+	};
+
+	/* HACK this ↓ */
+	useEffect(() => {
+		if (context.isSmallDevice || context.activeSection === 2) {
+			getDifficulties();
+		}
+	}, [context.isSmallDevice, context.activeSection]);
+
+	const getDifficulties = async () => {
+		try {
+			const response = await getDifficultiesReq({ sportId: props.selectedSport.state!.sportId });
+
+			if (response.status === 200 && response.data) {
+				props.sportDifficultiesData.setState(response.data);
+			}
+
+			consoleLogPrint(response);
+		} catch (error) {
+			console.error("Error: ", error);
+		}
 	};
 
 	const getExerciseInformationValues = async (sportId: number, exerciseId: number) => {
@@ -2034,11 +2058,16 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
+/* HACK backbutton on click + props */
+
 	return (
 		<>
 			<GeneralCard
 				showBackButton={context.isSmallDevice}
-				backButtonClick={() => context.setActiveSection(1)}
+				backButtonClick={() => {
+					context.setActiveSection(1);
+					if (props.onClick && context.isSmallDevice) props.onClick.setState(false);
+				}}
 				key={props.exerciseId}
 				showFirstSection={{ state: props.isActiveFirstChildren.state, setState: props.isActiveFirstChildren.setState }}
 				secondTitle="Podrobnosti"
@@ -2048,7 +2077,8 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 				secondChildren={
 					<Box className="flex flex-col  mt-3 gap-2">
 						<Box className="flex justify-center w-full">
-							{context.isSmallDevice ? (
+							{/* HACK && props.selectedSport.state?.canUserEdit */}
+							{context.isSmallDevice && props.selectedSport.state?.canUserEdit ? (
 								<ButtonComp
 									content={"Úprava podrobností"}
 									secondContent={IconEnum.EDIT}
@@ -2422,7 +2452,8 @@ const ExerciseInformations = ({ props }: { props: ExerciseInformationProps }) =>
 				firstChildren={
 					<Box className="h-full  pt-3">
 						<Box className="flex justify-center w-full">
-							{context.isSmallDevice ? (
+							{/* HACK && props.selectedSport.state?.canUserEdit */}
+							{context.isSmallDevice && props.selectedSport.state?.canUserEdit ? (
 								<ButtonComp
 									content={"Úprava popisu"}
 									secondContent={IconEnum.EDIT}

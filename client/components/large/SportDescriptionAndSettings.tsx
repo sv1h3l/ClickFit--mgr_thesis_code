@@ -631,6 +631,21 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 				firstChildren={
 					props.selectedSport && (
 						<Box className="mt-3">
+							<Box className="flex justify-center w-full">
+								{/* HACK celý button*/}
+								{context.isSmallDevice && props.selectedSport.state?.canUserEdit ? (
+									<ButtonComp
+										content={"Úprava popisu"}
+										secondContent={IconEnum.EDIT}
+										size="medium"
+										style="mb-6"
+										secondContentStyle="mr-1"
+										externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+										onClick={() => props.editing.setState(!props.editing.state)}
+									/>
+								) : null}
+							</Box>
+
 							{props.editing.state ? (
 								<Box className="relative">
 									<TextField
@@ -691,6 +706,21 @@ const SportDescriptionAndSettings = (props: SportDescriptionAndSettingsProps) =>
 				secondChildren={
 					props.selectedSport && (
 						<Box className="flex flex-col items-start ">
+							<Box className="flex justify-center w-full">
+								{/* HACK celý button*/}
+								{context.isSmallDevice && props.selectedSport.state?.canUserEdit ? (
+									<ButtonComp
+										content={"Úprava nastavení"}
+										secondContent={IconEnum.EDIT}
+										size="medium"
+										style="mb-2 mt-3"
+										secondContentStyle="mr-1"
+										externalClicked={{ state: props.editing.state, setState: props.editing.setState }}
+										onClick={() => props.editing.setState(!props.editing.state)}
+									/>
+								) : null}
+							</Box>
+
 							{props.editing.state ? (
 								<Box className=" flex items-start mr-3 mt-3 mb-8 w-1/2">
 									<LabelAndValue

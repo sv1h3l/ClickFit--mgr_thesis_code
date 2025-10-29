@@ -1,47 +1,47 @@
-import { Button, Typography } from "@mui/material";
+import GeneralCard from "@/components/large/GeneralCard";
+import ButtonComp from "@/components/small/ButtonComp";
+import { Box, Typography } from "@mui/material";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Card from "../components/small/Card";
-import GenericResponse from "../api/GenericApiResponse";
 import { verifyEmailRequest } from "../api/residue/verifyEmailRequest";
+import OneColumnPage from "@/components/large/OneColumnPage";
 
+// HACK complete
 const Verification = () => {
 	const router = useRouter();
 	const [statusMessage, setStatusMessage] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 
+	const [verified, setVerified] = useState(false);
+
 	// Funkce pro ověření tokenu
 	const verifyEmail = async (token: string) => {
 		try {
-			const data: GenericResponse<null> = await verifyEmailRequest(token);
+			const res = await verifyEmailRequest(token);
 
-			setStatusMessage(data.message);
+			if (res.status === 200) setVerified(true);
+
+			setStatusMessage(res.message);
 		} catch (error) {
-			if (error instanceof Error) {
-				setStatusMessage(error.message);
-			} else {
-				setStatusMessage("Nastala neznámá chyba.");
-			}
+			setStatusMessage("Nastala neznámá chyba. Pokuste se ověření zopakovat.");
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	// Získání tokenu z URL
 	useEffect(() => {
+		if (!router.isReady) return;
+
 		const { token } = router.query;
-		if (token) {
-			verifyEmail(token as string);
+
+		if (token && typeof token === "string") {
+			verifyEmail(token);
 		} else {
 			setStatusMessage("Chyba při ověřování tokenu.");
 			setIsLoading(false);
 		}
-	}, [router.query]);
-
-	const routeToLogin = () => {
-		router.push("/login");
-	};
+	}, [router.isReady, router.query]);
 
 	return (
 		<>
@@ -49,34 +49,43 @@ const Verification = () => {
 				<title>Verifikace - KlikFit</title>
 			</Head>
 
-			<Card>
-				<Typography
-					variant="h5"
-					component="div"
-					gutterBottom
-					style={{ textAlign: "center" }}
-					className="mb-4">
-					Verifikace
-				</Typography>
+			<OneColumnPage
+				firstColumnWidth="w-full max-w-lg"
+				firstColumnHeight="h-fit"
+				firstColumnChildren={
+					<GeneralCard
+						centerFirstTitle
+						prolog
+						dontShowHr
+						firstTitle="Ověření registrace"
+						firstChildren={
+							<Box className={`flex flex-col items-center ${""}`}>
+								<Typography
+									className="mt-2 mb-10">
+									{isLoading ? "Načítání..." : statusMessage}
+								</Typography>
 
-				<div className="max-w-sm">
-					<Typography
-						variant="body1"
-						component="div"
-						style={{ textAlign: "center" }}
-						className="mb-4">
-						{isLoading ? "Načítání..." : statusMessage}
-					</Typography>
 
-					<Button
-						variant="contained"
-						color="primary"
-						onClick={routeToLogin}
-						disabled={isLoading}>
-						Přihlásit se
-					</Button>
-				</div>
-			</Card>
+								<ButtonComp
+									disabled={isLoading}
+									content={verified ? "Přihlásit se" : "Přejít na úvodní stránku"}
+									size="medium"
+									style="mb-4"
+									justClick
+									dontChangeOutline
+									onClick={() => {
+										if (verified) {
+											router.push("/login");
+										} else {
+											router.push("/");
+										}
+									}}
+								/>
+							</Box>
+						}
+					/>
+				}
+			/>
 		</>
 	);
 };

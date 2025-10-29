@@ -1,12 +1,12 @@
 import { createConnectionReq } from "@/api/create/createConnectionReq";
 import { consoleLogPrint } from "@/api/GenericApiResponse";
 import { ConnectedUser } from "@/pages/connection";
+import { useAppContext } from "@/utilities/Context";
 import { StateAndSetFunction } from "@/utilities/generalInterfaces";
 import { Box, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import ButtonComp, { IconEnum } from "../small/ButtonComp";
 import CustomModal from "../small/CustomModal";
-import { useAppContext } from "@/utilities/Context";
 
 interface Props {
 	connectionCode: number;
@@ -280,35 +280,38 @@ const NewConnection = (props: Props) => {
 				</Box>
 			</Box>
 
-			<CustomModal
-				isOpen={isModalOpen}
-				title={modalCode < 2 ? "Nové spojení navázáno" : "Nové spojení nenavázáno"}
-				hideBackButton
-				children={
-					<Box className=" mb-4 max-w-md px-4">
-						<Typography className="">
-							{modalCode === 1
-								? `Spojení s uživatelem ${connectionString} je úspěšně navázáno.`
-								: modalCode === 2
-								? `Uživatel s kódem ${connectionString} neexistuje.`
-								: modalCode === 3
-								? "Nelze navázat spojení sám se sebou."
-								: modalCode === 4
-								? `Spojení s uživatelem ${connectionString} je již navázáno.`
-								: `Kód musí být 12ciferné číslo.`}
-						</Typography>
+			{context.isSmallDevice ? (
+				<CustomModal
+					isOpen={isModalOpen}
+					title={modalCode < 2 ? "Nové spojení navázáno" : "Nové spojení nenavázáno"}
+					hideBackButton
+					style="max-w-lg w-full px-4"
+					children={
+						<Box className=" mb-4 ">
+							<Typography className="">
+								{modalCode === 1
+									? `Spojení s uživatelem ${connectionString} je úspěšně navázáno.`
+									: modalCode === 2
+									? `Uživatel s kódem ${connectionString} neexistuje.`
+									: modalCode === 3
+									? "Nelze navázat spojení sám se sebou."
+									: modalCode === 4
+									? `Spojení s uživatelem ${connectionString} je již navázáno.`
+									: `Kód musí být 12ciferné číslo.`}
+							</Typography>
 
-						<ButtonComp
-							style="mx-auto mt-9"
-							size="medium"
-							content={"Pokračovat"}
-							onClick={() => {
-								setIsModalOpen(false);
-							}}
-						/>
-					</Box>
-				}
-			/>
+							<ButtonComp
+								style="mx-auto mt-9"
+								size="medium"
+								content={"Pokračovat"}
+								onClick={() => {
+									setIsModalOpen(false);
+								}}
+							/>
+						</Box>
+					}
+				/>
+			) : null}
 		</>
 	);
 };

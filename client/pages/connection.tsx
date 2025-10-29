@@ -53,7 +53,13 @@ const Connection = (props: Props) => {
 						firstTitle="Spojení"
 						secondTitle={context.isSmallDevice ? "Nová spojení" : ""}
 						height="h-full"
-						firstChildren={<Connections connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }} />}
+						firstChildren={
+							<Connections
+								modalCode={props.modalCode}
+								connectionString={props.connectionString}
+								connectedUsers={{ state: connectedUsers, setState: setConnectedUsers }}
+							/>
+						}
 						secondChildren={
 							context.isSmallDevice ? (
 								<NewConnection

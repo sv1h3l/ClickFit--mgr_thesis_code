@@ -972,6 +972,7 @@ const SportsAndExercises = ({ props }: { props: SportsProps }) => {
 										onClick={() => {
 											props.selectedCategory.setState(null);
 											props.selectedSportOrExercise.setState(exercise);
+											context.setActiveSection(2);
 										}}
 									/>
 									{props.editing.state && (

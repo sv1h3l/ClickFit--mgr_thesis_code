@@ -132,6 +132,10 @@ const TrainingPlan = (props: Props) => {
 
 	const [isActiveFirstChildren, setIsActiveFirstChildren] = useState<boolean>(true);
 
+	{
+		/* HACK complete*/
+	}
+
 	return (
 		<>
 			<Head>
@@ -139,8 +143,8 @@ const TrainingPlan = (props: Props) => {
 			</Head>
 
 			<TwoColumnsPage
-				firstColumnWidth={showDescription ? "w-1/2" : "max-w-[60rem] w-full"}
-				secondColumnWidth={showDescription ? "w-1/2" : "w-0"}
+				firstColumnWidth={showDescription && !context.isSmallDevice ? "w-1/2" : !showDescription ? "max-w-[60rem] w-full" : "w-0"}
+				secondColumnWidth={showDescription && !context.isSmallDevice ? "w-1/2" : showDescription && context.isSmallDevice ? "w-full" : "w-0"}
 				firstColumnChildren={
 					<GeneralCard
 						showBackButton
@@ -166,9 +170,11 @@ const TrainingPlan = (props: Props) => {
 											className={` mt-3  flex flex-col w-full border-2 bg-primary_border_color-neutral rounded-xl overflow-hidden h-fit
 														${context.borderPrimaryColor}`}>
 											<Box
-												className={`flex items-center gap-8 border-b-2 px-3  h-12
+												className={`flex   border-b-2 px-3  
 															${context.bgTertiaryColor}
-															${clickedExercise === category.nthCategory + "-1" ? context.borderPrimaryColor : context.borderTertiaryColor}`}>
+															${clickedExercise === category.nthCategory + "-1" ? context.borderPrimaryColor : context.borderTertiaryColor}
+															${context.windowWidth < 550 ? "flex-col min-h-12 gap-2 py-2 items-end" : " items-center h-12 gap-8"}
+															`}>
 												<Box className="w-full h-full items-center flex">
 													<Typography className="text-lg ">{category.categoryName.length > 0 ? category.categoryName : "Cviky"}</Typography>
 												</Box>
@@ -250,6 +256,7 @@ const TrainingPlan = (props: Props) => {
 														key={exercise.nthExercise}
 														id={`exercise-${exercise.nthDay}-${exercise.nthCategory}-${exercise.nthExercise}`}
 														className={`flex items-center px-3 py-2 min-h-12 transition-all duration-200 
+																
 																	${
 																		clickedExercise === exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString() && exercise.nthExercise !== category.exercises.length
 																			? context.bgQuaternaryColor + context.borderQuaternaryColor + "border-b-2"
@@ -287,17 +294,21 @@ const TrainingPlan = (props: Props) => {
 																} else setConcreteExerciseExists(false);
 															}
 														}}>
-														<Box className="flex w-full items-center h-full">
-															<Typography
-																className={`transition-all duration-300    font-light
+														<Box
+															className={`flex w-full  h-full
+															${context.windowWidth < 550 ? "flex-col min-h-12 gap-2  items-end" : " items-center h-12 gap-8"}`}>
+															<Box className="flex mr-auto">
+																<Typography
+																	className={`transition-all duration-300    font-light
 																${clickedExercise === exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString() ? "w-2 opacity-50" : "opacity-0"}`}>
-																{clickedExercise === exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString() ? "»" : ""}
-															</Typography>
-															<Typography
-																className={` w-full transition-all duration-200
+																	{clickedExercise === exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString() ? "»" : ""}
+																</Typography>
+																<Typography
+																	className={` w-full transition-all duration-200
 																					${clickedExercise === exercise.nthCategory.toString() + "-" + exercise.nthExercise.toString() ? "translate-x-2" : "font-light tracking-[0.02rem]"}`}>
-																{exercise.exerciseName}
-															</Typography>
+																	{exercise.exerciseName}
+																</Typography>
+															</Box>
 
 															<Box
 																className={`flex items-center 
@@ -335,6 +346,7 @@ const TrainingPlan = (props: Props) => {
 						concreteExerciseExists ? (
 							<ExerciseInformations
 								props={{
+									onClick: { state: showDescription, setState: setShowDescription },
 									sportId: props.trainingPlan?.sportId || -1,
 									exerciseId: selectedExercise?.exerciseId || -1,
 
@@ -374,6 +386,11 @@ const TrainingPlan = (props: Props) => {
 							/>
 						) : (
 							<GeneralCard
+								showBackButton={context.isSmallDevice}
+								backButtonClick={() => {
+									context.setActiveSection(1);
+									setShowDescription(false);
+								}}
 								dontShowHr
 								height="h-full"
 								firstChildren={
